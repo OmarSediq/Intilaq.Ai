@@ -7,13 +7,10 @@ import os
 from dotenv import load_dotenv
 
 
-# تحميل متغيرات البيئة
 load_dotenv()
 
-# تعيين مفتاح API بأمان
 genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
-# إعداد النموذج التوليدي
 model = GenerativeModel(model_name="gemini-1.5-flash")
 
 async def generate_objective_from_ai(job_title: str, years_of_experience: int) -> list:
@@ -28,11 +25,10 @@ async def generate_objective_from_ai(job_title: str, years_of_experience: int) -
         )
         human_message = f"Generate a career objective for the job title '{job_title}' with {years_of_experience} years of experience."
         
-        # إنشاء الـ prompt الصحيح
         prompt = f"{system_message}\n\nUser: {human_message}"
         response = model.generate_content(prompt)
 
-        return response.text.split("\n")  # تقسيم الرد إلى أسطر
+        return response.text.split("\n") 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate objective: {str(e)}")
 
@@ -48,7 +44,6 @@ async def fetch_project_descriptions_from_ai(project_name: str) -> list:
         )
         human_message = f"Generate a project description for the project titled '{project_name}'."
         
-        # إنشاء الـ prompt الصحيح
         prompt = f"{system_message}\n\nUser: {human_message}"
         response = model.generate_content(prompt)
 
@@ -72,7 +67,6 @@ async def generate_experience_from_ai(role: str, start_date: date, end_date: Opt
             f"{end_date if end_date else 'present'}. Include accomplishments and format dates as 'Month YYYY'."
         )
 
-        # إنشاء الـ prompt الصحيح
         prompt = f"{system_message}\n\nUser: {human_message}"
         response = model.generate_content(prompt)
 
@@ -96,14 +90,11 @@ async def generate_skills_from_ai(job_title: str, years_of_experience: int) -> d
         )
         human_message = f"Generate a list of technical, programming, and language skills for a {job_title} with {years_of_experience} years of experience."
         
-        # إنشاء الـ prompt الصحيح
         prompt = f"{system_message}\n\nUser: {human_message}"
         response = model.generate_content(prompt)
 
-        # تحويل الاستجابة إلى JSON (لأن Google Gemini يعيد النصوص كـ `response.text`)
         skills_text = response.text.strip().split("\n")
 
-        # تنظيم الاستجابة في هيكل بيانات مناسب
         skills = {
             "Technical Skills": [],
             "Programming Skills": [],
@@ -143,7 +134,6 @@ async def generate_volunteering_description_from_ai(activity_role: str) -> list:
             "organization names, city, state, roles, or dates."
         )
 
-        # إعداد الـ prompt
         prompt = f"System: {system_message}\nHuman: {human_message}"
         response = model.generate_content(prompt)
 

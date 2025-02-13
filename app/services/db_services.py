@@ -1,10 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import delete
+from sqlalchemy.sql import text
 from app.models import User, ResetCode,Header,Education,Experience,Objective,VolunteeringExperience,SkillsLanguages,Awards,Certifications,Projects,LoginAttempt
 from app.dependencies import get_password_hash
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
+import json
 
 async def create_user(username: str, password: str, email: str, db: AsyncSession):
     """
@@ -141,6 +143,49 @@ async def get_user_by_id(user_id: int, db: AsyncSession):
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
+
+async def get_user_by_header_id(db: AsyncSession, header_id: int):
+    query = text("""
+       SELECT 
+        h.full_name AS name, h.email, h.phone_number AS phone, h.address AS location,
+        h.linkedin_profile AS linkedin, h.github_profile AS portfolio,
+        COALESCE(o.description, '') AS career_objective, 
+        COALESCE(json_agg(DISTINCT e.*), '[]') AS education,
+        COALESCE(json_agg(DISTINCT exp.*), '[]') AS experience,
+        COALESCE(json_agg(DISTINCT p.*), '[]') AS projects,
+        COALESCE(json_agg(DISTINCT s.skills), '[]') AS skills,
+        COALESCE(json_agg(DISTINCT v.*), '[]') AS volunteer
+    FROM header h
+    LEFT JOIN objective o ON h.id = o.header_id
+    LEFT JOIN education e ON h.id = e.header_id
+    LEFT JOIN experience exp ON h.id = exp.header_id
+    LEFT JOIN projects p ON h.id = p.header_id
+    LEFT JOIN skills_languages s ON h.id = s.header_id
+    LEFT JOIN volunteering_experience v ON h.id = v.header_id
+    WHERE h.id = :header_id
+    GROUP BY h.id, o.description;
+    """)
+
+    result = await db.execute(query, {"header_id": header_id})
+    user = result.mappings().first()  
+
+    print("Raw Data from Database:", user)  
+
+    if not user:
+        return None  
+
+    user_dict = dict(user)
+
+    print("User Dictionary Before Processing JSON:", user_dict)  
+
+    for key in ["education", "experience", "projects", "skills", "volunteer"]:
+        if isinstance(user_dict.get(key), str):  
+            user_dict[key] = json.loads(user_dict[key])
+
+    print("User Dictionary After Processing JSON:", user_dict)  
+
+    return user_dict
 
 # --------------------- Header Management --------------------- #
 

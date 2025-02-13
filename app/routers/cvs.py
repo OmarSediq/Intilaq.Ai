@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends,Response
 from sqlalchemy.ext.asyncio import AsyncSession 
 from sqlalchemy import Date
 from app.dependencies import get_db 
@@ -7,9 +7,11 @@ from pydantic import BaseModel, EmailStr,HttpUrl
 from typing import Optional, List
 from datetime import date
 from sqlalchemy.future import select
-
+from jinja2 import Template
+from weasyprint import HTML
 from app.services.mongo_services import add_template,update_template,delete_template,list_templates,get_template_by_id
 from app.services.ai_services import generate_objective_from_ai,fetch_project_descriptions_from_ai,generate_experience_from_ai,generate_skills_from_ai,generate_volunteering_description_from_ai
+from app.services.db_services import get_user_by_header_id
 router = APIRouter()
 
 # --------------------- Models --------------------- #
@@ -39,6 +41,12 @@ class ExperienceRequest(BaseModel):
     role: str
     start_date: date
     end_date: Optional[date]
+    company_name: Optional[str] = None
+
+    @staticmethod
+    def validate_dates(start_date: date, end_date: Optional[date]):
+        if end_date and start_date > end_date:
+            raise ValueError("Start date cannot be after end date")
 
 class ExperienceSaveRequest(BaseModel):
     header_id: int
@@ -70,12 +78,17 @@ class SkillsLanguagesRequest(BaseModel):
     level: Optional[str] = None
 
 class GenerateSkillsRequest(BaseModel):
+    header_id:int
     job_title: str
     years_of_experience: int
 
 class SaveSkillsRequest(BaseModel):
     header_id: int
-    selected_skills: str  # يمكن أن يكون JSON أو نص
+    selected_skills: str  
+    selected_language:str
+    selected_level:str
+
+
 # # Projects
 # class ProjectRequest(BaseModel):
 #     header_id: int
@@ -196,24 +209,35 @@ async def delete_header(header_id: int, db: AsyncSession = Depends(get_db)):
 # Experience Endpoints
 @router.post("/api/experiences/")
 async def create_experience(request: ExperienceRequest, db: AsyncSession = Depends(get_db)):
+    ExperienceRequest.validate_dates(request.start_date, request.end_date)
     experience = Experience(**request.dict())
     db.add(experience)
+    await db.flush()  
     await db.commit()
     await db.refresh(experience)
     return {"message": "Experience created successfully", "data": experience}
 
 @router.get("/api/experiences/{experience_id}/")
 async def get_experience(experience_id: int, db: AsyncSession = Depends(get_db)):
-    experience = await db.get(Experience, experience_id)
+    stmt = select(Experience).where(Experience.id == experience_id)
+    result = await db.execute(stmt)
+    experience = result.scalars().first()
+
     if not experience:
         raise HTTPException(status_code=404, detail="Experience not found")
+    
     return {"data": experience}
 
 @router.put("/api/experiences/{experience_id}/")
 async def update_experience(experience_id: int, request: ExperienceRequest, db: AsyncSession = Depends(get_db)):
-    experience = await db.get(Experience, experience_id)
+    stmt = select(Experience).where(Experience.id == experience_id)
+    result = await db.execute(stmt)
+    experience = result.scalars().first()
+
     if not experience:
         raise HTTPException(status_code=404, detail="Experience not found")
+
+    request.validate_dates(request.start_date, request.end_date)
     for key, value in request.dict(exclude_unset=True).items():
         setattr(experience, key, value)
     await db.commit()
@@ -222,9 +246,13 @@ async def update_experience(experience_id: int, request: ExperienceRequest, db: 
 
 @router.delete("/api/experiences/{experience_id}/")
 async def delete_experience(experience_id: int, db: AsyncSession = Depends(get_db)):
-    experience = await db.get(Experience, experience_id)
+    stmt = select(Experience).where(Experience.id == experience_id)
+    result = await db.execute(stmt)
+    experience = result.scalars().first()
+
     if not experience:
         raise HTTPException(status_code=404, detail="Experience not found")
+
     await db.delete(experience)
     await db.commit()
     return {"message": "Experience deleted successfully"}
@@ -268,11 +296,8 @@ async def delete_education(education_id: int, db: AsyncSession = Depends(get_db)
 async def create_skills_languages(request: SkillsLanguagesRequest, db: AsyncSession = Depends(get_db)):
     """Create a new Skills & Languages entry (POST)."""
 
-    # التحقق من المهارات أو تعيين قيمة افتراضية إذا كانت مفقودة
     if not request.skills:
-        request.skills = "Default Skill"  # يمكنك تعديل القيمة الافتراضية حسب الحاجة
-
-    # إنشاء سجل جديد في قاعدة البيانات
+        request.skills = "Default Skill"  
     skills_languages = SkillsLanguages(**request.dict())
     db.add(skills_languages)
     await db.commit()
@@ -284,7 +309,6 @@ async def create_skills_languages(request: SkillsLanguagesRequest, db: AsyncSess
 @router.get("/api/skills-languages/{skills_id}/")
 async def get_skills_languages(skills_id: int, db: AsyncSession = Depends(get_db)):
     """Get Skills & Languages by ID (GET)."""
-    # جلب المهارات من قاعدة البيانات
     skills_languages = await db.get(SkillsLanguages, skills_id)
     if not skills_languages:
         raise HTTPException(status_code=404, detail="Skills & Languages not found")
@@ -472,7 +496,6 @@ async def save_volunteering_description(
                 detail="Provided header_id does not match the existing volunteering record",
             )
 
-        # تحديث الوصف
         volunteering.description = request.selected_description
         await db.commit()
 
@@ -562,7 +585,6 @@ async def read_templates():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching templates: {e}")
 
-# تحديث قالب
 @router.put("/api/templates/{template_id}/")
 async def update_template_endpoint(template_id: str, request: TemplateRequest):
     updated_template = await update_template(template_id, request.dict())
@@ -570,31 +592,77 @@ async def update_template_endpoint(template_id: str, request: TemplateRequest):
         raise HTTPException(status_code=404, detail="Template not found")
     return {"message": "Template updated successfully", "data": updated_template}
 
-# حذف قالب
 @router.delete("/api/templates/{template_id}/")
 async def delete_template_endpoint(template_id: str):
     success = await delete_template(template_id)
     if not success:
         raise HTTPException(status_code=404, detail="Template not found")
     return {"message": "Template deleted successfully"}
+@router.get("/api/generate-cv/{header_id}/{template_id}")
+async def generate_cv(header_id: int, template_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    Generate a CV as a PDF using a template from MongoDB and user data from PostgreSQL.
+    """
+
+    user_data = await get_user_by_header_id(db, header_id)
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    template_data = await get_template_by_id(template_id)
+    if not template_data or "html_content" not in template_data:
+        raise HTTPException(status_code=404, detail="Template not found or invalid")
+
+    template_html = template_data["html_content"]
+    template = Template(template_html)
+    try:
+        html_content = template.render(user_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error rendering template: {str(e)}")
+
+    try:
+        pdf = HTML(string=html_content).write_pdf()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
+
+    filename = f"{user_data.get('name', 'Generated_CV')}_CV.pdf"
+
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 
 
 @router.post("/api/objectives/suggestions/")
-async def generate_objective_suggestions(request: ObjectiveRequest):
+async def generate_objective_suggestions(request: ObjectiveRequest, db: AsyncSession = Depends(get_db)):
     try:
+      
+        db_objective = Objective(
+            header_id=request.header_id,
+            description=""  
+        )
+        db.add(db_objective)
+        await db.commit()
+        await  db.refresh(db_objective)  
+
+       
         ai_suggestions = await generate_objective_from_ai(
             job_title=request.job_title,
             years_of_experience=request.years_of_experience
         )
+
         return {
             "message": "AI suggestions generated successfully",
+            "objective_id": db_objective.id,  
+            "header_id": request.header_id,
             "suggestions": ai_suggestions
         }
     except HTTPException as e:
         raise e
     except Exception as e:
+        await db.rollback()  
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 @router.put("/api/objectives/save-description/{objective_id}")
@@ -708,33 +776,44 @@ async def save_experience_description(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating experience description: {str(e)}")
     
-    
 @router.post("/api/skills/suggestions/")
-async def generate_skills_suggestions(request: GenerateSkillsRequest):
+async def generate_skills_suggestions(request: GenerateSkillsRequest, db: AsyncSession = Depends(get_db)):
     """
     Generate AI-based suggestions for skills based on job title and years of experience using Google Gemini AI.
     """
     try:
+        db_skills_languages = SkillsLanguages(  
+            header_id=request.header_id,
+            skills="",  
+            languages="",
+            level=None  
+        )
+        db.add(db_skills_languages)
+        await db.commit()
+        await db.refresh(db_skills_languages)
+
         ai_suggestions = await generate_skills_from_ai(
             job_title=request.job_title,
             years_of_experience=request.years_of_experience
         )
+
         return {
             "message": "AI suggestions generated successfully",
             "suggestions": ai_suggestions
         }
     except HTTPException as e:
+        await db.rollback()
         raise e
     except Exception as e:
+        await db.rollback()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-
 
 @router.put("/api/skills/save/{skills_id}")
 async def save_skills(
     skills_id: int, request: SaveSkillsRequest, db: AsyncSession = Depends(get_db)
 ):
     """
-    Save the selected skills to the database using SaveSkillsRequest.
+    Save the selected skills, languages, and level to the database using SaveSkillsRequest.
     """
     try:
         skills_record = await db.get(SkillsLanguages, skills_id)
@@ -749,10 +828,21 @@ async def save_skills(
             )
 
         skills_record.skills = request.selected_skills
+        skills_record.languages = request.selected_language  
+        skills_record.level = request.selected_level  
 
         await db.commit()
+        await db.refresh(skills_record) 
 
-        return {"message": "Skills updated successfully", "data": request.selected_skills}
+        return {
+            "message": "Skills updated successfully",
+            "data": {
+                "skills": skills_record.skills,
+                "languages": skills_record.languages,
+                "level": skills_record.level
+            }
+        }
 
     except Exception as e:
+        await db.rollback()  
         raise HTTPException(status_code=500, detail=f"Error updating skills: {str(e)}")
