@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        body {
+            font-family: 'Times New Roman', serif;
+            color: #000;
+            width: 100%;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 22px;
+            font-weight: bold;
+            display: inline;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .header p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .contact-info {
+            text-align: center;
+        }
+        .contact-info a {
+            color: #4b0082;
+            text-decoration: none;
+        }
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        .job-title {
+            font-size: 16px;
+            font-weight: normal;
+            color: #444;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 2px solid black;
+            margin-top: 20px;
+            padding-bottom: 5px;
+        }
+        .content {
+            margin-top: 5px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .experience-item, .education-item {
+            margin-bottom: 10px;
+        }
+        .experience-item h3, .education-item h3 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .experience-item p, .education-item p {
+            font-size: 14px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ full_name }}</h1> <span class="job-title">| {{ job_title }}</span>
+    </div>
+    <div class="contact-info">
+        <p>(+{{ phone_number }}) | <a href="mailto:{{ email }}">{{ email }}</a> | {{ address }}</p>
+        <p><a href="{{ linkedin_profile }}">{{ linkedin_profile }}</a></p>
+        <p><a href="{{ github_profile }}">{{ github_profile }}</a> (Portfolio)</p>
+    </div>
+    
+    {% if objective %}
+        <div class="section-title">Career Objective</div>
+        <p class="content">{{ objective }}</p>
+    {% endif %}
+
+    {% if education %}
+        <div class="section-title">Education</div>
+        {% for edu in education %}
+            <div class="education-item">
+                <h3>{{ edu.degree_and_major }}</h3>
+                <p>{{ edu.school }} | {{ edu.start_date }} - {% if edu.end_date %}{{ edu.end_date }}{% else %}Present{% endif %}</p>
+                {% if edu.description %}<p>{{ edu.description }}</p>{% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if experience %}
+        <div class="section-title">Experience & Internships</div>
+        {% for exp in experience %}
+            <div class="experience-item">
+                <h3>{{ exp.role }} at {{ exp.company_name }}</h3>
+                <p>{{ exp.location }} | {{ exp.start_date }} - {% if exp.end_date %}{{ exp.end_date }}{% else %}Present{% endif %}</p>
+                <ul>
+                    {% for point in exp.responsibilities %}
+                        <li>{{ point }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if skills_languages %}
+        <div class="section-title">Skills & Languages</div>
+        <p>{{ skills_languages.skills }}</p>
+        <p>{{ skills_languages.languages }}</p>
+    {% endif %}
+
+    {% if certifications %}
+        <div class="section-title">Certifications</div>
+        {% for cert in certifications %}
+            <div class="content">
+                <p><strong>{{ cert.certification_title }}</strong></p>
+                {% if cert.link %}<p><a href="{{ cert.link }}">View Certification</a></p>{% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if projects %}
+        <div class="section-title">Projects</div>
+        {% for project in projects %}
+            <div class="content">
+                <p><strong>{{ project.project_name }}</strong>: {{ project.description }}</p>
+                <p><strong>Tools:</strong> {{ project.tools }}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if volunteering_experience %}
+        <div class="section-title">Volunteer Activities</div>
+        {% for vol in volunteering_experience %}
+            <div class="content">
+                <p><strong>{{ vol.role }}</strong> at {{ vol.organization }} ({{ vol.start_date }} - {% if vol.end_date %}{{ vol.end_date }}{% else %}Present{% endif %})</p>
+                <ul>
+                    {% for point in vol.responsibilities %}
+                        <li>{{ point }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if awards %}
+        <div class="section-title">Awards</div>
+        {% for award in awards %}
+            <div class="content">
+                <p><strong>{{ award.award }}</strong> - {{ award.organization }} ({{ award.start_date }} - {% if award.end_date %}{{ award.end_date }}{% else %}Present{% endif %})</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

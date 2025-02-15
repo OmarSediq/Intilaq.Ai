@@ -4,9 +4,7 @@ from app.models import Base
 from app.dependencies import postgres_engine
 from app.routers.auth import router as app_router
 from app.routers.cvs import router as cv_router
-from app.middlewares import setup_cors 
 from app.services.mongo_services import mongo_client 
-from app.scripts.insert_template import insert_default_template
 
 
 
@@ -16,7 +14,6 @@ app = FastAPI()
 # Add application routes
 app.include_router(app_router)
 app.include_router(cv_router)
-setup_cors(app)
 
 async def create_tables():
     """
@@ -48,7 +45,3 @@ async def on_shutdown():
     mongo_client.close()
     print("MongoDB connection closed.")
 
-@app.on_event("startup")
-async def startup_event():
-    print("Running insert_default_template() on startup...")
-    await insert_default_template()

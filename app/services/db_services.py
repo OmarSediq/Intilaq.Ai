@@ -148,14 +148,33 @@ async def get_user_by_id(user_id: int, db: AsyncSession):
 async def get_user_by_header_id(db: AsyncSession, header_id: int):
     query = text("""
        SELECT 
-        h.full_name AS name, h.email, h.phone_number AS phone, h.address AS location,
-        h.linkedin_profile AS linkedin, h.github_profile AS portfolio,
-        COALESCE(o.description, '') AS career_objective, 
-        COALESCE(json_agg(DISTINCT e.*), '[]') AS education,
-        COALESCE(json_agg(DISTINCT exp.*), '[]') AS experience,
-        COALESCE(json_agg(DISTINCT p.*), '[]') AS projects,
-        COALESCE(json_agg(DISTINCT s.skills), '[]') AS skills,
-        COALESCE(json_agg(DISTINCT v.*), '[]') AS volunteer
+        h.full_name AS full_name, h.job_title, h.email, h.phone_number AS phone_number, h.address,
+        h.years_of_experience, h.linkedin_profile, h.github_profile,
+        COALESCE(o.description, '') AS objective, 
+
+        COALESCE(json_agg(DISTINCT e.*) FILTER (WHERE e.id IS NOT NULL), '[]') AS education,
+        COALESCE(json_agg(DISTINCT exp.*) FILTER (WHERE exp.id IS NOT NULL), '[]') AS experience,
+        COALESCE(json_agg(DISTINCT p.*) FILTER (WHERE p.id IS NOT NULL), '[]') AS projects,
+        COALESCE(json_agg(DISTINCT v.*) FILTER (WHERE v.id IS NOT NULL), '[]') AS volunteering_experience,
+
+        COALESCE(json_agg(DISTINCT jsonb_build_object(
+            'skills', s.skills, 
+            'languages', s.languages,
+            'level', s.level
+        )) FILTER (WHERE s.id IS NOT NULL), '[]') AS skills_languages,
+
+        COALESCE(json_agg(DISTINCT jsonb_build_object(
+            'certification_title', c.certification_title, 
+            'link', c.link
+        )) FILTER (WHERE c.id IS NOT NULL), '[]') AS certifications,
+
+        COALESCE(json_agg(DISTINCT jsonb_build_object(
+            'award', a.award, 
+            'organization', a.organization, 
+            'start_date', a.start_date, 
+            'end_date', a.end_date
+        )) FILTER (WHERE a.id IS NOT NULL), '[]') AS awards
+
     FROM header h
     LEFT JOIN objective o ON h.id = o.header_id
     LEFT JOIN education e ON h.id = e.header_id
@@ -163,9 +182,13 @@ async def get_user_by_header_id(db: AsyncSession, header_id: int):
     LEFT JOIN projects p ON h.id = p.header_id
     LEFT JOIN skills_languages s ON h.id = s.header_id
     LEFT JOIN volunteering_experience v ON h.id = v.header_id
+    LEFT JOIN certifications c ON h.id = c.header_id
+    LEFT JOIN awards a ON h.id = a.header_id
     WHERE h.id = :header_id
     GROUP BY h.id, o.description;
     """)
+
+    print(f"Executing query for header_id: {header_id}")  
 
     result = await db.execute(query, {"header_id": header_id})
     user = result.mappings().first()  
@@ -173,14 +196,15 @@ async def get_user_by_header_id(db: AsyncSession, header_id: int):
     print("Raw Data from Database:", user)  
 
     if not user:
+        print("No user found!")  
         return None  
 
     user_dict = dict(user)
 
     print("User Dictionary Before Processing JSON:", user_dict)  
 
-    for key in ["education", "experience", "projects", "skills", "volunteer"]:
-        if isinstance(user_dict.get(key), str):  
+    for key in ["education", "experience", "projects", "volunteering_experience", "skills_languages", "certifications", "awards"]:
+        if isinstance(user_dict.get(key), str):
             user_dict[key] = json.loads(user_dict[key])
 
     print("User Dictionary After Processing JSON:", user_dict)  

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends,Response
+from fastapi import APIRouter, HTTPException, Depends,Response,Request
 from sqlalchemy.ext.asyncio import AsyncSession 
 from sqlalchemy import Date
+from fastapi.responses import FileResponse
 from app.dependencies import get_db 
 from app.models import Header, Experience, Education, SkillsLanguages, Certifications, Projects, VolunteeringExperience, Awards, Objective
 from pydantic import BaseModel, EmailStr,HttpUrl
@@ -8,10 +9,17 @@ from typing import Optional, List
 from datetime import date
 from sqlalchemy.future import select
 from jinja2 import Template
-from weasyprint import HTML
+from weasyprint import HTML,CSS
 from app.services.mongo_services import add_template,update_template,delete_template,list_templates,get_template_by_id
 from app.services.ai_services import generate_objective_from_ai,fetch_project_descriptions_from_ai,generate_experience_from_ai,generate_skills_from_ai,generate_volunteering_description_from_ai
 from app.services.db_services import get_user_by_header_id
+from app.config import env,TEMPLATES_DIR,PDF_DIR
+import os
+from datetime import datetime
+
+
+
+
 router = APIRouter()
 
 # --------------------- Models --------------------- #
@@ -461,7 +469,6 @@ async def generate_volunteering_suggestions(request: GenerateVolunteeringRequest
     Generate AI-based volunteering descriptions based on role.
     """
     try:
-        # البحث عن دور المتطوع من قاعدة البيانات
         volunteering = await db.get(VolunteeringExperience, request.volunteering_id)
         if not volunteering:
             raise HTTPException(status_code=404, detail="Volunteering experience not found")
@@ -598,42 +605,91 @@ async def delete_template_endpoint(template_id: str):
     if not success:
         raise HTTPException(status_code=404, detail="Template not found")
     return {"message": "Template deleted successfully"}
-@router.get("/api/generate-cv/{header_id}/{template_id}")
-async def generate_cv(header_id: int, template_id: str, db: AsyncSession = Depends(get_db)):
-    """
-    Generate a CV as a PDF using a template from MongoDB and user data from PostgreSQL.
-    """
 
+def safe_get(data, key, default=""):
+    return data.get(key, default) if data.get(key) is not None else default
+
+
+@router.get("/api/generate-cv/{header_id}")
+async def generate_cv(header_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     user_data = await get_user_by_header_id(db, header_id)
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
 
-    template_data = await get_template_by_id(template_id)
-    if not template_data or "html_content" not in template_data:
-        raise HTTPException(status_code=404, detail="Template not found or invalid")
-
-    template_html = template_data["html_content"]
-    template = Template(template_html)
+    print("User data fetched successfully.")
+    
+    template_path = os.path.join(TEMPLATES_DIR, "resume_template.html")
+    if not os.path.exists(template_path):
+        raise HTTPException(status_code=500, detail=f"Template not found at: {template_path}")
+    
     try:
-        html_content = template.render(user_data)
+        template = env.get_template("resume_template.html")
     except Exception as e:
+        print(f"Error loading template: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Template error: {str(e)}")
+    
+    def format_date(date_str):
+        if date_str:
+            try:
+                return datetime.strptime(date_str, "%Y-%m-%d").strftime("%b %Y")
+            except ValueError:
+                return date_str
+        return "Present"
+
+    try:
+        html_content = template.render(
+            full_name=safe_get(user_data, "full_name"),
+            job_title=safe_get(user_data, "job_title"),
+            email=safe_get(user_data, "email"),
+            phone_number=safe_get(user_data, "phone_number"),
+            address=safe_get(user_data, "address"),
+            years_of_experience=safe_get(user_data, "years_of_experience"),
+            github_profile=safe_get(user_data, "github_profile"),
+            linkedin_profile=safe_get(user_data, "linkedin_profile"),
+            objective=safe_get(user_data, "objective"),
+            education=[{**edu, "start_date": format_date(edu["start_date"]), "end_date": format_date(edu.get("end_date"))} for edu in safe_get(user_data, "education", [])],
+            experience=[{**exp, "start_date": format_date(exp["start_date"]), "end_date": format_date(exp.get("end_date"))} for exp in safe_get(user_data, "experience", [])],
+            skills_languages=safe_get(user_data, "skills_languages", []),
+            certifications=safe_get(user_data, "certifications", []),
+            projects=safe_get(user_data, "projects", []),
+            volunteering_experience=[{**vol, "start_date": format_date(vol["start_date"]), "end_date": format_date(vol.get("end_date"))} for vol in safe_get(user_data, "volunteering_experience", [])],
+            awards=[{**award, "start_date": format_date(award["start_date"]), "end_date": format_date(award.get("end_date"))} for award in safe_get(user_data, "awards", [])]
+        )
+    except Exception as e:
+        print(f"Error rendering template: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error rendering template: {str(e)}")
 
+    print("HTML content generated.")
+
+    filename = f"{user_data.get('full_name', 'Generated_CV')}_CV.pdf".replace(" ", "_")
+    pdf_path = os.path.join(PDF_DIR, filename)
+
     try:
-        pdf = HTML(string=html_content).write_pdf()
+        HTML(string=html_content).write_pdf(pdf_path)
     except Exception as e:
+        print(f"Error generating PDF: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
+    
+    print(f"PDF generated successfully: {pdf_path}")
 
-    filename = f"{user_data.get('name', 'Generated_CV')}_CV.pdf"
+    base_url = str(request.base_url).rstrip("/")
+    download_link = f"{base_url}/api/download-cv/{filename}"
 
-    return Response(
-        content=pdf,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
-    )
-
+    return {"message": "CV generated successfully!", "download_link": download_link}
 
 
+@router.get("/api/download-cv/{filename}")
+async def download_cv(filename: str):
+    """
+    Download the generated CV PDF.
+    """
+    file_path = os.path.join("generated_pdfs", filename)
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    print("✅ Serving file:", file_path)
+    return FileResponse(file_path, media_type="application/pdf", filename=filename)
 
 @router.post("/api/objectives/suggestions/")
 async def generate_objective_suggestions(request: ObjectiveRequest, db: AsyncSession = Depends(get_db)):

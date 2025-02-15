@@ -36,6 +36,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /usr/local/include /usr/local/include
 
 COPY . .
+COPY ./templates /app/app/templates
 
 EXPOSE 8000
 
