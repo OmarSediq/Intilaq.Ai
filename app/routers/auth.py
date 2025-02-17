@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.services.db_services import create_user, get_user_by_username, verify_reset_code, save_reset_code, get_user_by_email, update_verification_status, update_user_details, delete_user_by_id,get_user_by_id
 from app.utils.jwt_utils import create_access_token, decode_access_token
-from app.dependencies import get_db, get_redis_client
+from app.dependencies import get_db
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 import random
@@ -52,7 +52,7 @@ class UpdateUserRequest(BaseModel):
 
 # --------------------- Flow 1: Signup, Verify Account, Login, Verify 2FA --------------------- #
 
-@router.post("/api/users/register/")
+@router.post("/api/users/register/", tags=["Authentication"])
 async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
     if request.password != request.confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
@@ -83,7 +83,7 @@ async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
     return {"message": "Account created successfully. Please verify your account."}
 
 
-@router.post("/api/users/verify-account/")
+@router.post("/api/users/verify-account/", tags=["Security"])
 async def verify_account(request: VerifyAccountRequest, db: AsyncSession = Depends(get_db)):
     is_valid = await verify_reset_code(request.email, request.code, db)
     if not is_valid:
@@ -92,7 +92,7 @@ async def verify_account(request: VerifyAccountRequest, db: AsyncSession = Depen
     return {"message": "Account verification successful."}
 
 #Endpoint for Login
-@router.post("/api/auth/login/")
+@router.post("/api/auth/login/", tags=["Authentication"])
 async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     user = await get_user_by_email(request.email, db)
     if not user or not user.verify_password(request.password):
@@ -124,7 +124,7 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     }
 
 # Endpoint for 2FA Verification
-@router.post("/api/auth/verify-2fa/")
+@router.post("/api/auth/verify-2fa/",tags=["Security"])
 async def two_factor_auth(
     request: TwoFactorAuthRequest,  # Body model
     token: dict = Depends(decode_access_token),  # Decode the token to extract user data
@@ -151,7 +151,7 @@ async def two_factor_auth(
 
 # --------------------- Reset Password Flow --------------------- #
 
-@router.post("/api/security/forgot-password/")
+@router.post("/api/security/forgot-password/",tags=["Security"])
 async def forgot_password(request: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
     user = await get_user_by_email(request.email, db)
     if not user:
@@ -161,7 +161,7 @@ async def forgot_password(request: ForgotPasswordRequest, db: AsyncSession = Dep
     send_email(request.email, "Reset Your Password", f"Your reset code is: {reset_code}")
     return {"message": "Reset code sent to your email"}
 
-@router.post("/api/security/reset-password/")
+@router.post("/api/security/reset-password/",tags=["Security"])
 async def reset_password(request: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
     is_valid = await verify_reset_code(request.email, request.reset_code, db)
     if not is_valid:
@@ -174,7 +174,7 @@ async def reset_password(request: ResetPasswordRequest, db: AsyncSession = Depen
     return {"message": "Password reset successfully"}
 
 # --------------------- Resend Code --------------------- #
-@router.post("/api/users/resend-verification-code")
+@router.post("/api/users/resend-verification-code",tags=["Security"])
 async def resend_code(request: ResendCodeRequest, db: AsyncSession = Depends(get_db)):
     user = await get_user_by_email(request.email, db)
     if not user:
@@ -194,7 +194,7 @@ async def resend_code(request: ResendCodeRequest, db: AsyncSession = Depends(get
     raise HTTPException(status_code=400, detail="Invalid code type")
 
 # --------------------- Logout --------------------- #
-@router.post("/api/auth/logout")
+@router.post("/api/auth/logout",tags=["Authentication"])
 async def logout(request: LogoutRequest, db: AsyncSession = Depends(get_db)):
 
     user = await get_user_by_email(request.email, db)
@@ -211,7 +211,7 @@ async def logout(request: LogoutRequest, db: AsyncSession = Depends(get_db)):
 # --------------------- User Management Endpoints for Frontend --------------------- #
 
 # Read User by ID
-@router.get("/api/users/{user_id}/")
+@router.get("/api/users/{user_id}/" , tags =["User Management"])
 async def get_user_endpoint(user_id: int, db: AsyncSession = Depends(get_db)):
     """
     Endpoint to fetch user details by ID.
@@ -223,16 +223,12 @@ async def get_user_endpoint(user_id: int, db: AsyncSession = Depends(get_db)):
     return {"user": {"id": user.id, "username": user.username, "email": user.email}}
 
 # Update User Details
-@router.put("/api/users/{user_id}/update/")
+@router.put("/api/users/{user_id}/update/" , tags=["User Management"])
 async def update_user_endpoint(user_id: int, request: UpdateUserRequest, db: AsyncSession = Depends(get_db)):
-    """
-    Endpoint to update user details.
-    """
-    # التحقق من تطابق كلمتي المرور
+  
     if request.password != request.confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
     
-    # تحويل الطلب إلى قاموس وتمريره إلى الدالة
     updated_user = await update_user_details(user_id, request.dict(), db)
 
     if not updated_user:
@@ -249,7 +245,7 @@ async def update_user_endpoint(user_id: int, request: UpdateUserRequest, db: Asy
     }
 
 # Delete User
-@router.delete("/api/users/{user_id}/delete/")
+@router.delete("/api/users/{user_id}/delete/" , tags=["User Management"])
 async def delete_user_endpoint(user_id: int, db: AsyncSession = Depends(get_db)):
     """
     Endpoint to delete a user by ID.

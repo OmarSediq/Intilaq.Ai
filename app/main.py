@@ -5,8 +5,7 @@ from app.dependencies import postgres_engine
 from app.routers.auth import router as app_router
 from app.routers.cvs import router as cv_router
 from app.services.mongo_services import mongo_client 
-
-
+from app.config import env
 
 
 app = FastAPI()

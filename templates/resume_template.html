@@ -7,78 +7,116 @@
     <style>
         @page {
             size: A4;
-            margin: 20mm;
+            margin: 15mm;
         }
         body {
             font-family: 'Times New Roman', serif;
             color: #000;
             width: 100%;
-            padding: 20px;
+            padding: 10px;
+            font-size: 12px;
         }
         h1 {
             font-size: 22px;
             font-weight: bold;
             display: inline;
+            color: black;
         }
         .header {
             text-align: center;
             margin-bottom: 10px;
         }
-        .header p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-        .contact-info {
-            text-align: center;
-        }
-        .contact-info a {
-            color: #4b0082;
-            text-decoration: none;
-        }
-        .contact-info a:hover {
-            text-decoration: underline;
+        .header h1 {
+            font-size: 22px;
+            font-weight: bold;
+            display: inline;
         }
         .job-title {
             font-size: 16px;
             font-weight: normal;
             color: #444;
+            display: inline;
+        }
+        .contact-info {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .contact-info p {
+            margin: 2px 0;
+            font-size: 14px;
+            color: #333;
+        }
+    
+        .contact-info a {
+        color: #4b0082;
+        text-decoration: none;
+        font-weight: normal;
+        pointer-events: none; 
+        }
+        .contact-info a:hover {
+        text-decoration: underline;
+        pointer-events: auto;
         }
         .section-title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
-            border-bottom: 2px solid black;
-            margin-top: 20px;
-            padding-bottom: 5px;
+            border-bottom: 1.5px solid black;
+            margin-top: 15px;
+            padding-bottom: 3px;
         }
         .content {
-            margin-top: 5px;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 12px;
+            line-height: 1.3;
         }
-        .experience-item, .education-item {
-            margin-bottom: 10px;
-        }
-        .experience-item h3, .education-item h3 {
-            font-size: 16px;
+        .date {
+            float: right;
             font-weight: bold;
-            margin-bottom: 3px;
+            font-size: 12px;
         }
-        .experience-item p, .education-item p {
-            font-size: 14px;
+        .icon-link {
+            margin-left: 5px;
+            text-decoration: none;
+            font-size: 12px;
+            color: black;
+        }
+        .icon-link img {
+            width: 12px;
+            height: 12px;
+            vertical-align: middle;
+        }
+        .icon-link:hover {
+            opacity: 0.7;
+        }
+        .experience-item, .education-item, .project-item, .volunteer-item, .award-item {
+            margin-bottom: 5px;
+        }
+        .experience-item h3, .education-item h3, .project-item h3, .volunteer-item h3, .award-item h3 {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .experience-item p, .education-item p, .project-item p, .volunteer-item p, .award-item p {
+            font-size: 12px;
             margin: 0;
         }
     </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 </head>
 <body>
+
     <div class="header">
         <h1>{{ full_name }}</h1> <span class="job-title">| {{ job_title }}</span>
     </div>
+
     <div class="contact-info">
         <p>(+{{ phone_number }}) | <a href="mailto:{{ email }}">{{ email }}</a> | {{ address }}</p>
         <p><a href="{{ linkedin_profile }}">{{ linkedin_profile }}</a></p>
         <p><a href="{{ github_profile }}">{{ github_profile }}</a> (Portfolio)</p>
     </div>
-    
+
     {% if objective %}
         <div class="section-title">Career Objective</div>
         <p class="content">{{ objective }}</p>
@@ -88,8 +126,9 @@
         <div class="section-title">Education</div>
         {% for edu in education %}
             <div class="education-item">
-                <h3>{{ edu.degree_and_major }}</h3>
-                <p>{{ edu.school }} | {{ edu.start_date }} - {% if edu.end_date %}{{ edu.end_date }}{% else %}Present{% endif %}</p>
+                <h3>{{ edu.degree_and_major }} - {{ edu.school }}, {{ edu.city }}, {{ edu.country }}
+                    <span class="date">{{ edu.start_date | date_format }} – {{ edu.end_date | date_format if edu.end_date else 'Present' }}</span>
+                </h3>
                 {% if edu.description %}<p>{{ edu.description }}</p>{% endif %}
             </div>
         {% endfor %}
@@ -99,53 +138,77 @@
         <div class="section-title">Experience & Internships</div>
         {% for exp in experience %}
             <div class="experience-item">
-                <h3>{{ exp.role }} at {{ exp.company_name }}</h3>
-                <p>{{ exp.location }} | {{ exp.start_date }} - {% if exp.end_date %}{{ exp.end_date }}{% else %}Present{% endif %}</p>
-                <ul>
-                    {% for point in exp.responsibilities %}
-                        <li>{{ point }}</li>
-                    {% endfor %}
-                </ul>
+                <h3>{{ exp.role }} at {{ exp.company_name }}
+                    <span class="date">{{ exp.start_date | date_format }} – {{ exp.end_date | date_format if exp.end_date else 'Present' }}</span>
+                </h3>
+                {% if exp.description %}<p>{{ exp.description }}</p>{% endif %}
             </div>
         {% endfor %}
     {% endif %}
 
-    {% if skills_languages %}
-        <div class="section-title">Skills & Languages</div>
-        <p>{{ skills_languages.skills }}</p>
-        <p>{{ skills_languages.languages }}</p>
+{% if certifications %}
+    <div class="section-title">Certifications</div>
+    {% for cert in certifications %}
+        <div class="content">
+            <p><strong>{{ cert.certification_title }}</strong>
+                {% if cert.link %}
+                    <a href="{{ cert.link }}" class="icon-link" target="_blank">
+                        <i class="fa-solid fa-up-right-from-square"></i> 
+                    </a>
+                {% endif %}
+                {% if cert.upload %}
+                    <a href="{{ cert.upload }}" class="icon-link" target="_blank">
+                        <i class="fa-solid fa-file-arrow-down"></i> 
+                    </a>
+                {% endif %}
+            </p>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if projects %}
+    <div class="section-title">Projects</div>
+    {% for project in projects %}
+        <div class="project-item">
+            <h3>{{ project.project_name }}
+                {% if project.link %}
+                    <a href="{{ project.link }}" class="icon-link" target="_blank">
+                        <i class="fa-solid fa-up-right-from-square"></i> 
+                    </a>
+                {% endif %}
+            </h3>
+            <p>{{ project.description }}</p>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if technical_skills or languages %}
+    <div class="section-title">Skills</div>
+
+    {% if technical_skills %}
+        <p><strong>Technical Skills:</strong>
+            {{ technical_skills | map(attribute='skill') | join(", ") }}
+        </p>
     {% endif %}
 
-    {% if certifications %}
-        <div class="section-title">Certifications</div>
-        {% for cert in certifications %}
-            <div class="content">
-                <p><strong>{{ cert.certification_title }}</strong></p>
-                {% if cert.link %}<p><a href="{{ cert.link }}">View Certification</a></p>{% endif %}
-            </div>
-        {% endfor %}
+    {% if languages %}
+        <p><strong>Languages:</strong>
+            {% for lang in languages if lang.language %}
+                {{ lang.language }} ({{ lang.level if lang.level else 'N/A' }}){% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
     {% endif %}
+{% endif %}
 
-    {% if projects %}
-        <div class="section-title">Projects</div>
-        {% for project in projects %}
-            <div class="content">
-                <p><strong>{{ project.project_name }}</strong>: {{ project.description }}</p>
-                <p><strong>Tools:</strong> {{ project.tools }}</p>
-            </div>
-        {% endfor %}
-    {% endif %}
 
     {% if volunteering_experience %}
         <div class="section-title">Volunteer Activities</div>
         {% for vol in volunteering_experience %}
-            <div class="content">
-                <p><strong>{{ vol.role }}</strong> at {{ vol.organization }} ({{ vol.start_date }} - {% if vol.end_date %}{{ vol.end_date }}{% else %}Present{% endif %})</p>
-                <ul>
-                    {% for point in vol.responsibilities %}
-                        <li>{{ point }}</li>
-                    {% endfor %}
-                </ul>
+            <div class="volunteer-item">
+                <h3>{{ vol.role }} at {{ vol.organization }}
+                    <span class="date">{{ vol.start_date | date_format }} – {{ vol.end_date | date_format if vol.end_date else 'Present' }}</span>
+                </h3>
+                {% if vol.description %}<p>{{ vol.description }}</p>{% endif %}
             </div>
         {% endfor %}
     {% endif %}
@@ -153,10 +216,13 @@
     {% if awards %}
         <div class="section-title">Awards</div>
         {% for award in awards %}
-            <div class="content">
-                <p><strong>{{ award.award }}</strong> - {{ award.organization }} ({{ award.start_date }} - {% if award.end_date %}{{ award.end_date }}{% else %}Present{% endif %})</p>
+            <div class="award-item">
+                <h3>{{ award.award }} - {{ award.organization }}
+                    <span class="date">{{ award.start_date | date_format }} – {{ award.end_date | date_format if award.end_date else 'Present' }}</span>
+                </h3>
             </div>
         {% endfor %}
     {% endif %}
+
 </body>
 </html>

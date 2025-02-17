@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 from jinja2 import Environment, FileSystemLoader
 import os
-
+from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = "/app/app/templates"
@@ -19,6 +19,16 @@ if not os.path.exists(os.path.join(TEMPLATES_DIR, "resume_template.html")):
 os.makedirs(PDF_DIR, exist_ok=True)
 
 env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
+
+def date_format(value):
+    if value:
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").strftime("%b %Y") 
+        except ValueError:
+            return value  
+    return "Present"  
+
+env.filters['date_format'] = date_format
 class Settings(BaseSettings):
     # MongoDB Configuration
     MONGO_URI: str

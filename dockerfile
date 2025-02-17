@@ -17,18 +17,17 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libcairo2 \
-    libpangoft2-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    libpangoxft-1.0-0 \
-    libfontconfig1 \
-    libfreetype6 \
-    libjpeg62-turbo \
-    libffi-dev \
-    shared-mime-info \
-    fonts-liberation \
+RUN echo "deb http://ftp.debian.org/debian bookworm contrib" >> /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+       wget gcc libpq-dev \
+       libcairo2 libpangoft2-1.0-0 libpangocairo-1.0-0 \
+       libgdk-pixbuf2.0-0 libpangoxft-1.0-0 libfontconfig1 \
+       libfreetype6 libjpeg62-turbo libffi-dev shared-mime-info \
+       fonts-liberation fontconfig xfonts-utils cabextract \
+       msttcorefonts \
+       wkhtmltopdf \
+    && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
