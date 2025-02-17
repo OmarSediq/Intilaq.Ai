@@ -6,10 +6,11 @@ from app.routers.auth import router as app_router
 from app.routers.cvs import router as cv_router
 from app.services.mongo_services import mongo_client 
 from app.config import env
+from app.middlewares import setup_cors
 
 
 app = FastAPI()
-
+setup_cors(app)
 # Add application routes
 app.include_router(app_router)
 app.include_router(cv_router)
