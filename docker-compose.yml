@@ -46,6 +46,8 @@ services:
       - redis
       - postgres
 
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]   # # for deploy in railway 
+
 volumes:
   mongodb_data:
   redis_data:

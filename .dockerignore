@@ -4,9 +4,7 @@ env/
 
 # Ignore Python cache files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
 
 # Ignore local configuration files
 .env
@@ -37,3 +35,8 @@ dist/
 
 # Ignore Docker-related files
 docker-compose.override.yml
+
+pip-log.txt
+pip-delete-this-directory.txt
+config.json
+config.yaml
