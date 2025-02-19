@@ -50,6 +50,108 @@ class UpdateUserRequest(BaseModel):
     password: str
     confirm_password: str
 
+
+
+# OPTIONS for Register
+@router.options("/api/users/register/", tags=["Authentication"])
+async def options_register():
+    return {
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for Verify Account
+@router.options("/api/users/verify-account/", tags=["Security"])
+async def options_verify_account():
+    return {
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for Login
+@router.options("/api/auth/login/", tags=["Authentication"])
+async def options_login():
+    return {
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for 2FA Verification
+@router.options("/api/auth/verify-2fa/", tags=["Security"])
+async def options_two_factor_auth():
+    return {
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for Forgot Password
+@router.options("/api/security/forgot-password/", tags=["Security"])
+async def options_forgot_password():
+    return {
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for Reset Password
+@router.options("/api/security/reset-password/", tags=["Security"])
+async def options_reset_password():
+    return {
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for Resend Code
+@router.options("/api/users/resend-verification-code/", tags=["Security"])
+async def options_resend_code():
+    return {
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for Logout
+@router.options("/api/auth/logout/", tags=["Authentication"])
+async def options_logout():
+    return {
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for Update User
+@router.options("/api/users/{user_id}/update/", tags=["User Management"])
+async def options_update_user():
+    return {
+        "Allow": "PUT, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "PUT, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+# OPTIONS for Delete User
+@router.options("/api/users/{user_id}/delete/", tags=["User Management"])
+async def options_delete_user():
+    return {
+        "Allow": "DELETE, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
 # --------------------- Flow 1: Signup, Verify Account, Login, Verify 2FA --------------------- #
 
 @router.post("/api/users/register/", tags=["Authentication"])
@@ -174,7 +276,7 @@ async def reset_password(request: ResetPasswordRequest, db: AsyncSession = Depen
     return {"message": "Password reset successfully"}
 
 # --------------------- Resend Code --------------------- #
-@router.post("/api/users/resend-verification-code",tags=["Security"])
+@router.post("/api/users/resend-verification-code/",tags=["Security"])
 async def resend_code(request: ResendCodeRequest, db: AsyncSession = Depends(get_db)):
     user = await get_user_by_email(request.email, db)
     if not user:
@@ -194,7 +296,7 @@ async def resend_code(request: ResendCodeRequest, db: AsyncSession = Depends(get
     raise HTTPException(status_code=400, detail="Invalid code type")
 
 # --------------------- Logout --------------------- #
-@router.post("/api/auth/logout",tags=["Authentication"])
+@router.post("/api/auth/logout/",tags=["Authentication"])
 async def logout(request: LogoutRequest, db: AsyncSession = Depends(get_db)):
 
     user = await get_user_by_email(request.email, db)

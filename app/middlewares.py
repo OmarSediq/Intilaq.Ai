@@ -1,15 +1,15 @@
 from fastapi.middleware.cors import CORSMiddleware
 
 def setup_cors(app):
-    origins = [
-        "http://localhost:3000"
-        # "https://yourfrontenddomain.com"
-    ]
+    # origins = [
+    #     "https://na-kidney-prices-largely.trycloudflare.com"
+    #     # "https://yourfrontenddomain.com"
+    # ]
     
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=["*"],
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )

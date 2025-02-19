@@ -33,6 +33,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   fastapi:
+    image: omaahassanin/intilaq-ai
     build:
       context: .
       dockerfile: Dockerfile

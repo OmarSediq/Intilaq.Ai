@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM python:3.10-slim
 
 WORKDIR /app
+ENV PYTHONPATH="/app"
 
 RUN echo "deb http://ftp.debian.org/debian bookworm contrib" >> /etc/apt/sources.list \
     && apt-get update \
@@ -32,11 +33,15 @@ RUN echo "deb http://ftp.debian.org/debian bookworm contrib" >> /etc/apt/sources
 
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
-COPY --from=builder /usr/local/include /usr/local/include
 
-COPY . .
+COPY . /app
 COPY ./templates /app/app/templates
+
+# COPY alembic.ini /app/alembic.ini
+# COPY migrations /app/alembic
+# COPY ./app/reset_db.py /app/reset_db.py
 
 EXPOSE 8000
 
-CMD ["dockerize", "-wait", "tcp://postgres:5432", "-timeout", "60s", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# CMD ["dockerize", "-wait", "tcp://postgres:5432", "-timeout", "60s", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["dockerize", "-wait", "tcp://postgres-container:5432", "-timeout", "60s", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

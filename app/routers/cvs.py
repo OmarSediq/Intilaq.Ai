@@ -445,7 +445,7 @@ async def generate_volunteering_suggestions(request: GenerateVolunteeringRequest
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
-@router.put("/api/volunteerings-save-description/{volunteering_id}",tags=["AI Enhancements"])
+@router.put("/api/volunteerings-save-description/{volunteering_id}/",tags=["AI Enhancements"])
 async def save_volunteering_description(
     volunteering_id: int, request: SaveVolunteeringRequest, db: AsyncSession = Depends(get_db)
 ):
@@ -503,7 +503,7 @@ async def delete_award(award_id: int, db: AsyncSession = Depends(get_db)):
 def safe_get(data, key, default=""):
     return data.get(key, default) if data.get(key) is not None else default
 
-@router.get("/api/generate-cv/{header_id}", response_class=HTMLResponse,tags=["CV Exporting"])
+@router.get("/api/generate-cv/{header_id}/", response_class=HTMLResponse,tags=["CV Exporting"])
 
 async def generate_cv(header_id: int, db: AsyncSession = Depends(get_db)):
 
@@ -537,7 +537,7 @@ async def generate_cv(header_id: int, db: AsyncSession = Depends(get_db)):
 
     return HTMLResponse(content=html_content)
 
-@router.get("/api/download-cv/pdf/{header_id}", tags=["CV Exporting"])
+@router.get("/api/download-cv/pdf/{header_id}/", tags=["CV Exporting"])
 async def download_cv_pdf(header_id: int, db: AsyncSession = Depends(get_db)):
     user_data = await get_user_by_header_id(db, header_id)
 
@@ -623,7 +623,7 @@ async def generate_objective_suggestions(request: ObjectiveRequest, db: AsyncSes
         await db.rollback()  
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-@router.put("/api/objectives/save-description/{objective_id}",tags=["AI Enhancements"])
+@router.put("/api/objectives/save-description/{objective_id}/",tags=["AI Enhancements"])
 async def save_objective_description(objective_id: int, request: ObjectiveSaveRequest, db: AsyncSession = Depends(get_db)):
     """
     Save the selected objective description to the database.
@@ -658,7 +658,7 @@ async def generate_project_description(request: ProjectRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-@router.put("/api/projects/save-description/{project_id}",tags=["AI Enhancements"])
+@router.put("/api/projects/save-description/{project_id}/",tags=["AI Enhancements"])
 async def save_project_description(
     project_id: int, request: ProjectDescriptionSaveRequest, db: AsyncSession = Depends(get_db)
 ):
@@ -706,7 +706,7 @@ async def generate_experience_suggestions(request: ExperienceRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-@router.put("/api/experiences/save-description/{experience_id}",tags=["AI Enhancements"])
+@router.put("/api/experiences/save-description/{experience_id}/",tags=["AI Enhancements"])
 async def save_experience_description(
     experience_id: int, request: ExperienceSaveRequest, db: AsyncSession = Depends(get_db)
 ):
@@ -766,7 +766,7 @@ async def generate_skills_suggestions(request: GenerateSkillsRequest, db: AsyncS
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-@router.put("/api/skills/save/{skills_id}",tags=["AI Enhancements"])
+@router.put("/api/skills/save/{skills_id}/",tags=["AI Enhancements"])
 async def save_skills(
     skills_id: int, request: SaveSkillsRequest, db: AsyncSession = Depends(get_db)
 ):
