@@ -1,10 +1,17 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import delete
+from sqlalchemy.sql import text
 from app.models import User, ResetCode,Header,Education,Experience,Objective,VolunteeringExperience,SkillsLanguages,Awards,Certifications,Projects,LoginAttempt
 from app.dependencies import get_password_hash
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
+import json
+import io
+from docx import Document
+from docx.shared import Pt
+from bs4 import BeautifulSoup
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 async def create_user(username: str, password: str, email: str, db: AsyncSession):
     """
@@ -131,9 +138,7 @@ async def delete_user_by_id(user_id: int, db: AsyncSession):
     return True
 
 async def get_user_by_id(user_id: int, db: AsyncSession):
-    """
-    Retrieves a user by their ID.
-    """
+
     result = await db.execute(select(User).filter(User.id == user_id))
     user = result.scalars().first()
 
@@ -141,6 +146,118 @@ async def get_user_by_id(user_id: int, db: AsyncSession):
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
+async def generate_docx_from_html(html_content):
+   
+    soup = BeautifulSoup(html_content, "html.parser")
+
+    doc = Document()
+
+    def add_paragraph(text, bold=False, font_size=12, alignment=None):
+        p = doc.add_paragraph()
+        run = p.add_run(text)
+        run.bold = bold
+        run.font.size = Pt(font_size)
+        if alignment:
+            p.alignment = alignment
+
+    for tag in soup.find_all(["h1", "h2", "h3", "p", "ul", "li", "a"]):
+        if tag.name == "h1":
+            add_paragraph(tag.get_text(), bold=True, font_size=16, alignment=WD_PARAGRAPH_ALIGNMENT.CENTER)
+        elif tag.name == "h2":
+            add_paragraph(tag.get_text(), bold=True, font_size=14)
+        elif tag.name == "h3":
+            add_paragraph(tag.get_text(), bold=True, font_size=12)
+        elif tag.name == "p":
+            add_paragraph(tag.get_text(), font_size=11)
+        elif tag.name == "ul":
+            for li in tag.find_all("li"):
+                p = doc.add_paragraph("• " + li.get_text(), style="List Bullet")
+                p.paragraph_format.space_after = Pt(6)
+        elif tag.name == "a":
+            add_paragraph(f"{tag.get_text()} ({tag['href']})", font_size=11)
+
+    docx_buffer = io.BytesIO()
+    doc.save(docx_buffer)
+    docx_buffer.seek(0)
+    return docx_buffer
+
+
+async def get_user_by_header_id(db: AsyncSession, header_id: int):
+    query = text("""
+       SELECT 
+    h.full_name AS full_name, h.job_title, h.email, h.phone_number AS phone_number, h.address,
+    h.years_of_experience, h.linkedin_profile, h.github_profile,
+    COALESCE(o.description, '') AS objective, 
+
+    COALESCE(json_agg(DISTINCT e.*) FILTER (WHERE e.id IS NOT NULL), '[]') AS education,
+    COALESCE(json_agg(DISTINCT exp.*) FILTER (WHERE exp.id IS NOT NULL), '[]') AS experience,
+    COALESCE(json_agg(DISTINCT p.*) FILTER (WHERE p.id IS NOT NULL), '[]') AS projects,
+    COALESCE(json_agg(DISTINCT v.*) FILTER (WHERE v.id IS NOT NULL), '[]') AS volunteering_experience,
+
+   COALESCE(json_agg(DISTINCT jsonb_build_object(
+    'skill', s.skills
+)) FILTER (WHERE s.skills IS NOT NULL AND s.skills <> ''), '[]') AS technical_skills,
+
+COALESCE(json_agg(DISTINCT jsonb_build_object(
+    'language', s.languages,
+    'level', s.level
+)) FILTER (WHERE s.languages IS NOT NULL AND s.languages <> ''), '[]') AS languages,
+
+    COALESCE(json_agg(DISTINCT jsonb_build_object(
+        'certification_title', c.certification_title, 
+        'link', c.link
+    )) FILTER (WHERE c.id IS NOT NULL), '[]') AS certifications,
+
+    COALESCE(json_agg(DISTINCT jsonb_build_object(
+        'award', a.award, 
+        'organization', a.organization, 
+        'start_date', a.start_date, 
+        'end_date', a.end_date
+    )) FILTER (WHERE a.id IS NOT NULL), '[]') AS awards
+
+FROM header h
+LEFT JOIN objective o ON h.id = o.header_id
+LEFT JOIN education e ON h.id = e.header_id
+LEFT JOIN experience exp ON h.id = exp.header_id
+LEFT JOIN projects p ON h.id = p.header_id
+LEFT JOIN skills_languages s ON h.id = s.header_id  
+LEFT JOIN volunteering_experience v ON h.id = v.header_id
+LEFT JOIN certifications c ON h.id = c.header_id
+LEFT JOIN awards a ON h.id = a.header_id
+WHERE h.id = :header_id
+GROUP BY h.id, o.description;
+    """)
+
+    print(f"Executing query for header_id: {header_id}")  
+
+    result = await db.execute(query, {"header_id": header_id})
+    user = result.mappings().first()  
+
+    print("Raw Data from Database:", user)  
+
+    if not user:
+        print("No user found!")  
+        return None  
+
+    user_dict = dict(user)
+
+    print("User Dictionary Before Processing JSON:", user_dict)  
+
+    for key in ["education", "experience", "projects", "volunteering_experience", "certifications", "awards"]:
+      if isinstance(user_dict.get(key), str):
+        user_dict[key] = json.loads(user_dict[key])
+
+        if isinstance(user_dict.get("technical_skills"), str):
+                user_dict["technical_skills"] = json.loads(user_dict["technical_skills"])
+
+        if isinstance(user_dict.get("languages"), str):
+                user_dict["languages"] = json.loads(user_dict["languages"])
+
+
+    print("User Dictionary After Processing JSON:", user_dict)  
+
+    return user_dict
 
 # --------------------- Header Management --------------------- #
 

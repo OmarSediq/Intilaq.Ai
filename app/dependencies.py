@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from app.config import settings
 from passlib.context import CryptContext
+import os 
 
 # -------------------- PostgreSQL Configuration -------------------- #
 
@@ -67,21 +68,17 @@ except Exception as e:
 
 async def get_redis_client():
     """
-    Provides a Redis client instance.
-
-    Returns:
-        Redis: An instance of the Redis client.
+    Provides a Redis client instance with error handling.
     """
     try:
-        client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        client = redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
         await client.ping()
         print("Redis connection successful.")
         return client
     except Exception as e:
         print(f"Error connecting to Redis: {e}")
-        raise
+        return None
 
-# وظيفة لإرجاع المجموعة المطلوبة
 def get_collection(collection_name: str):
     """
     Get a collection from the MongoDB database.

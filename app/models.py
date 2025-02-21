@@ -100,7 +100,7 @@ class Header(Base):
 class Education(Base):
     __tablename__ = 'education'
     
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True,autoincrement=True)
     header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
     degree_and_major = Column(String(255), nullable=False)
     school = Column(String(255), nullable=False)
@@ -116,7 +116,7 @@ class Education(Base):
 class SkillsLanguages(Base):
     __tablename__ = 'skills_languages'
     
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True,autoincrement=True)
     header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
     skills = Column(Text, nullable=True)
     languages = Column(Text, nullable=False)
@@ -128,8 +128,8 @@ class SkillsLanguages(Base):
 class Certifications(Base):
     __tablename__ = 'certifications'
     
-    id = Column(Integer, primary_key=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=True)
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
     certification_title = Column(String(255))
     upload = Column(Text,nullable=True)
     link = Column(Text, nullable=True)  
@@ -140,8 +140,8 @@ class Certifications(Base):
 class Projects(Base):
     __tablename__ = 'projects'
     
-    id = Column(Integer, primary_key=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=True)
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
     project_name = Column(String(255))
     description = Column(Text,nullable=True)
     link = Column(Text,nullable=True)
@@ -152,22 +152,26 @@ class Projects(Base):
 class Experience(Base):
     __tablename__ = 'experience'
     
-    id = Column(Integer, primary_key=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)  
+    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)  
     role = Column(String(255))
     company_name = Column(String(255))
-    start_date = Column(Date,nullable=True)
-    end_date = Column(Date,nullable=True)
-    description = Column(Text,nullable=True)
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    description = Column(Text, nullable=True)
 
     header = relationship("Header", back_populates="experience")
+
+
+
+
 
 # Volunteering Experience Table (Optional)
 class VolunteeringExperience(Base):
     __tablename__ = 'volunteering_experience'
     
-    id = Column(Integer, primary_key=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=True)
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
     organization = Column(String(255))
     role = Column(String(255))
     start_date = Column(Date)
@@ -180,8 +184,8 @@ class VolunteeringExperience(Base):
 class Awards(Base):
     __tablename__ = 'awards'
     
-    id = Column(Integer, primary_key=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=True)
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
     award = Column(String(255))
     organization = Column(String(255))
     start_date = Column(Date)
@@ -193,8 +197,8 @@ class Awards(Base):
 class Objective(Base):
     __tablename__ = 'objective'
     
-    id = Column(Integer, primary_key=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=True)
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
     description = Column(Text, nullable=True)   
 
     header = relationship("Header", back_populates="objective")

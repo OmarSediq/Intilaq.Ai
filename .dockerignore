@@ -1,0 +1,42 @@
+# Ignore Python virtual environments
+venv/
+env/
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore local configuration files
+.env
+*.env
+*.env.*
+
+# Ignore IDE and editor configuration files
+*.vscode/
+*.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore macOS system files
+.DS_Store
+Thumbs.db
+
+# Ignore logs and temporary files
+logs/
+*.log
+*.tmp
+
+# Ignore build and test artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+*.pytest_cache/
+
+# Ignore Docker-related files
+docker-compose.override.yml
+
+pip-log.txt
+pip-delete-this-directory.txt
+config.json
+config.yaml
