@@ -2,7 +2,6 @@ env
 services/__pycache__/
 utils/__pycache__/
 migrations/versions/__pycache__
-alembic.ini
 app/__pycache__
 __init__.py
 migrations/__pycache__
