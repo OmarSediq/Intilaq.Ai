@@ -1,14 +1,29 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.services.db_services import create_user, get_user_by_username, verify_reset_code, save_reset_code, get_user_by_email, update_verification_status, update_user_details, delete_user_by_id,get_user_by_id
-from app.utils.jwt_utils import create_access_token, decode_access_token
+# from app.utils.jwt_utils import create_access_token, decode_access_token
 from app.dependencies import get_db
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 import random
 from app.utils.email_utils import send_email
-from app.services.redis_services import get_code, set_code, delete_code
+# from app.services.redis_services import get_code, set_code, delete_code
+from app.utils.jwt_utils import create_access_token,decode_access_token,delete_refresh_token,store_refresh_token,create_refresh_token,get_stored_refresh_token,decode_refresh_token
+from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends
+from app.utils.response_schemas import success_response,error_response
+
 
 router = APIRouter()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login/")
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+   
+    try:
+        user_data = decode_access_token(token)
+        return user_data  
+    except HTTPException as e:
+        raise e
 
 # Models
 class SignupRequest(BaseModel):
@@ -38,11 +53,13 @@ class ResetPasswordRequest(BaseModel):
 
 class ResendCodeRequest(BaseModel):
     email: EmailStr
-    code_type: str
+    
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 class LogoutRequest(BaseModel):
-    email: EmailStr
-    password: str
+    refresh_token: str 
 
 class UpdateUserRequest(BaseModel):
     username: str
@@ -52,308 +69,256 @@ class UpdateUserRequest(BaseModel):
 
 
 
-# OPTIONS for Register
-@router.options("/api/users/register/", tags=["Authentication"])
-async def options_register():
-    return {
-        "Allow": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for Register
+# @router.options("/api/users/register/", tags=["Authentication"])
+# async def options_register():
+#     return {
+#         "Allow": "POST, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "POST, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for Verify Account
-@router.options("/api/users/verify-account/", tags=["Security"])
-async def options_verify_account():
-    return {
-        "Allow": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for Verify Account
+# @router.options("/api/users/verify-account/", tags=["Security"])
+# async def options_verify_account():
+#     return {
+#         "Allow": "POST, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "POST, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for Login
-@router.options("/api/auth/login/", tags=["Authentication"])
-async def options_login():
-    return {
-        "Allow": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for Login
+# @router.options("/api/auth/login/", tags=["Authentication"])
+# async def options_login():
+#     return {
+#         "Allow": "POST, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "POST, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for 2FA Verification
-@router.options("/api/auth/verify-2fa/", tags=["Security"])
-async def options_two_factor_auth():
-    return {
-        "Allow": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for 2FA Verification
+# @router.options("/api/auth/verify-2fa/", tags=["Security"])
+# async def options_two_factor_auth():
+#     return {
+#         "Allow": "POST, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "POST, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for Forgot Password
-@router.options("/api/security/forgot-password/", tags=["Security"])
-async def options_forgot_password():
-    return {
-        "Allow": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for Forgot Password
+# @router.options("/api/security/forgot-password/", tags=["Security"])
+# async def options_forgot_password():
+#     return {
+#         "Allow": "POST, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "POST, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for Reset Password
-@router.options("/api/security/reset-password/", tags=["Security"])
-async def options_reset_password():
-    return {
-        "Allow": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for Reset Password
+# @router.options("/api/security/reset-password/", tags=["Security"])
+# async def options_reset_password():
+#     return {
+#         "Allow": "POST, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "POST, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for Resend Code
-@router.options("/api/users/resend-verification-code/", tags=["Security"])
-async def options_resend_code():
-    return {
-        "Allow": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for Resend Code
+# @router.options("/api/users/resend-verification-code/", tags=["Security"])
+# async def options_resend_code():
+#     return {
+#         "Allow": "POST, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "POST, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for Logout
-@router.options("/api/auth/logout/", tags=["Authentication"])
-async def options_logout():
-    return {
-        "Allow": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for Logout
+# @router.options("/api/auth/logout/", tags=["Authentication"])
+# async def options_logout():
+#     return {
+#         "Allow": "POST, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "POST, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for Update User
-@router.options("/api/users/{user_id}/update/", tags=["User Management"])
-async def options_update_user():
-    return {
-        "Allow": "PUT, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "PUT, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
+# # OPTIONS for Update User
+# @router.options("/api/users/{user_id}/update/", tags=["User Management"])
+# async def options_update_user():
+#     return {
+#         "Allow": "PUT, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "PUT, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 
-# OPTIONS for Delete User
-@router.options("/api/users/{user_id}/delete/", tags=["User Management"])
-async def options_delete_user():
-    return {
-        "Allow": "DELETE, OPTIONS",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
-
-# --------------------- Flow 1: Signup, Verify Account, Login, Verify 2FA --------------------- #
-
+# # OPTIONS for Delete User
+# @router.options("/api/users/{user_id}/delete/", tags=["User Management"])
+# async def options_delete_user():
+#     return {
+#         "Allow": "DELETE, OPTIONS",
+#         "Access-Control-Allow-Origin": "*",
+#         "Access-Control-Allow-Methods": "DELETE, OPTIONS",
+#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+#     }
 @router.post("/api/users/register/", tags=["Authentication"])
 async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
     if request.password != request.confirm_password:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
+        return error_response(code=400, error_message="Passwords do not match")
 
     existing_user = await get_user_by_username(request.username, db)
     if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
+        return error_response(code=400, error_message="Username already exists")
 
-    # Create user
     await create_user(request.username, request.password, request.email, db)
-
-    # Generate verification code
     verification_code = str(random.randint(100000, 999999))
 
     try:
-        # Save reset code
         await save_reset_code(request.email, verification_code, db)
-
-        # Send email
-        send_email(
-            request.email,
-            "Verify Your Account",
-            f"Your verification code is: {verification_code}"
-        )
+        send_email(request.email, "Verify Your Account", f"Your verification code is: {verification_code}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error during signup: {str(e)}")
+        return error_response(code=500, error_message=f"Error during signup: {str(e)}")
 
-    return {"message": "Account created successfully. Please verify your account."}
+    return success_response(code=201, data={"message": "Account created successfully. Please verify your account."})
 
 
 @router.post("/api/users/verify-account/", tags=["Security"])
 async def verify_account(request: VerifyAccountRequest, db: AsyncSession = Depends(get_db)):
     is_valid = await verify_reset_code(request.email, request.code, db)
     if not is_valid:
-        raise HTTPException(status_code=400, detail="Invalid or expired verification code")
-    await update_verification_status(request.email, db)
-    return {"message": "Account verification successful."}
+        return error_response(code=400, error_message="Invalid or expired verification code")
 
-#Endpoint for Login
+    await update_verification_status(request.email, db)
+    return success_response(code=200, data={"message": "Account verification successful."})
+
+
 @router.post("/api/auth/login/", tags=["Authentication"])
 async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     user = await get_user_by_email(request.email, db)
     if not user or not user.verify_password(request.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        return error_response(code=401, error_message="Invalid credentials")
+
     if not user.is_verified:
-        raise HTTPException(status_code=403, detail="Account not verified")
+        return error_response(code=403, error_message="Account not verified")
 
-    # Generate a 2FA code and store it in Redis
-    two_fa_code = str(random.randint(100000, 999999))
-    await set_code(f"2fa_code:{user.id}", two_fa_code, expire_seconds=300)
+    access_token = create_access_token(user_id=str(user.id), role="regular_user")
+    refresh_token = create_refresh_token(user_id=str(user.id))
+    await store_refresh_token(str(user.id), refresh_token)
 
-    # Send the 2FA code via email
+    return success_response(code=200, data={"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"})
+
+
+@router.post("/api/auth/logout/", tags=["Authentication"])
+async def logout(request: LogoutRequest):
     try:
-        send_email(
-            to_email=user.email,
-            subject="Your 2FA Code",
-            body=f"Your 2FA code is: {two_fa_code}. This code will expire in 5 minutes."
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send 2FA email: {str(e)}")
+        payload = decode_refresh_token(request.refresh_token)
+        user_id = payload["user_id"]
 
-    # Generate an access token for the user
-    token = create_access_token({"sub": str(user.id)})
+        stored_refresh_token = await get_stored_refresh_token(user_id)
+        if stored_refresh_token != request.refresh_token:
+            return error_response(code=401, error_message="Invalid Refresh Token")
 
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "message": "2FA code sent to your registered email. Please verify."
-    }
+        await delete_refresh_token(user_id)
+        return success_response(code=200, data={"message": "Logout successful"})
 
-# Endpoint for 2FA Verification
-@router.post("/api/auth/verify-2fa/",tags=["Security"])
-async def two_factor_auth(
-    request: TwoFactorAuthRequest,  # Body model
-    token: dict = Depends(decode_access_token),  # Decode the token to extract user data
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    2FA verification endpoint. Validates the code provided by the user.
-    """
-    # Extract user ID from the token
-    user_id = token.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=403, detail="Invalid token")
-
-    # Retrieve the stored 2FA code from Redis
-    stored_code = await get_code(f"2fa_code:{user_id}")
-    if not stored_code or stored_code != request.two_fa_code:
-        raise HTTPException(status_code=400, detail="Invalid or expired 2FA code")
-
-    # Delete the 2FA code after successful verification
-    await delete_code(f"2fa_code:{user_id}")
-
-    return {"message": "2FA verification successful"}
+    except Exception:
+        return error_response(code=401, error_message="Refresh Token expired")
 
 
-# --------------------- Reset Password Flow --------------------- #
+@router.post("/api/auth/refresh-token/", tags=["Authentication"])
+async def refresh_token(request: RefreshTokenRequest):
+    try:
+        payload = decode_refresh_token(request.refresh_token)
+        user_id = payload["user_id"]
 
-@router.post("/api/security/forgot-password/",tags=["Security"])
+        stored_refresh_token = await get_stored_refresh_token(user_id)
+        if stored_refresh_token != request.refresh_token:
+            return error_response(code=401, error_message="Invalid Refresh Token")
+
+        new_access_token = create_access_token(user_id=user_id, role="regular_user")
+        return success_response(code=200, data={"access_token": new_access_token})
+
+    except Exception:
+        return error_response(code=401, error_message="Refresh Token expired")
+
+@router.get("/api/users/{user_id}/", tags=["User Management"])
+async def get_user_endpoint(user_id: int,user: dict = Depends(get_current_user),db: AsyncSession = Depends(get_db)):
+    if user["user_id"] != str(user_id):
+        return error_response(code=403, error_message="You can only access your own data.")
+
+    user_data = await get_user_by_id(user_id, db)
+    if not user_data:
+        return error_response(code=404, error_message="User not found")
+
+    return success_response(code=200, data={"id": user_data.id, "username": user_data.username, "email": user_data.email})
+
+
+@router.put("/api/users/update/{user_id}/", tags=["User Management"])
+async def update_user_endpoint(user_id: int, request: UpdateUserRequest, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if user["user_id"] != str(user_id):
+        return error_response(code=403, error_message="You can only update your own account.")
+
+    updated_user = await update_user_details(user_id, request.dict(), db)
+    if not updated_user:
+        return error_response(code=404, error_message="User not found")
+
+    return success_response(code=200, data={"username": updated_user.username, "email": updated_user.email})
+
+
+@router.delete("/api/users/{user_id}/delete/", tags=["User Management"])
+async def delete_user_endpoint(user_id: int, user: dict = Depends(decode_access_token), db: AsyncSession = Depends(get_db)):
+    if user["user_id"] != str(user_id):
+        return error_response(code=403, error_message="You can only delete your own account.")
+
+    deletion_status = await delete_user_by_id(user_id, db)
+    if not deletion_status:
+        return error_response(code=404, error_message="User not found")
+
+    return success_response(code=200, data={"message": f"User with ID {user_id} deleted successfully"})
+
+
+@router.post("/api/security/forgot-password/", tags=["Security"])
 async def forgot_password(request: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
     user = await get_user_by_email(request.email, db)
     if not user:
-        raise HTTPException(status_code=404, detail="Email not registered")
+        return error_response(code=404, error_message="Email not registered")
+    
     reset_code = str(random.randint(100000, 999999))
     await save_reset_code(request.email, reset_code, db)
-    send_email(request.email, "Reset Your Password", f"Your reset code is: {reset_code}")
-    return {"message": "Reset code sent to your email"}
+    
+    try:
+        send_email(request.email, "Reset Your Password", f"Your reset code is: {reset_code}")
+    except Exception as e:
+        return error_response(code=500, error_message=f"Failed to send email: {str(e)}")
+    
+    return success_response(code=200, data={"message": "Reset code sent to your email"})
 
-@router.post("/api/security/reset-password/",tags=["Security"])
-async def reset_password(request: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
-    is_valid = await verify_reset_code(request.email, request.reset_code, db)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail="Invalid or expired reset code")
-    user = await get_user_by_email(request.email, db)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.set_password(request.new_password)
-    await db.commit()
-    return {"message": "Password reset successfully"}
 
-# --------------------- Resend Code --------------------- #
-@router.post("/api/users/resend-verification-code/",tags=["Security"])
-async def resend_code(request: ResendCodeRequest, db: AsyncSession = Depends(get_db)):
+@router.post("/api/users/resend-verification-code/", tags=["Security"])
+async def resend_verification_code(request: ResendCodeRequest, db: AsyncSession = Depends(get_db)):
+
     user = await get_user_by_email(request.email, db)
+    
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        return error_response(code=404, error_message="User not found")
+
+    if user.is_verified:
+        return error_response(code=400, error_message="Account already verified")
 
     new_code = str(random.randint(100000, 999999))
 
-    if request.code_type == "signup":
-        await save_reset_code(request.email, new_code, db)
-        send_email(user.email, "Resend Signup Verification Code", f"Your new signup verification code is: {new_code}")
-        return {"message": "Signup verification code resent to your email"}
-    elif request.code_type == "2fa":
-        await save_reset_code(request.email, new_code, db)
-        send_email(user.email, "Resend 2FA Code", f"Your new 2FA code is: {new_code}")
-        return {"message": "2FA code resent to your email"}
+    await save_reset_code(request.email, new_code, db)
 
-    raise HTTPException(status_code=400, detail="Invalid code type")
-
-# --------------------- Logout --------------------- #
-@router.post("/api/auth/logout/",tags=["Authentication"])
-async def logout(request: LogoutRequest, db: AsyncSession = Depends(get_db)):
-
-    user = await get_user_by_email(request.email, db)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    email_subject = "Logout Confirmation"
-    email_body = f"Hello {user.username},\n\nYou have successfully logged out from your account."
     try:
-        send_email(request.email, email_subject, email_body)
+        send_email(user.email, "Resend Verification Code", f"Your new verification code is: {new_code}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
-    return {"message": "Logout successful. A confirmation email has been sent to your email address."}
+        return error_response(code=500, error_message=f"Failed to send email: {str(e)}")
 
-# --------------------- User Management Endpoints for Frontend --------------------- #
-
-# Read User by ID
-@router.get("/api/users/{user_id}/" , tags =["User Management"])
-async def get_user_endpoint(user_id: int, db: AsyncSession = Depends(get_db)):
-    """
-    Endpoint to fetch user details by ID.
-    """
-    user = await get_user_by_id(user_id, db)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    print(f"Fetched User: {user.username}, {user.email}")  # Debug
-    return {"user": {"id": user.id, "username": user.username, "email": user.email}}
-
-# Update User Details
-@router.put("/api/users/{user_id}/update/" , tags=["User Management"])
-async def update_user_endpoint(user_id: int, request: UpdateUserRequest, db: AsyncSession = Depends(get_db)):
-  
-    if request.password != request.confirm_password:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
-    
-    updated_user = await update_user_details(user_id, request.dict(), db)
-
-    if not updated_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    print(f"Updated User: {updated_user.username}")  # Debug
-
-    return {
-        "message": "User updated successfully",
-        "user": {
-            "username": updated_user.username,
-            "email": updated_user.email
-        }
-    }
-
-# Delete User
-@router.delete("/api/users/{user_id}/delete/" , tags=["User Management"])
-async def delete_user_endpoint(user_id: int, db: AsyncSession = Depends(get_db)):
-    """
-    Endpoint to delete a user by ID.
-    """
-    deletion_status = await delete_user_by_id(user_id, db)
-    if not deletion_status:
-        raise HTTPException(status_code=404, detail="User not found")
-    print(f"Deleted User ID: {user_id}")  # Debug
-    return {"message": f"User with ID {user_id} deleted successfully"}
+    return success_response(code=200, data={"message": "Verification code resent successfully"})

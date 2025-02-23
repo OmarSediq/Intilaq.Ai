@@ -32,6 +32,8 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email}, is_verified={self.is_verified})>"
+    
+    headers = relationship("Header", back_populates="user", cascade="all, delete-orphan")
 
 
 # Existing ResetCode Model
@@ -85,8 +87,10 @@ class Header(Base):
     years_of_experience = Column(Integer)
     github_profile = Column(String(255))
     linkedin_profile = Column(String(255))
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False) 
 
     # Relationships
+    user = relationship("User", back_populates="headers")
     education = relationship("Education", back_populates="header", cascade="all, delete")
     skills_languages = relationship("SkillsLanguages", back_populates="header", cascade="all, delete")
     certifications = relationship("Certifications", back_populates="header", cascade="all, delete-orphan")
@@ -163,9 +167,6 @@ class Experience(Base):
     header = relationship("Header", back_populates="experience")
 
 
-
-
-
 # Volunteering Experience Table (Optional)
 class VolunteeringExperience(Base):
     __tablename__ = 'volunteering_experience'
@@ -203,5 +204,7 @@ class Objective(Base):
 
     header = relationship("Header", back_populates="objective")
 
+
+    
 
     

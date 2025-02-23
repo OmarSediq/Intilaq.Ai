@@ -12,6 +12,8 @@ from docx import Document
 from docx.shared import Pt
 from bs4 import BeautifulSoup
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from app.utils.jwt_utils import decode_access_token
+from fastapi import Depends, HTTPException
 
 async def create_user(username: str, password: str, email: str, db: AsyncSession):
     """
@@ -138,12 +140,11 @@ async def delete_user_by_id(user_id: int, db: AsyncSession):
     return True
 
 async def get_user_by_id(user_id: int, db: AsyncSession):
-
-    result = await db.execute(select(User).filter(User.id == user_id))
+    result = await db.execute(select(User).filter(User.id == user_id, User.is_active == 1))
     user = result.scalars().first()
 
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found or inactive")
 
     return user
 
