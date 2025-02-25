@@ -43,37 +43,12 @@ class ResetCode(Base):
     email = Column(String(255), nullable=False)
     code = Column(String(6), nullable=False)
     # created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc)) 
-    created_at = Column(DateTime(timezone=True), server_default=func.now()) # استخدام timezone.utc
+    created_at = Column(DateTime(timezone=True), server_default=func.now()) 
 
     def __repr__(self):
         return f"<ResetCode(id={self.id}, email={self.email}, code={self.code}, created_at={self.created_at})>"
 
 
-# Existing LoginAttempt Model
-class LoginAttempt(Base):
-    __tablename__ = "login_attempts"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    status = Column(String(50), nullable=False)  # Success or Failed
-
-    user = relationship("User", back_populates="login_attempts")
-
-    def __repr__(self):
-        return f"<LoginAttempt(id={self.id}, user_id={self.user_id}, timestamp={self.timestamp}, status={self.status})>"
-
-User.login_attempts = relationship("LoginAttempt", back_populates="user")
-
-# New Log Model
-class Log(Base):
-    __tablename__ = "logs"
-    id = Column(Integer, primary_key=True, index=True)
-    header_id = Column(Integer, ForeignKey("header.id"), nullable=False)
-    action = Column(String(100), nullable=False)  
-    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-
-    def __repr__(self):
-        return f"<Log(id={self.id}, header_id={self.header_id}, action={self.action}, timestamp={self.timestamp})>"
 # Header Table (Main User Table)
 class Header(Base):
     __tablename__ = 'header'

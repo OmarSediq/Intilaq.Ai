@@ -9,14 +9,11 @@ from app.models import Base  # تأكد من تعديل المسار بناءً 
 # Alembic Config
 config = context.config
 
-# إعداد السجلات
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# إعداد الـ metadata للنماذج
 target_metadata = Base.metadata
 
-# استخدام مكتبة متزامنة
 DATABASE_URL = "postgresql+psycopg2://admin:84000@localhost/intilaq_db"
 
 

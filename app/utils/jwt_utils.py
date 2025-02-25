@@ -8,16 +8,14 @@ from app.services.redis_services import redis_client
 
 
 def create_access_token(user_id: str, role: str, expiration_minutes: int = 15) -> str:
-
     expiration = datetime.now(timezone.utc) + timedelta(minutes=expiration_minutes)
     payload = {
         "user_id": user_id,
         "role": role,
-        "iat": datetime.now(timezone.utc),
-        "exp": expiration
+        "iat": int(datetime.now(timezone.utc).timestamp()), 
+        "exp": int(expiration.timestamp()) 
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-
 
 def create_refresh_token(user_id: str, expiration_days: int = 7) -> str:
 

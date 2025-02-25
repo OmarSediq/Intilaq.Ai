@@ -11,20 +11,42 @@ from app.utils.jwt_utils import create_access_token,decode_access_token,delete_r
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends
 from app.utils.response_schemas import success_response,error_response
+from datetime import datetime, timezone
+import jwt
 
 
 router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login/")
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
-   
-    try:
-        user_data = decode_access_token(token)
-        return user_data  
-    except HTTPException as e:
-        raise e
 
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        print(f"Received Token: {token}")  
+        user_data = decode_access_token(token)
+        print(f"Decoded Token: {user_data}") 
+
+        exp = user_data.get("exp")
+        if exp is None:
+            raise HTTPException(status_code=401, detail="Invalid token: No expiration found")
+
+        exp_time = datetime.fromtimestamp(exp, tz=timezone.utc)  
+        now_time = datetime.now(timezone.utc) 
+        print(f"Token Expiration: {exp_time}, Current Time: {now_time}")  
+
+        if exp_time < now_time:
+            raise HTTPException(status_code=401, detail="Token has expired")
+
+        return user_data
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        print(f"Unexpected Error: {e}")  
+        raise HTTPException(status_code=401, detail="Invalid token")
 # Models
 class SignupRequest(BaseModel):
     username: str
@@ -249,8 +271,8 @@ async def refresh_token(request: RefreshTokenRequest):
         return error_response(code=401, error_message="Refresh Token expired")
 
 @router.get("/api/users/{user_id}/", tags=["User Management"])
-async def get_user_endpoint(user_id: int,user: dict = Depends(get_current_user),db: AsyncSession = Depends(get_db)):
-    if user["user_id"] != str(user_id):
+async def get_user_endpoint(user_id: int, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if int(user["user_id"]) != user_id: 
         return error_response(code=403, error_message="You can only access your own data.")
 
     user_data = await get_user_by_id(user_id, db)
@@ -260,28 +282,26 @@ async def get_user_endpoint(user_id: int,user: dict = Depends(get_current_user),
     return success_response(code=200, data={"id": user_data.id, "username": user_data.username, "email": user_data.email})
 
 
-@router.put("/api/users/update/{user_id}/", tags=["User Management"])
-async def update_user_endpoint(user_id: int, request: UpdateUserRequest, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if user["user_id"] != str(user_id):
-        return error_response(code=403, error_message="You can only update your own account.")
+@router.put("/api/users/update/", tags=["User Management"])
+async def update_user_endpoint(request: UpdateUserRequest, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    user_id = int(user["user_id"])  
 
-    updated_user = await update_user_details(user_id, request.dict(), db)
+    updated_user = await update_user_details(user_id, request.model_dump(), db)
     if not updated_user:
         return error_response(code=404, error_message="User not found")
 
     return success_response(code=200, data={"username": updated_user.username, "email": updated_user.email})
 
 
-@router.delete("/api/users/{user_id}/delete/", tags=["User Management"])
-async def delete_user_endpoint(user_id: int, user: dict = Depends(decode_access_token), db: AsyncSession = Depends(get_db)):
-    if user["user_id"] != str(user_id):
-        return error_response(code=403, error_message="You can only delete your own account.")
+@router.delete("/api/users/delete/", tags=["User Management"])
+async def delete_user_endpoint(user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    user_id = int(user["user_id"])  
 
     deletion_status = await delete_user_by_id(user_id, db)
     if not deletion_status:
         return error_response(code=404, error_message="User not found")
 
-    return success_response(code=200, data={"message": f"User with ID {user_id} deleted successfully"})
+    return success_response(code=200, data={"message": "Account deleted successfully"})
 
 
 @router.post("/api/security/forgot-password/", tags=["Security"])

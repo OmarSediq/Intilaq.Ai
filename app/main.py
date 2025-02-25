@@ -27,6 +27,8 @@ async def create_tables():
     except Exception as e:
         print(f"Error creating tables: {e}")
 
+
+
 @app.on_event("startup")
 async def on_startup():
     """

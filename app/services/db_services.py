@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import delete
 from sqlalchemy.sql import text
-from app.models import User, ResetCode,Header,Education,Experience,Objective,VolunteeringExperience,SkillsLanguages,Awards,Certifications,Projects,LoginAttempt
+from app.models import User, ResetCode,Header,Education,Experience,Objective,VolunteeringExperience,SkillsLanguages,Awards,Certifications,Projects
 from app.dependencies import get_password_hash
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
@@ -15,10 +15,9 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from app.utils.jwt_utils import decode_access_token
 from fastapi import Depends, HTTPException
 
+
 async def create_user(username: str, password: str, email: str, db: AsyncSession):
-    """
-    Creates a new user and ensures no duplicate username or email exists.
-    """
+
     result = await db.execute(
         select(User).filter((User.username == username) | (User.email == email))
     )
@@ -121,9 +120,6 @@ async def update_user_details(user_id: int, updated_data: dict, db: AsyncSession
     return user
 
 async def delete_user_by_id(user_id: int, db: AsyncSession):
-    """
-    Deletes a user by their ID.
-    """
     result = await db.execute(select(User).filter(User.id == user_id))
     user = result.scalars().first()
 
@@ -136,16 +132,13 @@ async def delete_user_by_id(user_id: int, db: AsyncSession):
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to delete user: {str(e)}")
-
     return True
 
 async def get_user_by_id(user_id: int, db: AsyncSession):
-    result = await db.execute(select(User).filter(User.id == user_id, User.is_active == 1))
+    result = await db.execute(select(User).filter(User.id == user_id))
     user = result.scalars().first()
-
     if not user:
-        raise HTTPException(status_code=404, detail="User not found or inactive")
-
+        raise HTTPException(status_code=404, detail="User not found")
     return user
 
 async def generate_docx_from_html(html_content):
@@ -186,10 +179,12 @@ async def generate_docx_from_html(html_content):
 
 async def get_user_by_header_id(db: AsyncSession, header_id: int):
     query = text("""
-       SELECT 
+      SELECT 
+    h.user_id AS user_id, 
     h.full_name AS full_name, h.job_title, h.email, h.phone_number AS phone_number, h.address,
     h.years_of_experience, h.linkedin_profile, h.github_profile,
     COALESCE(o.description, '') AS objective, 
+
 
     COALESCE(json_agg(DISTINCT e.*) FILTER (WHERE e.id IS NOT NULL), '[]') AS education,
     COALESCE(json_agg(DISTINCT exp.*) FILTER (WHERE exp.id IS NOT NULL), '[]') AS experience,
