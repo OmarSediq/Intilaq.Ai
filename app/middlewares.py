@@ -2,7 +2,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 def setup_cors(app):
     # origins = [
-    #     "https://trucks-factors-derby-breed.trycloudflare.com"
+    #     "http://127.0.0.1:8000"
     #     # "https://yourfrontenddomain.com"
     # ]
     
@@ -13,3 +13,5 @@ def setup_cors(app):
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
+
+    

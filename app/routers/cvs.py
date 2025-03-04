@@ -946,6 +946,41 @@ async def download_cv_docx(header_id: int, user: dict = Depends(get_current_user
 
     except Exception as e:
         return error_response(code=500, error_message=f"Template rendering error: {str(e)}")
+    
+
+@router.get("/api/regenerate-cv/{header_id}/", response_class=HTMLResponse, tags=["CV Exporting"])
+async def regenerate_cv(header_id: int, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    try:
+        user_id = int(user["user_id"])
+        user_data = await get_user_by_header_id(db, header_id)
+
+        if not user_data or user_data["user_id"] != user_id:
+            return error_response(code=403, error_message="You do not have permission to regenerate this CV.")
+
+        template = env.get_template("resume_template.html")
+        html_content = template.render(
+            full_name=safe_get(user_data, "full_name"),
+            job_title=safe_get(user_data, "job_title"),
+            email=safe_get(user_data, "email"),
+            phone_number=safe_get(user_data, "phone_number"),
+            address=safe_get(user_data, "address"),
+            years_of_experience=safe_get(user_data, "years_of_experience"),
+            github_profile=safe_get(user_data, "github_profile"),
+            linkedin_profile=safe_get(user_data, "linkedin_profile"),
+            objective=safe_get(user_data, "objective"),
+            education=safe_get(user_data, "education", []),
+            experience=safe_get(user_data, "experience", []),
+            technical_skills=safe_get(user_data, "technical_skills", []),
+            languages=safe_get(user_data, "languages", []),
+            certifications=safe_get(user_data, "certifications", []),
+            projects=safe_get(user_data, "projects", []),
+            volunteering_experience=safe_get(user_data, "volunteering_experience", []),
+            awards=safe_get(user_data, "awards", [])
+        )
+        return HTMLResponse(content=html_content)
+    
+    except Exception as e:
+        return error_response(code=500, error_message=f"Template rendering error: {str(e)}")
 
     
 @router.post("/api/objectives/suggestions/", tags=["AI Enhancements"])

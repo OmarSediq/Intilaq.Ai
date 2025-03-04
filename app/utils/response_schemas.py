@@ -38,3 +38,5 @@ def error_response(code: int = 400, error_message: str = "An error occurred", da
         data=data
     )
     return JSONResponse(content=response_data.dict(), status_code=code)
+
+# credentials: "include"

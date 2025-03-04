@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends,Request,Response
 from app.services.db_services import create_user, get_user_by_username, verify_reset_code, save_reset_code, get_user_by_email, update_verification_status, update_user_details, delete_user_by_id,get_user_by_id
 # from app.utils.jwt_utils import create_access_token, decode_access_token
 from app.dependencies import get_db
@@ -8,7 +8,6 @@ import random
 from app.utils.email_utils import send_email
 # from app.services.redis_services import get_code, set_code, delete_code
 from app.utils.jwt_utils import create_access_token,decode_access_token,delete_refresh_token,store_refresh_token,create_refresh_token,get_stored_refresh_token,decode_refresh_token
-from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends
 from app.utils.response_schemas import success_response,error_response
 from datetime import datetime, timezone
@@ -17,15 +16,16 @@ import jwt
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login/")
+async def get_current_user(request: Request):
+    access_token = request.cookies.get("access_token") 
+    
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated (No access token)")
 
-
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
-        print(f"Received Token: {token}")  
-        user_data = decode_access_token(token)
-        print(f"Decoded Token: {user_data}") 
+        print(f"Received Token from Cookies: {access_token}")  
+        user_data = decode_access_token(access_token)
+        print(f"Decoded Token: {user_data}")  
 
         exp = user_data.get("exp")
         if exp is None:
@@ -190,6 +190,7 @@ class UpdateUserRequest(BaseModel):
 #         "Access-Control-Allow-Methods": "DELETE, OPTIONS",
 #         "Access-Control-Allow-Headers": "Content-Type, Authorization",
 #     }
+
 @router.post("/api/users/register/", tags=["Authentication"])
 async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
     if request.password != request.confirm_password:
@@ -222,7 +223,7 @@ async def verify_account(request: VerifyAccountRequest, db: AsyncSession = Depen
 
 
 @router.post("/api/auth/login/", tags=["Authentication"])
-async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(request: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
     user = await get_user_by_email(request.email, db)
     if not user or not user.verify_password(request.password):
         return error_response(code=401, error_message="Invalid credentials")
@@ -232,43 +233,78 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
 
     access_token = create_access_token(user_id=str(user.id), role="regular_user")
     refresh_token = create_refresh_token(user_id=str(user.id))
-    await store_refresh_token(str(user.id), refresh_token)
 
-    return success_response(code=200, data={"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"})
+    await store_refresh_token(str(user.id), refresh_token)  
+
+    response = success_response(code=200, data={"message": "Login successful"})
+
+   
+    response.set_cookie("access_token", access_token, httponly=True, samesite="Lax", max_age=900, secure=False, path="/")
+    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Lax", max_age=604800, secure=False, path="/")
+
+    return response
 
 
 @router.post("/api/auth/logout/", tags=["Authentication"])
-async def logout(request: LogoutRequest):
+async def logout(request: Request, response: Response):
+    refresh_token = request.cookies.get("refresh_token") 
+
+    if not refresh_token:
+        return error_response(code=401, error_message="No Refresh Token found")
+
     try:
-        payload = decode_refresh_token(request.refresh_token)
+        payload = decode_refresh_token(refresh_token)
         user_id = payload["user_id"]
 
         stored_refresh_token = await get_stored_refresh_token(user_id)
-        if stored_refresh_token != request.refresh_token:
+        if stored_refresh_token != refresh_token:
             return error_response(code=401, error_message="Invalid Refresh Token")
 
         await delete_refresh_token(user_id)
+        response.delete_cookie("access_token", path="/")
+        response.delete_cookie("refresh_token", path="/")
+
         return success_response(code=200, data={"message": "Logout successful"})
 
-    except Exception:
+    except jwt.ExpiredSignatureError:
         return error_response(code=401, error_message="Refresh Token expired")
-
+    except jwt.InvalidTokenError:
+        return error_response(code=401, error_message="Invalid Refresh Token")
+    
 
 @router.post("/api/auth/refresh-token/", tags=["Authentication"])
-async def refresh_token(request: RefreshTokenRequest):
+async def refresh_token(request: Request, response: Response):
+    refresh_token = request.cookies.get("refresh_token")  # استخراج `Refresh Token` من `Cookies`
+
+    if not refresh_token:
+        return error_response(code=401, error_message="Refresh token not found")
+
     try:
-        payload = decode_refresh_token(request.refresh_token)
+        payload = decode_refresh_token(refresh_token)  # فك تشفير `Refresh Token`
         user_id = payload["user_id"]
 
-        stored_refresh_token = await get_stored_refresh_token(user_id)
-        if stored_refresh_token != request.refresh_token:
+        stored_refresh_token = await get_stored_refresh_token(user_id) 
+        if stored_refresh_token != refresh_token:
             return error_response(code=401, error_message="Invalid Refresh Token")
 
         new_access_token = create_access_token(user_id=user_id, role="regular_user")
-        return success_response(code=200, data={"access_token": new_access_token})
 
-    except Exception:
+        response.set_cookie(
+            key="access_token",
+            value=new_access_token,
+            httponly=True,
+            samesite="Lax",
+            max_age=900,  
+            secure=False,
+            path="/"
+        )
+
+        return success_response(code=200, data={"message": "Token refreshed"})
+
+    except jwt.ExpiredSignatureError:
         return error_response(code=401, error_message="Refresh Token expired")
+    except jwt.InvalidTokenError:
+        return error_response(code=401, error_message="Invalid Refresh Token")
 
 @router.get("/api/users/{user_id}/", tags=["User Management"])
 async def get_user_endpoint(user_id: int, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
