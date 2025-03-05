@@ -1,0 +1,325 @@
+body {
+    margin: 0;
+    font-family: "IBM Plex Sans", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: var(--Blue-0, #E5EEFF);
+  }
+  
+  .container {
+    display: flex; 
+    background: var(--GreyTint-00000, #FFF); 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 25px;
+    padding: 14px;
+    width: 404px;
+    height: 540px;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid var(--GreyTint-100, #D5D9E1);
+  }
+  
+  .login-box {
+    display: flex;
+    width: 357px;
+    height: 529px;
+    flex-direction: column;
+    align-items: center;
+    gap: 35px;
+    /* padding: 24px; */
+    background: #ffffff;
+  }
+  
+  .login-form {
+    text-align: center;
+
+
+
+  }
+  
+  .logo {
+    width: 76.852px;
+    height: 54.683px;
+    /* margin-bottom: 10px; */
+    /* margin-top: 10px; */
+    flex-shrink: 0;
+
+  }
+  
+  h2 {
+    text-align: left;
+    color: var(--BlackDark-Basic, #000);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: -10px;
+    margin-top: 0px;
+   font-style: normal;
+   line-height: normal;
+   text-transform: capitalize;
+   align-self: stretch;
+
+
+
+
+  }
+  
+  p {
+
+    margin-bottom: 10px;
+    text-align: left;
+    color: var(--BlackDark-Basic, #000);
+    font-size: 13px;
+    align-self: stretch;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    text-transform: capitalize;
+
+
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  label {
+    text-align: left;
+    font-size: 14px;
+    color: var(--BlackDark-Basic, #000);
+    align-self: stretch;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    text-transform: capitalize;
+
+
+
+
+
+
+
+
+  }
+  
+  input {
+    border-radius: 8px;
+    border: 1px solid var(--GreyTint-200, #B3BAC8);
+    background: var(--GreyTint-GreyShade, #F9F9F9);
+    height: 38px;
+    padding: 1px 2px;
+    font-size: 12px;
+    margin-top: -8px;   
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    align-self: stretch;
+    color: var(--GreyTint-300, #708090);
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+
+
+
+  }
+  
+  input:focus {
+    outline: none;
+    border-color: #007BFF;
+  }
+  
+  .password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .password-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+  }
+  
+  .password-wrapper .toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    color: #708090 ;
+  }
+  
+  .password-wrapper .toggle-password:hover {
+    color: #002C7C;
+  }
+
+
+
+
+  .confirmPassword-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .confirmPassword-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+  }
+  
+  .confirmPassword-wrapper .toggleConfirmPassword-confirmPassword {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    color: #708090 ;
+  }
+  
+  .confirmPassword-wrapper .toggleConfirmPassword-confirmPassword:hover {
+    color: #002C7C;
+  }
+
+
+
+
+
+  
+  
+  
+  .login-btn {
+    padding: 10px;
+    font-size: 16px;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    background: var(--BlackDark-Disabled, #45434E);
+    height: 38px;
+    text-align: center;
+    margin-bottom: 10px;
+    /* margin-top: 50px; */
+        font-family: "IBM Plex Sans"  ;
+        display: flex;
+        text-transform: capitalize;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        align-self: stretch;  
+        font-style: normal;
+        font-weight: 500;
+        line-height: normal;
+
+
+
+  }
+  
+  .login-btn:hover {
+    background: #002C7C;
+  }
+  
+  .sign-up {
+    color: var(--BlackDark-Basic, #000);
+    text-align: center;
+    font-size: 16px;   
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    text-transform: capitalize;
+
+
+
+  }
+  
+  .sign-up a {
+    color: var(--Blue-500, #002465);    
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: auto;
+    text-decoration-thickness: auto;
+    text-underline-offset: auto;
+    text-underline-position: from-font;
+    text-transform: capitalize;
+
+
+
+
+  }
+  
+  .sign-up a:hover {
+    text-decoration: underline;
+  }
+
+  
+
+
+
+  .login-banner {
+    display: flex;
+    margin-top: -300px;
+    margin-left: 50px;
+    margin-bottom: -300px;
+    width: 575px;
+    /* height: 619px;   make the page scrol*/
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center; }
+
+
+
+    .login-banner h1 {
+    
+  
+      background: linear-gradient(90deg, #001B4C 0%, #003FB2 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: top right;  
+      width: 575px;
+      
+      font-size: 32px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: normal;
+      text-transform: capitalize;
+           
+    }
+    
+    .login-banner p {
+  
+      text-align: center;
+      color: var(--Blue-500, #002465);
+      font-size: 24px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: normal;
+      text-transform: capitalize;
+      margin-top: -20px;
+  
+     
+  
+     
+      /*    width: 420px; -->  will cancle text-align: center; */
+  
+    }
+    
+    
+    .login-banner .illustration{
+  
+  width: 446.4px;
+  height: 420.3px;
+  flex-shrink: 0;
+    }
+  
+  
+  
+  
+  
+  
+    
+  
