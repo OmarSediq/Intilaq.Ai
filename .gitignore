@@ -16,3 +16,4 @@ app/utils/__pycache__
 app/routers/__pycache__
 test.py
 app/reset_db.py
+certs

@@ -3,15 +3,34 @@ import google.generativeai as genai
 from fastapi import HTTPException
 from typing import Optional
 from datetime import date
-import os
 from dotenv import load_dotenv
+from fastapi import HTTPException
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from app.services.redis_services import redis_client
+import os
+import pickle
+import whisper
+
 
 
 load_dotenv()
 
+# AI_GENERATE_QUESTIONS_URL = "https://api.openai.com/v1/chat/completions"  # OpenAI API
+
 genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
 model = GenerativeModel(model_name="gemini-1.5-flash")
+
+async def get_model():
+    cached_model = redis_client.get("whisper_model")
+    if cached_model:
+        return pickle.loads(cached_model) 
+    else:
+        model = whisper.load_model("small")
+        redis_client.set("whisper_model", pickle.dumps(model))  # تخزين النموذج في Redis
+        return model
+
 
 async def generate_objective_from_ai(job_title: str, years_of_experience: int) -> list:
     """
@@ -118,6 +137,7 @@ async def generate_skills_from_ai(job_title: str, years_of_experience: int) -> d
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate skills: {str(e)}")
 
+
 async def generate_volunteering_description_from_ai(activity_role: str) -> list:
     """
     Generate AI-based descriptions for volunteering experience based on role.
@@ -141,3 +161,120 @@ async def generate_volunteering_description_from_ai(activity_role: str) -> list:
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate volunteering descriptions: {str(e)}")
+    
+
+# genai.configure(api_key="AIzaSyBvws9GYa9l5IkxFaE9VZavQh26wRUf4nE")
+# model = genai.GenerativeModel("gemini-1.5-flash")
+
+async def generate_interview_questions(role: str, job_description: str = None, language: str = "en"):
+    system_message = (
+        "You are a professional interview assistant specializing in crafting comprehensive and role-specific interview questions. "
+        "Your responsibility is to generate 12 targeted virtual interview questions for the given role. "
+        "If a job description is provided, seamlessly integrate its details to refine the questions. "
+        "Focus on evaluating the candidate's technical skills and expertise relevant to the role. "
+        "Present the questions in a clear and concise numbered list."
+    )
+
+    if language == "ar":
+        system_message = (
+            "أنت مساعد مقابلات احترافي متخصص في صياغة أسئلة مقابلات شاملة ومخصصة للأدوار الوظيفية المختلفة. "
+            "مسؤوليتك هي إنشاء 12 سؤال مقابلة افتراضي مستهدف للوظيفة المحددة. "
+            "إذا تم توفير وصف وظيفي، فقم بدمج تفاصيله بسلاسة لتحسين الأسئلة. "
+            "ركز على تقييم المهارات التقنية والخبرة ذات الصلة بالدور. "
+            "قم بتقديم الأسئلة بشكل واضح في قائمة مرقمة."
+        )
+
+    if job_description:
+        human_message = (
+            f"Generate interview questions for the role of '{role}' based on the following job description:\n"
+            f"{job_description}"
+        )
+        if language == "ar":
+            human_message = (
+                f"قم بإنشاء أسئلة مقابلة لوظيفة '{role}' بناءً على الوصف الوظيفي التالي:\n"
+                f"{job_description}"
+            )
+    else:
+        human_message = f"Generate interview questions for the role of '{role}'."
+        if language == "ar":
+            human_message = f"قم بإنشاء أسئلة مقابلة لوظيفة '{role}'."
+
+    prompt = f"System: {system_message}\nHuman: {human_message}"
+
+    try:
+        response = await model.generate_content_async(prompt)
+        return response.text
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+
+async def generate_best_model_answer(question: str, language: str = "en"):
+    system_message = (
+        "Generate the best possible answer for the given interview question "
+        "that helps candidates understand their mistakes and learn."
+    )
+
+    if language == "ar":
+        system_message = (
+            "قم بإنشاء أفضل إجابة ممكنة لسؤال المقابلة المعطى "
+            "بحيث تساعد المرشحين على فهم أخطائهم والتعلم منها."
+        )
+
+    prompt = f"System: {system_message}\nHuman: Question: \"{question}\""
+
+    try:
+        response = await model.generate_content_async(prompt)  
+        return response.text.strip()
+    except Exception as e:
+        return f"Error generating model answer: {e}"
+
+
+
+def analyze_answer(answer: str, model_answer: str) -> int:
+    vectorizer = TfidfVectorizer().fit_transform([answer, model_answer])
+    similarity_matrix = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
+    similarity_score = similarity_matrix[0][0]
+    score = round(similarity_score * 10)
+    return score
+
+async def analyze_interview_answer(user_answer: str, question: str, language: str = "en"):
+    model_answer = await generate_best_model_answer(question, language)  # تمرير اللغة
+    score = analyze_answer(user_answer, model_answer)
+
+    feedback_message = (
+        f"Your answer could be improved by focusing on key points such as: {model_answer}"
+        if language == "en"
+        else f"يمكن تحسين إجابتك من خلال التركيز على النقاط الأساسية مثل: {model_answer}"
+    )
+
+    return {
+        "score": score,
+        "feedback": feedback_message,
+        "model_answer": model_answer
+    }
+
+
+
+# async def evaluate_answers(user_answers, questions):
+    
+#     total_score = 0
+#     feedback = []
+#     scores = []
+#     model_answers = []
+
+#     for idx, (answer, question) in enumerate(zip(user_answers, questions)):
+#         model_answer = await generate_best_model_answer(question)  
+#         model_answers.append(model_answer)
+
+#         score = analyze_answer(answer, model_answer)
+#         scores.append(score)
+#         total_score += score
+
+#         feedback.append(
+#             f"Question {idx + 1}: Your score is {score}/10.\n"
+#             f"Feedback: Your answer could be improved by focusing on key points such as: {model_answer}.\n"
+#             f"Best Model Answer: {model_answer}\n"
+#         )
+
+#     final_feedback = "\n".join(feedback)
+#     return total_score, scores, final_feedback 

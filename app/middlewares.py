@@ -1,16 +1,16 @@
 from fastapi.middleware.cors import CORSMiddleware
 
 def setup_cors(app):
-    # origins = [
-    #     "http://127.0.0.1:8000"
-    #     # "https://yourfrontenddomain.com"
-    # ]
+#     origins = [
+#     "https://omars-macbook-air.tail1f6871.ts.net:8443/",
     
+#     "https://localhost:3000",  
+#    ]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_methods=["*"],
         allow_headers=["*"],
     )
 

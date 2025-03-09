@@ -12,6 +12,8 @@ from fastapi import Depends
 from app.utils.response_schemas import success_response,error_response
 from datetime import datetime, timezone
 import jwt
+from fastapi.responses import JSONResponse
+
 
 
 router = APIRouter()
@@ -91,105 +93,36 @@ class UpdateUserRequest(BaseModel):
 
 
 
-# # OPTIONS for Register
-# @router.options("/api/users/register/", tags=["Authentication"])
-# async def options_register():
-#     return {
-#         "Allow": "POST, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "POST, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
 
-# # OPTIONS for Verify Account
-# @router.options("/api/users/verify-account/", tags=["Security"])
-# async def options_verify_account():
-#     return {
-#         "Allow": "POST, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "POST, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
+# OPTIONS for Register
+@router.options("/api/users/register/", tags=["Authentication"])
+async def options_register():
+    return JSONResponse(content=None, headers={
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    })
 
-# # OPTIONS for Login
-# @router.options("/api/auth/login/", tags=["Authentication"])
-# async def options_login():
-#     return {
-#         "Allow": "POST, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "POST, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
+# OPTIONS for Verify Account
+@router.options("/api/users/verify-account/", tags=["Security"])
+async def options_verify_account():
+    return JSONResponse(content=None, headers={
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    })
 
-# # OPTIONS for 2FA Verification
-# @router.options("/api/auth/verify-2fa/", tags=["Security"])
-# async def options_two_factor_auth():
-#     return {
-#         "Allow": "POST, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "POST, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
-
-# # OPTIONS for Forgot Password
-# @router.options("/api/security/forgot-password/", tags=["Security"])
-# async def options_forgot_password():
-#     return {
-#         "Allow": "POST, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "POST, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
-
-# # OPTIONS for Reset Password
-# @router.options("/api/security/reset-password/", tags=["Security"])
-# async def options_reset_password():
-#     return {
-#         "Allow": "POST, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "POST, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
-
-# # OPTIONS for Resend Code
-# @router.options("/api/users/resend-verification-code/", tags=["Security"])
-# async def options_resend_code():
-#     return {
-#         "Allow": "POST, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "POST, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
-
-# # OPTIONS for Logout
-# @router.options("/api/auth/logout/", tags=["Authentication"])
-# async def options_logout():
-#     return {
-#         "Allow": "POST, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "POST, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
-
-# # OPTIONS for Update User
-# @router.options("/api/users/{user_id}/update/", tags=["User Management"])
-# async def options_update_user():
-#     return {
-#         "Allow": "PUT, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "PUT, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
-
-# # OPTIONS for Delete User
-# @router.options("/api/users/{user_id}/delete/", tags=["User Management"])
-# async def options_delete_user():
-#     return {
-#         "Allow": "DELETE, OPTIONS",
-#         "Access-Control-Allow-Origin": "*",
-#         "Access-Control-Allow-Methods": "DELETE, OPTIONS",
-#         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-#     }
+# OPTIONS for Login
+@router.options("/api/auth/login/", tags=["Authentication"])
+async def options_login():
+    return JSONResponse(content=None, headers={
+        "Allow": "POST, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    })
 
 @router.post("/api/users/register/", tags=["Authentication"])
 async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
