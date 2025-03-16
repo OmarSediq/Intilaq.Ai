@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header</title>
+    <link rel="stylesheet" href="css/header.css">
+</head>
+<body>
+    <div class="navbar">
+    <div class="navbar-container">
+        <div class="logo">
+        <img src="Imgs\Intilaq.svg" alt="Logo">
+        <!-- <span>logoipsum</span> -->
+        </div>
+        <div class="nav-links">
+        <a href="Home1.html">Home</a>
+        <a href="Header.html" class="active">Resume</a>
+        <a href="#">Interview</a>
+        <a href="#">Help</a>
+        </div>
+        <div class="logout">
+            <img src="Imgs\logout.svg" alt="logut" width="17">&nbsp;
+            &nbsp;<a href="#">Logout</a>
+        </div>
+    </div>
+    </div>
+
+    <div class="container">
+        <div class="progress-container">
+            <div class="vertical-line"></div>
+            <div class="step">
+                <div class="circle active"></div>
+                <div class="step-description active">Header</div>
+                <h6 class="header6">Fill Personal Info</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Objective</div>
+                <h6 class="header6">Add Career Objective</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Experience</div>
+                <h6 class="header6">Showcase Growth</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Education</div>
+                <h6 class="header6">Add Educational Journey</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Projects</div>
+                <h6 class="header6">Add Achievements</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Skills & Languages</div>
+                <h6 class="header6">Add What You Do Best</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Additional Sections</div>
+                <h6 class="header6">Add the Extras</h6>
+            </div>
+            </div>
+            <div class="button-container">
+            
+            <!-- <button id="nextBtn">Next</button> -->
+            </div>
+
+            
+            
+        <div class="sidebar">
+            <div class="head6">
+                <img src="Imgs/Header.svg" alt="" class="headerimg5">
+                <h6>Header</h6>
+            </div>
+            <div class="form-container">
+                <h6 class="header6first">Personal Information</h6>
+            <form id="resumeForm">
+                <div class="form-group" id="name">
+                    <label for="nameInput" class="editable-label">Name</label>
+                    <input type="text" id="nameInput" value="" class="editable-input" 
+            readonly/>
+            <button class="edit-btn">
+                <img src="Imgs\edit.svg" alt="Edit" class="edit-icon">
+                </button>
+                </div>
+
+                <div class="form-group" id="phone">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" placeholder="Enter phone number">
+                </div>
+
+                <div class="form-group" id="address">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" placeholder="Enter address">
+                </div>
+
+                <div class="form-group" id="email">
+                    <label for="email">Email</label>
+                    <input type="text" id="emailInput" value="" class="editable-input2" 
+            readonly/>
+            <button class="edit-btn2">
+                <img src="Imgs\edit.svg" alt="Edit" class="edit-icon2">
+                </button>
+                </div>
+
+                <div class="form-group" id="job">
+                    <label for="jobTitle">Job Title</label>
+                    <input type="text" id="jobTitle" placeholder="Enter job title">
+                </div>
+
+                <div class="form-group" id="yoe">
+                    <label for="years of experience">Years of Experience</label>
+                    <select id="exp">
+                        <option value="1">1 Year</option>
+                        <option value="2">2 Years</option>
+                        <option value="3">3 Years</option>
+                        <option value="4">4 Years</option>
+                        <option value="5">5+ Years</option>
+                    </select>
+                </div>
+
+                <div class="transition-overlay"></div>
+
+
+                <div class="form-group-links" id="linkedin">
+                    <label for="linkedin">LinkedIn</label>
+                    <input type="url" placeholder="e.g. www.linkedin.com">
+                </div>
+                    <!-- <div class="form-group-links" id="portfolio">
+                    <label for="portfolio">Portfolio</label>
+                    </div>
+                    <div class="form-group-links" id="github">
+                    <label for="github">GitHub</label>
+                    </div> -->
+                    <div id="info-container">
+                        <div class="info-box">
+                            <div class="label-container">
+                            <button class="add-btn" id="add-btn">+</button>
+                            <span>Portfolio</span>
+                            </div>
+                            <div class="input-container" id="input-container"></div>
+                            </div>
+                            
+                        <div class="info-box">
+                            <div class="label-container">
+                            <button class="add-btn" id="add-btn">+</button>
+                            <span>GitHub</span>
+                            </div>
+                            <div class="input-container" id="input-container"></div>
+                        </div>
+                        </div>
+                </div>
+                <div class="dynamic-inputs"></div>
+                <!-- <div class="button-container">
+                    <button class="prevBtn" disabled>Back</button>
+                    <button class="nextBtn" id="nextBtn">Next</button>
+                    <button id="prevBtn" class="prevBtn" disabled>Back</button>
+                    <button type="button" class="nextBtn" onclick="nextStep('Experience.html')" id="nextBtn">Next</button>
+                    </div> -->
+                    <div class="button-container">
+                        <button type="button" class="nextBtn" onclick="nextStep('Objective.html')" id="nextBtn">Next</button>
+                    </div>
+            </form>
+        </div>
+    
+        
+    
+    <script src="js/header.js"></script>
+</body>
+</html>

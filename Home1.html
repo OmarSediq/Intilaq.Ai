@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page1</title>
+    <link rel="stylesheet" href="css/home1.css">
+</head>
+<body>
+    <div class="navbar">
+    <div class="navbar-container">
+        <div class="logo">
+        <img src="Imgs\Intilaq.svg" alt="Logo">
+        <!-- <span>logoipsum</span> -->
+        </div>
+        <div class="nav-links">
+        <a href="Home1.html" class="active">Home</a>
+        <a href="Resume.html" class="">Resume</a>
+        <a href="#">Interview</a>
+        <a href="#">Help</a>
+        </div>
+        <div class="logout">
+            <img src="Imgs\logout.svg" alt="logut" width="17">&nbsp;
+            &nbsp;<a href="#">Logout</a>
+        </div>
+    </div>
+    </div>
+
+    <div class="container1">
+        <h3 style="padding: 20px;">Personalize Your CV Journey</h3>
+        <hr width="100%" size="1">
+        <!-- <hr width="100%" size="2" color="blue" noshade> -->
+        <!-- <hr width="100%;" color="red" size="5"> -->
+    
+        <div class="container2">
+            <h1>Are you worked before?</h1>
+            <div class="options">
+                <div class="option active" onclick="selectOption(this)">
+                    
+                    <label for="student" style="font-weight: bolder; font-size: 15px; cursor: pointer;">
+                        <img src="Imgs/Exp.svg" alt="Student" width="32.526px" height="35.673px">
+                        Yes, I Have Experience
+                    </label><br><br>
+                    <input type="checkbox" id="student" name="status" class="single-choice"> 
+                </div>
+                <div class="option active" onclick="selectOption(this)">
+                    
+                    <label for="graduate" style="font-weight: bolder; font-size: 15px; cursor: pointer;">
+                        <img src="Imgs/lookingfor.svg" alt="Graduate" width="60.999px" height="35.209px">
+                        No, Still looking for
+                    </label> <br> <br>
+                    <input type="checkbox" id="graduate" name="status" class="single-choice">
+                </div>
+            </div>
+            <div class="transition-overlay"></div>
+
+            <div class="buttons">
+                <br><h></h><br>
+                <a href="Home2.html"><button class="next" onclick="handleNextClick()" id="nextBtn">Next</button></a>
+                <h></h>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="js/start.js"></script>
+</body>
+</html>

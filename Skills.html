@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills</title>
+    <link rel="stylesheet" href="css/skills.css">
+</head>
+<body>
+    <div class="navbar">
+    <div class="navbar-container">
+        <div class="logo">
+        <img src="Imgs\Intilaq.svg" alt="Logo">
+        <!-- <span>logoipsum</span> -->
+        </div>
+        <div class="nav-links">
+        <a href="Home1.html">Home</a>
+        <a href="Header.html" class="active">Resume</a>
+        <a href="#">Interview</a>
+        <a href="#">Help</a>
+        </div>
+        <div class="logout">
+            <img src="Imgs\logout.svg" alt="logut" width="17">&nbsp;
+            &nbsp;<a href="#">Logout</a>
+        </div>
+    </div>
+    </div>
+
+    <div class="container">
+        <div class="progress-container">
+            <div class="vertical-line"></div>
+            <div class="step">
+                <div class="circle active"></div>
+                <div class="step-description active">Header</div>
+                <h6 class="header6">Fill Personal Info</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Objective</div>
+                <h6 class="header6">Add Career Objective</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Experience</div>
+                <h6 class="header6">Showcase Growth</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Education</div>
+                <h6 class="header6">Add Educational Journey</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Projects</div>
+                <h6 class="header6">Add Achievements</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Skills & Languages</div>
+                <h6 class="header6">Add What You Do Best</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Additional Sections</div>
+                <h6 class="header6">Add the Extras</h6>
+            </div>
+            </div>
+            <div class="button-container">
+            
+            <!-- <button id="nextBtn">Next</button> -->
+            </div>
+
+            
+            
+        <div class="sidebar">
+            <div class="head6">
+                <h6>Skills & Languages</h6>
+                <img src="Imgs/Stars.png" alt="" class="headerimg5"> <h5>Powered By AI</h5>
+                
+            </div>
+            <div class="form-container">
+                <!-- <h6 class="header6first">Company Details</h6> -->
+            <form id="resumeForm">
+                <div class="form-group" id="address">
+                    <label for="address">Skills</label>
+                    <p>We Found Top 17 Skills For Software Engineer, Select What Matches Your Skills</p>
+                    <!-- <input type="text" id="address" placeholder="Enter Company Name"> -->
+                </div>
+
+                <div class="skills-container">
+                    <div class="skill" onclick="toggleSkill(this)">Software Development Frameworks <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">Python <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">Python <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">Python <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">SQL <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">Cloud Computing <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">SQL <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">Programming Languages <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">Cloud Computing <span class="scircle">+</span></div>
+                    <div class="skill" onclick="toggleSkill(this)">Programming Languages <span class="scircle">+</span></div>
+                </div>
+
+            <div id="language-container">
+                <div class="form-group" id="languages">
+                    <label for="city">Languages</label>
+                    <input type="hidden" id="languages" placeholder="Enter languages">
+                    <select>
+                        <option option value="" disabled selected>Enter Language</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="English">English</option>
+                        <option value="French">French</option>
+                      </select>
+                </div>
+
+                <div class="form-group" id="levels">
+                    <label for="country">Levels</label>
+                    <input type="hidden" id="levels" placeholder="Enter Levels">
+                    <select>
+                        <option option value="" disabled selected>Enter Level</option>
+                        <option value="Native">Native</option>
+                        <option value="Fluent">Fluent</option>
+                        <option value="Intermediat">Intermediat</option>
+                    </select>
+                </div>
+            </div>
+                <span class="add-language" onclick="addLanguageField()">Add Another Languages +</span>
+                
+                <div class="dynamic-inputs"></div>
+                <!-- <div class="button-container">
+                    <button class="prevBtn" disabled>Back</button>
+                    <button class="nextBtn" id="nextBtn">Next</button>
+                    <button id="prevBtn" class="prevBtn" disabled>Back</button>
+                    <button type="button" class="nextBtn" onclick="nextStep('Experience.html')" id="nextBtn">Next</button>
+                    </div> -->
+                    <div class="button-container">
+                        <button type="button" class="nextBtn" onclick="nextStep('AddSec.html')" id="nextBtn">Next</button>
+                    </div>
+            </form>
+        </div>
+    
+        
+    
+    <script src="js/skills.js"></script>
+</body>
+</html>

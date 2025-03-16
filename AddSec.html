@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Additional Sections</title>
+    <link rel="stylesheet" href="css/addsec.css">
+</head>
+<body>
+    <div class="navbar">
+    <div class="navbar-container">
+        <div class="logo">
+        <img src="Imgs\Intilaq.svg" alt="Logo">
+        <!-- <span>logoipsum</span> -->
+        </div>
+        <div class="nav-links">
+        <a href="Home1.html">Home</a>
+        <a href="Header.html" class="active">Resume</a>
+        <a href="#">Interview</a>
+        <a href="#">Help</a>
+        </div>
+        <div class="logout">
+            <img src="Imgs\logout.svg" alt="logut" width="17">&nbsp;
+            &nbsp;<a href="#">Logout</a>
+        </div>
+    </div>
+    </div>
+
+    <div class="container">
+        <div class="progress-container">
+            <div class="vertical-line"></div>
+            <div class="step">
+                <div class="circle active"></div>
+                <div class="step-description active">Header</div>
+                <h6 class="header6">Fill Personal Info</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Objective</div>
+                <h6 class="header6">Add Career Objective</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Experience</div>
+                <h6 class="header6">Showcase Growth</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Education</div>
+                <h6 class="header6">Add Educational Journey</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Projects</div>
+                <h6 class="header6">Add Achievements</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Skills & Languages</div>
+                <h6 class="header6">Add What You Do Best</h6>
+            </div>
+            <div class="step">
+                <div class="circle"></div>
+                <div class="step-description">Additional Sections</div>
+                <h6 class="header6">Add the Extras</h6>
+            </div>
+            </div>
+            <div class="button-container">
+            
+            <!-- <button id="nextBtn">Next</button> -->
+            </div>
+
+            
+            
+        <div class="sidebar">
+            <div class="head6">
+                <h6>Additional Sections</h6>
+            </div>
+
+            <!-- Main Content -->
+    <div class="content">
+        <div class="completion-message">
+            <img src="Imgs/Skill Assesment.svg" alt="Checkmark">
+            <h3>You're Almost There!</h3>
+            <p>Just A Few Final Touches To Complete Your CV.</p>
+        </div>
+    <div class="inputs">
+                <!-- Certifications Section -->
+                <div class="section" onclick="toggleSection('certifications')">
+                    Certifications <span class="toggle-icon">+</span>
+                </div>
+                <div class="content-box" id="certifications">
+                    <div id="upload-section">
+                        <span><h3>Upload Certification</h3></span>
+                        <div class="toggle-btn"><button id="toggle-btn" onclick="toggleCertifications()"><p> <img src="Imgs/link.svg" alt="" class="linkimg">
+                            Add Link</p></button></div>
+                        <div class="upload-box" id="drop-area">
+                            <img src="Imgs/upload.svg" alt="Upload">
+                            <p>Drag & Drop Your Certification Here Or <span class="browse">Browse File</span></p>
+                            <input type="file" id="file-input" hidden>
+                            <div class="file-info">
+                                <div class="file-details">
+                                    <img id="file-icon" src="" alt="File Icon" hidden>
+                                </div>
+                                <span id="file-size"></span>
+                                <div class="uploading-text" id="uploading-text" style="display: none;">
+                                    <div class="loading-spinner"></div>
+                                    Uploading <span class="dots"></span>
+                                </div>
+                                <div class="progress-bar-container" id="progress-bar-container">
+                                    <div class="progress-bar" id="progress-bar"></div>
+                                </div>
+                                <div class="completion-text" id="completion-text" style="display: none;">
+                                    <span class="checkmark"><img src="Imgs/tick-circle.svg" alt=""></span> Completed
+                                </div>
+                                <!-- <span class="delete-icon" id="delete-icon"><img src="Imgs/trash_2.svg" alt=""></span> -->
+                            </div>
+                        </div>
+                        <p class="file-name" id="file-name"></p>
+                        <label for="title">Title</label>
+                        <input type="text" id="title" placeholder="Enter Title">
+                        <button class="save-btn">Save</button>
+                    </div>
+                    
+                    <div id="link-section">
+                        <span><h3>Add Link</h3></span>
+                        <div class="toggle-btn"><button id="toggle-btn" onclick="toggleCertifications()"><p><img src="Imgs/download.svg" alt="" class="uploadimg">
+                            Upload Document</p></button></div>
+                        <input type="text" placeholder="Enter Certification URL" class="input-field">
+                        <input type="text" placeholder="Enter Title" class="input-field">
+                        <button class="save-btn">Save</button>
+                    </div>
+                    
+                    
+                </div>
+
+                
+    
+                <!-- Volunteering Experience Section -->
+                <div class="section" onclick="toggleSection('volunteering')">
+                    Volunteering Experience <span class="toggle-icon">+</span>
+                </div>
+                <div class="content-box" id="volunteering">
+                    <!-- <h3>Volunteering Experience</h3> -->
+                    <label for="org">Organization</label>
+                    <input type="text" id="org" placeholder="Enter Organization Name">
+                    <label for="role" id="role">Role</label>
+                    <input type="text" id="rolefield" placeholder="Enter Role">
+                    <div class="form-group" id="date">
+                        <label for="date">Start Date</label>
+                        <input type="date" class="date-input" id="date" name="date" placeholder="Enter Start Date">
+                    </div>
+                    <div class="form-group" id="enddate">
+                        <label for="end date">End Date</label>
+                        <input type="date" class="endd-ate" id="date" name="date" placeholder="Enter End Date">
+                    </div>
+                    <div class="volunteering" id="desc">
+                        <h1>Describtion</h1>
+                        <img src="Imgs/Frame.svg" alt="" class="frame">
+                        <h3 class="h3">Let's generate your description with AI</h3>
+                        </div>
+                        <div class="text-area-container">
+                            <div class="toolbar">
+                                <select id="font-size">
+                                    <option value="14px">14</option>
+                                    <option value="16px" selected>16</option>
+                                    <option value="18px">18</option>
+                                    <option value="20px">20</option>
+                                    <option value="22px">22</option>
+                                </select>
+                                <button id="bold-button" type="button"><b>B</b></button>
+                                <button id="italic-button" type="button"><i>I</i></button>
+                                <button id="unordered-list" type="button">• List</button>
+                                <button id="ordered-list" type="button">1. List</button>
+                            </div>
+                            <div id="text-area" class="text-area" contenteditable="true">
+                                Select From AI Recommendations...
+                            </div>
+                    
+                </div>
+                <button class="save-btn2">Save</button>
+
+                
+            </div>
+
+                <!-- Awards Section -->
+                    <div class="section" onclick="toggleSection('awards')">
+                        Awards <span class="toggle-icon">+</span>
+                    </div>
+                    <div class="content-box" id="awards">
+                        <label for="award" id="award">Award</label>
+                        <input type="text" id="award" placeholder="Enter Award Details">
+                        <label for="role" id="org">Organization</label>
+                        <input type="text" id="rolefield" placeholder="Enter Organization name">
+                    <div class="form-group" id="date2">
+                        <label for="date">Start Date</label>
+                        <input type="date" class="date-input2" id="date2" name="date" placeholder="Enter Start Date">
+                    </div>
+                    <div class="form-group" id="enddate2">
+                        <label for="end date">End Date</label>
+                        <input type="date" class="endd-ate" id="date2" name="date" placeholder="Enter End Date">
+                    </div>
+                        <button class="save-btn3">Save</button>
+                    </div>
+
+                <!-- Navigation Buttons -->
+                    <div class="buttons">
+                        <button class="back-btn">Back</button>
+                        <button class="skip-btn">Skip</button>
+                    </div>
+    </div>
+        </div>
+    </div>
+
+
+    <script src="js/addsec.js"></script>
+</body>
+</html>

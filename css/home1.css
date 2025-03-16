@@ -1,0 +1,236 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    /* font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; */
+}
+
+body {
+    background-color: #f9f9f9;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+}
+
+.navbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    padding: 5px 20px;
+    border-bottom: 2px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 80%; /* Adjust the width as needed */
+}
+
+.navbar .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navbar .logo img {
+    width: 100px;
+    height: 40px;
+}
+
+.navbar .logo span {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.navbar .nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.navbar .nav-links a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 5px 10px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.navbar .nav-links a:hover {
+    color: #007bff;
+}
+
+.navbar .nav-links a.active {
+    color: var(--Blue-400, #002C7C);
+    font-weight: bolder;
+}
+
+.navbar .nav-links a.active::after {
+    position: absolute;
+    content: "";
+    display: block;
+    width: 80%;
+    height: 3px;
+    background-color: var(--Blue-400, #002C7C);
+    position: absolute;
+    bottom: -13px;
+    right: 5px;
+}
+
+.navbar .logout a {
+    color: #e63946;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.navbar .logout a:hover {
+    opacity: 0.8;
+}
+
+
+
+.container1 {
+        width: 1120px;
+    height: 570px;
+    flex-shrink: 0;
+    border-radius: 20px;
+    border: 1px solid rgba(156, 156, 156, 0.20);
+    background: #FFF;
+    margin-top: 2%;
+}
+
+hr {
+    width: 100;
+    margin-top: -6px;
+    size: 1px;
+    opacity: 50%;
+}
+
+.container2 {
+    background: white;
+    width: 50%;
+    margin: auto;
+    padding: 10px;
+    border-radius: 10px;
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    text-align: center;
+    margin-top: 50px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 30px;
+    font-weight: bolder;
+    margin-bottom: 50px;
+}
+
+.options {
+    display: flex;
+    justify-content: center; /* Center the options in the container */
+    gap: 20px; /* Adjust spacing between the options */
+    margin-top: 20px;
+}
+
+.option {
+    flex: 0 1 200px; /* Fixed width for each option */
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    text-align: center;
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+.option img {
+    display: block;
+    margin: 0 auto 15px;
+    width: 50px;
+    height: 50px;
+}
+
+.option p {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+.option.active {
+    border-color: #002e6e; /* Blue border for active */
+    background-color: #f0f8ff; /* Light blue background */
+    transform: scale(1.05); /* Slightly larger when active */
+}
+
+.option:hover {
+    border-color: #007bff; /* Hover border */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Elevated shadow on hover */
+}
+
+input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #2D68FE;
+    border: 1px solid #2D68FE;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.buttons .back,
+.buttons .next {
+    padding: 10px 70px;
+    border: none;
+    /* border-radius: 50px; */
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.buttons .back {
+    background-color: white; /* White background for the back button */
+    color: #333;
+    /* color: #002e6e; */
+    padding: 0;
+}
+
+.buttons .next {
+    background-color: #002e6e; /* Deep blue */
+    color: white;
+    border-radius: 50px;
+}
+
+.buttons .back:hover,
+.buttons .next:hover {
+    opacity: 0.9;
+}
+
+.buttons {
+    flex-direction: column; /* Align vertically */
+    align-items: center;
+    gap: 10px;
+}
