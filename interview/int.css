@@ -2,344 +2,291 @@
 
 body {
   font-family: "IBM Plex Sans", sans-serif;
-      background: var(--GreyTint-00000, #FFF);
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
+  background: var(--GreyTint-00000, #FFF);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
 }
 
 
 
 
 .navbar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: white;
-    padding: 5px 20px;
-    border-bottom: 2px solid #e0e0e0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: 100%;
-  }
-  
-  .navbar-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 80%; /* Adjust the width as needed */
-  }
-  
-  .navbar .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .navbar .logo img {
-    width: 100px;
-    height: 40px;
-  }
-  
-  .navbar .logo span {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .navbar .nav-links {
-    display: flex;
-    gap: 20px;
-  }
-  
-  .navbar .nav-links a {
-    text-decoration: none;
-    color: #333;
-    font-weight: 700;
-    font-size: 13px;
-    padding: 5px 10px;
-    position: relative;
-    transition: all 0.3s ease;
-  }
-  
-  .navbar .nav-links a:hover {
-    color: #007bff;
-  }
-  
-  .navbar .nav-links a.active {
-    color: #007bff;
-    font-weight: bolder;
-  }
-  
-  .navbar .nav-links a.active::after {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 3px;
-    background-color: #007bff;
-    position: absolute;
-    bottom: -13px;
-    left: 0;
-  }
-  
-  .navbar .logout a {
-    color: #e63946;
-    font-weight: bold;
-    text-decoration: none;
-    font-size: 16px;
-  }
-  
-  .navbar .logout a:hover {
-    opacity: 0.8;
-  }
-  .logout a {
-    display: flex;
-    align-items: center;
-    color: red; /* تعديل اللون حسب الحاجة */
-    font-weight: bold;
-    text-decoration: none; /* إزالة التسطير */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  padding: 5px 20px;
+  border-bottom: 2px solid #e0e0e0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 80%;
+  /* Adjust the width as needed */
+}
+
+.navbar .logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar .logo img {
+  width: 100px;
+  height: 40px;
+}
+
+.navbar .logo span {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.navbar .nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.navbar .nav-links a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 10px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.navbar .nav-links a:hover {
+  color: #007bff;
+}
+
+.navbar .nav-links a.active {
+  color: #007bff;
+  font-weight: bolder;
+}
+
+.navbar .nav-links a.active::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 3px;
+  background-color: #007bff;
+  position: absolute;
+  bottom: -13px;
+  left: 0;
+}
+
+.navbar .logout a {
+  color: #e63946;
+  font-weight: bold;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.navbar .logout a:hover {
+  opacity: 0.8;
+}
+
+.logout a {
+  display: flex;
+  align-items: center;
+  color: red;
+  /* تعديل اللون حسب الحاجة */
+  font-weight: bold;
+  text-decoration: none;
+  /* إزالة التسطير */
 }
 
 .logout-icon {
-    width: 20px; /* ضبط الحجم */
-    height: 20px;
-    margin-right: 10px; /* مسافة بين الأيقونة والنص */
+  width: 20px;
+  /* ضبط الحجم */
+  height: 20px;
+  margin-right: 10px;
+  /* مسافة بين الأيقونة والنص */
 }
 
 
 
 /* المحتوى الرئيسي */
 .container {
-    text-align: center;
-    margin-top: 50px;
+  
+display: flex;
+width: 604px;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+
 }
 
-h1 {
-    font-size: 24px;
-    color: #333;
+
+
+h4 {
+
+  color: var(--Blue-700, #001233);
+  text-align: center;
+
+  /* H4/bold */
+  font-family: "IBM Plex Sans";
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  
 }
 
 p {
-    color: gray;
+
+
+  color: var(--Blue-700, #001233);
+  text-align: center;
+
+  /* H6/regular */
+  font-family: "IBM Plex Sans";
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  text-transform: capitalize;
+margin-top: -30px;
+
 }
-
-
-
 
 
 
 /* النموذج */
 .form {
-    width: 100%;
-    max-width: 500px;
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* جعل حقول الإدخال في صف واحد */
 .form-row {
-    display: flex;
-    gap: 10px;
-    width: 100%;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+
+}
+.form-row select {
+  
+  display: flex;
+  height: 38px;
+  padding: 8px 16px;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+  border-radius: 8px;
+  border: 1px solid var(--Blue-200, #728EBE);
+  background: var(--GreyTint-GreyShade, #F9F9F9);
+  width: 50%;
+  
+  
 }
 
-.form-row select {
-    flex: 1; /* يجعل كلا العنصرين يأخذان نفس العرض */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
+input{
+  
+  display: flex;
+  padding: 8px 16px;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+  border-radius: 8px;
+border: 1px solid var(--Blue-200, #728EBE);
+background: var(--GreyTint-GreyShade, #F9F9F9);
+width: 45%;
+
+
+
+
 }
 
 .form textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-    resize: none;
-    height: 80px;
+  display: flex;
+  height: 151px;
+  padding: 16px;
+  align-items: flex-start;
+  gap: 10px;
+  flex-shrink: 0;
+  align-self: stretch;
+  border-radius: 8px;
+  border: 1px solid var(--Blue-200, #728EBE);
+  background: var(--GreyTint-GreyShade, #F9F9F9);
+
+color: var(--BlackDark-Basic, #000);
+font-family: "IBM Plex Sans";
+font-size: 12px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+text-transform: capitalize;
+width: 470px;
+
 }
 
-/* الأزرار */
-.buttons {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.start-btn, .submit-btn {
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-}
-
-
+/* الزر*/
 
 .start-btn {
-    background: #45434E ;
-    color: white;
-    display: flex;
-    align-items: center;
-}
+ 
 
-.submit-btn {
-    background: #F9F9F9;
-    color: gray;
-}
-
-
-
-
-
-
-
-
-
-
-
-button:disabled, select:disabled, textarea:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-
-   /* الخلفية عند ظهور النافذة */
-   .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
-
-/* عند التفعيل */
-.modal-overlay.active {
-    display: flex;
-}
-
-/* تصميم النافذة */
-.modal {
-    background: white;
-    padding: 20px;
-    width: 400px;
-    border-radius: 10px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    position: relative;
-}
-
-/* زر الإغلاق */
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 18px;
-    cursor: pointer;
-}
-
-/* إخفاء الصفحات افتراضيًا */
-.modal-page {
-    display: none;
-}
-
-.modal-page.active {
-    display: block;
-}
-
-/* ✅ تصميم النقاط (Pagination) */
-.pagination {
-    display: flex;
-    justify-content: center;
-    margin: 10px 0;
-}
-
-.pagination li {
-    width: 10px;
-    height: 10px;
-    margin: 0 5px;
-    background-color: lightgray;
-    border-radius: 50%;
-    list-style: none;
-    transition: background-color 0.3s ease;
-}
-
-.pagination li.active {
-    background-color: blue;
-}
-
-/* أزرار التنقل */
-.modal-footer {
 display: flex;
+width: 125px;
+height: 38px;
+padding: 10px;
+justify-content: center;
 align-items: center;
-margin-top: 15px;
-}
-
-
-.modal-footer button {
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    border-radius: 50px;
-}
-
-.modal-footer .next-btn {
-background-color:#002C7C;
+gap: 10px;
 color: white;
-margin-left: auto; /* يجعل زر Next في أقصى اليمين */
+border-radius: 8px;
+border: 1px solid var(--Blue-400, #002C7C);
+background: var(--Blue-400, #002C7C);
+color: var(--GreyTint-00000, #FFF);
+text-align: center;
+margin-top: 32px;
+
+/* Paragraph/medium */
+
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
+text-transform: capitalize;
+
+cursor: pointer;
+
 }
 
-.modal-footer .back-btn {
-  
-    color: #002C7C;
-}
 
-.back-btn {
-  background: none;  /* إزالة الخلفية */
-  border: none;      /* إزالة الحدود */
-  color: #0a3161;    /* لون النص */
-  font-size: 16px;   /* حجم الخط */
-  font-weight: bold; /* جعل الخط سميك */
-  cursor: pointer;   /* لجعل النص قابلًا للنقر */
-  padding: 0;        /* إزالة أي مسافات داخلية */
-}
-.screen{
-
-    width: 321px;
-height: 199px;
-flex-shrink: 0;
-}
-
-h4{
+h4 {
 
   color: var(--Blue-700, #001233);
-text-align: center;
+  text-align: center;
 
-/* H4/bold */
-font-family: "IBM Plex Sans";
-font-size: 28px;
-font-style: normal;
-font-weight: 700;
-line-height: normal;
+  /* H4/bold */
+  font-family: "IBM Plex Sans";
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
 }
 
-p{
+p {
 
 
   color: var(--Blue-700, #001233);
   text-align: center;
-  
+
   /* H6/regular */
   font-family: "IBM Plex Sans";
   font-size: 20px;
