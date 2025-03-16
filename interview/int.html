@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>interview</title>
+    <link rel="stylesheet" href="int.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+
+
+    <div class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+            <img src="images/Intilaq.svg" alt="Logo">
+            
+            </div>
+            <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#">Resume</a>
+            <a href="#"   class="active">Interview</a>
+            <a href="#">Help</a>
+            </div>
+            <div class="logout">
+                <a href="#">
+                    <img class="logout-icon" src="images/login (1).svg" alt="Logout Icon">
+                    Logout
+                </a>
+            </div>
+            
+        </div>
+        </div> 
+
+
+        
+
+<h4>Prepare for Your Interview</h4>
+<p>Select your preferred language for the interview to get started!</p>
+        <div class="form">
+            <div class="form-row">
+                <select id="jobTitle"  disabled >
+                    <option value="">Job Title *</option>
+                    <option value="frontend">Frontend Developer</option>
+                    <option value="backend">Backend Developer</option>
+                    <option value="fullstack">Fullstack Developer</option>
+                </select>
+
+                <select id="jobLevel" disabled>
+                    <option value="">Level *</option>
+                    <option value="junior">Junior</option>
+                    <option value="mid">Mid-Level</option>
+                    <option value="senior">Senior</option>
+                </select>
+            </div>
+
+            <textarea id="jobDescription" placeholder="Enter Job Description" disabled></textarea>
+        </div>
+
+        <div class="buttons">
+            <button id="startBtn" disabled class="start-btn">Next</button>
+            <button id="submitBtn" disabled class="submit-btn">Submit</button>
+        </div>
+    </div>
+    </main>
+
+
+
+     <!-- Overlay والنافذة المنبثقة -->
+     <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <span class="close-btn" id="closeModal">&times;</span>
+
+            <div class="modal-page" id="page1">
+                <img src="images/Screenshot 2025-03-12 030448.png" alt="screen" class="screen">
+                <h2>Welcome To Personalized Interview Prep!</h2>
+                <p>Choose your job title and experience level...</p>
+                <div class="modal-footer">
+                    <button class="next-btn" id="next1">Next</button>
+                </div>
+            </div>
+
+            <div class="modal-page" id="page2">
+                <img src="images/Screenshot 2025-03-12 030448.png" alt="screen" class="screen">
+                <h2>Make Sure To Grant Microphone Access</h2>
+                <p>Click Start to begin...</p>
+                <div class="modal-footer">
+                    <button class="back-btn" id="back1">Back</button>
+                    <button class="next-btn" id="next2">Next</button>
+                </div>
+            </div>
+
+            <div class="modal-page" id="page3">
+                <img src="images/Screenshot 2025-03-12 030448.png" alt="screen" class="screen">
+                <h2>Your Interview Process</h2>
+                <p>You’ll answer 10 technical questions...</p>
+                <div class="modal-footer">
+                    <button class="back-btn" id="back2">Back</button>
+                    <button class="next-btn" id="finish">Next</button>
+                </div>
+            </div>
+
+            <!-- ✅ النقاط خارج الصفحات حتى تتغير بشكل صحيح -->
+            <ul class="pagination">
+                <li class="dot"></li>
+                <li class="dot"></li>
+                <li class="dot"></li>
+            </ul>
+
+        </div>
+    </div>
+
+    <script src="int.js"></script>
+</body>
+</html>
