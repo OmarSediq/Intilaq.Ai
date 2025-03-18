@@ -12,8 +12,9 @@ from docx import Document
 from docx.shared import Pt
 from bs4 import BeautifulSoup
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
-from app.utils.jwt_utils import decode_access_token
 from fastapi import Depends, HTTPException
+
+# from app.utils.jwt_utils import decode_access_token
 
 
 async def create_user(username: str, password: str, email: str, db: AsyncSession):
@@ -68,6 +69,18 @@ async def save_reset_code(email: str, code: str, db: AsyncSession):
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    
+async def get_email_by_code(code: str, db: AsyncSession):
+    """
+    Retrieves an email by the verification code.
+    """
+    result = await db.execute(select(ResetCode).filter(ResetCode.code == code))
+    reset_code = result.scalars().first()
+
+    if reset_code:
+        return reset_code.email
+    return None
+
 
 async def verify_reset_code(email: str, code: str, db: AsyncSession) -> bool:
     """

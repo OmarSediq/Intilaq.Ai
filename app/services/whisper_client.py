@@ -1,17 +1,29 @@
 import httpx
-from fastapi import UploadFile, File
+from fastapi import UploadFile
+import tempfile  
+import shutil    
+import os 
+import io
 
-WHISPER_URL = "http://whisper-container:5001/transcribe"
+WHISPER_URL = "http://whisper_service:5001/transcribe"
 
 
 async def transcribe_audio(file: UploadFile):
     try:
-        files = {"file": (file.filename, file.file, file.content_type)}
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
+            shutil.copyfileobj(file.file, temp_audio)  
+            temp_audio_path = temp_audio.name
+
+        files = {"file": (file.filename, open(temp_audio_path, "rb"), "audio/mpeg")}
 
         async with httpx.AsyncClient() as client:
             response = await client.post(WHISPER_URL, files=files)
+
+        os.remove(temp_audio_path) 
 
         return response.json().get("text", "")
 
     except Exception as e:
         return {"error": str(e)}
+
+

@@ -17,6 +17,8 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     is_verified = Column(Integer, default=0)  
+    # sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
+
 
     def verify_password(self, plain_password: str) -> bool:
         """ 
@@ -34,6 +36,23 @@ class User(Base):
         return f"<User(id={self.id}, username={self.username}, email={self.email}, is_verified={self.is_verified})>"
     
     headers = relationship("Header", back_populates="user", cascade="all, delete-orphan")
+
+
+
+    # # Session Model 
+    # class Session(Base):
+    #     __tablename__ = "sessions"
+        
+    #     session_id = Column(Integer, primary_key=True, index=True)
+    #     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE")) 
+    #     status = Column(String(50), default="active")  
+
+    #     user = relationship("User", back_populates="sessions")
+
+    #     def __repr__(self):
+    #         return f"<Session(session_id={self.session_id}, user_id={self.user_id}, status={self.status})>"
+
+
 
 
 # Existing ResetCode Model

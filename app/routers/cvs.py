@@ -1094,6 +1094,7 @@ async def save_project_description(
     except Exception as e:
         return error_response(code=500, error_message="Error updating project description", data=str(e))
 
+
 @router.post("/api/experiences/suggestions/", tags=["AI Enhancements"])
 async def generate_experience_suggestions(
     request: ExperienceRequest,

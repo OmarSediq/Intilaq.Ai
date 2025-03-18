@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends,Request,Response
-from app.services.db_services import create_user, get_user_by_username, verify_reset_code, save_reset_code, get_user_by_email, update_verification_status, update_user_details, delete_user_by_id,get_user_by_id
+from app.services.db_services import create_user, get_user_by_username, verify_reset_code, save_reset_code, get_user_by_email, update_verification_status, update_user_details, delete_user_by_id,get_user_by_id,get_email_by_code
 # from app.utils.jwt_utils import create_access_token, decode_access_token
 from app.dependencies import get_db
 from pydantic import BaseModel, EmailStr
@@ -61,7 +61,7 @@ class LoginRequest(BaseModel):
     password: str
 
 class VerifyAccountRequest(BaseModel):
-    email: EmailStr
+    # email: EmailStr
     code: str
 
 class TwoFactorAuthRequest(BaseModel):
@@ -147,11 +147,15 @@ async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/api/users/verify-account/", tags=["Security"])
 async def verify_account(request: VerifyAccountRequest, db: AsyncSession = Depends(get_db)):
-    is_valid = await verify_reset_code(request.email, request.code, db)
+    email = await get_email_by_code(request.code, db)
+    if not email:
+        return error_response(code=400, error_message="Invalid or expired verification code")
+    is_valid = await verify_reset_code(email, request.code, db)
     if not is_valid:
         return error_response(code=400, error_message="Invalid or expired verification code")
 
-    await update_verification_status(request.email, db)
+    await update_verification_status(email, db)
+
     return success_response(code=200, data={"message": "Account verification successful."})
 
 

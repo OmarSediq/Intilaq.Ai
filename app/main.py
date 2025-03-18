@@ -30,7 +30,7 @@ async def create_tables():
 async def on_startup():
     print("Running startup tasks...")
     await create_tables()
-    await connect_to_mongo() 
+    asyncio.create_task(connect_to_mongo())  
 
 @app.on_event("shutdown")
 async def on_shutdown():

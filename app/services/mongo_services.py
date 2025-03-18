@@ -12,7 +12,7 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
 
 mongo_client = None
 mongo_db = None
-mongo_ready = asyncio.Event()  #
+mongo_ready = asyncio.Event() 
 
 async def connect_to_mongo():
     global mongo_client, mongo_db
@@ -22,12 +22,14 @@ async def connect_to_mongo():
             mongo_client = AsyncIOMotorClient(MONGO_URI, maxPoolSize=10, minPoolSize=5)
             mongo_db = mongo_client[MONGO_DB_NAME]
             print("MongoDB Connected!")
+            mongo_ready.set()  
             return
         except Exception as e:
             print(f"MongoDB not ready, retrying... ({retries} attempts left)")
-            time.sleep(5)
+            await asyncio.sleep(5)
             retries -= 1
     raise Exception("Failed to connect to MongoDB after multiple attempts.")
+
 
 async def close_mongo_connection():
     global mongo_client
@@ -35,6 +37,10 @@ async def close_mongo_connection():
         mongo_client.close()
         print("MongoDB connection closed.")
 
+
 async def get_mongo_client():
     await mongo_ready.wait()  
+    if mongo_client is None:  
+        raise Exception("MongoDB client is not initialized properly")
     return mongo_client
+
