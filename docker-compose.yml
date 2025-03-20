@@ -58,6 +58,7 @@ services:
 
 
   fastapi:
+    image: intilaqai-fastapi 
     build:
       context: .
       dockerfile: Dockerfile.fastapi

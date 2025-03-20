@@ -11,7 +11,8 @@ from app.services.redis_services import redis_client
 import os
 import pickle
 import whisper
-
+import asyncio
+import re
 
 
 load_dotenv()
@@ -165,7 +166,6 @@ async def generate_volunteering_description_from_ai(activity_role: str) -> list:
 
 # genai.configure(api_key="AIzaSyBvws9GYa9l5IkxFaE9VZavQh26wRUf4nE")
 # model = genai.GenerativeModel("gemini-1.5-flash")
-import asyncio
 
 async def generate_interview_questions(role: str, level: str = None, job_description: str = None):
     system_message = (
@@ -212,30 +212,71 @@ async def generate_best_model_answer(question: str, language: str = "en"):
 
 
 
+def generate_feedback(answer):
+    system_message = (
+        "You are an expert interview evaluator. Analyze the user's answer and provide feedback in this format:\n"
+        "**Strengths:** [list key strengths here]\n"
+        "**Weaknesses:** [list key weaknesses here]\n"
+        "**Constructive Feedback:** [detailed feedback]\n"
+        "Ensure that each section is clear and formatted properly."
+    )
+
+    prompt = f"{system_message}\n\nUser Answer: {answer}\n\nProvide your feedback:"
+
+    try:
+        response = model.generate_content(prompt)  
+        response_text = response.text.strip()
+
+        print("🔍 DEBUG - Raw AI Response:\n", response_text)  
+
+        feedback_data = {
+            "strengths": extract_section(response_text, "Strengths"),
+            "weaknesses": extract_section(response_text, "Weaknesses"),
+            "constructive_feedback": extract_section(response_text, "Constructive Feedback"),
+        }
+
+        return feedback_data
+
+    except Exception as e:
+        return {
+            "strengths": "Error generating feedback",
+            "weaknesses": "Error generating feedback",
+            "constructive_feedback": f"An error occurred: {e}"
+        }
+
+def extract_section(text, section_name):
+    match = re.search(rf"\*\*{section_name}:\*\*\s*(.*?)(?=\n\*\*|\Z)", text, re.DOTALL)
+    return match.group(1).strip() if match else "N/A"
 
 
-def analyze_answer(answer: str, model_answer: str) -> int:
+
+
+def analyze_answer(answer: str, model_answer: str):
+  
     vectorizer = TfidfVectorizer().fit_transform([answer, model_answer])
     similarity_matrix = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
     similarity_score = similarity_matrix[0][0]
-    score = round(similarity_score * 10)
-    return score
 
-async def analyze_interview_answer(user_answer: str, question: str, language: str = "en"):
-    model_answer = await generate_best_model_answer(question, language)  # تمرير اللغة
-    score = analyze_answer(user_answer, model_answer)
+    score = similarity_score * 10
 
-    feedback_message = (
-        f"Your answer could be improved by focusing on key points such as: {model_answer}"
-        if language == "en"
-        else f"يمكن تحسين إجابتك من خلال التركيز على النقاط الأساسية مثل: {model_answer}"
-    )
+    return round(score, 2)
 
-    return {
-        "score": score,
-        "feedback": feedback_message,
-        "model_answer": model_answer
-    }
+
+# async def analyze_interview_answer(user_answer: str, question: str, language: str = "en"):
+#     model_answer = await generate_best_model_answer(question, language)  # تمرير اللغة
+#     score = analyze_answer(user_answer, model_answer)
+
+#     feedback_message = (
+#         f"Your answer could be improved by focusing on key points such as: {model_answer}"
+#         if language == "en"
+#         else f"يمكن تحسين إجابتك من خلال التركيز على النقاط الأساسية مثل: {model_answer}"
+#     )
+
+#     return {
+#         "score": score,
+#         "feedback": feedback_message,
+#         "model_answer": model_answer
+#     }
 
 
 
@@ -262,3 +303,5 @@ async def analyze_interview_answer(user_answer: str, question: str, language: st
 
 #     final_feedback = "\n".join(feedback)
 #     return total_score, scores, final_feedback 
+
+
