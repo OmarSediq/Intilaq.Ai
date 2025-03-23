@@ -8,7 +8,6 @@ import asyncio
 import random
 import os 
 import httpx
-# from app.services.whisper_service import model  
 from datetime import datetime
 router = APIRouter()
 
@@ -157,10 +156,6 @@ async def get_questions(user_session=Depends(get_interview_session_data), db=Dep
         "questions": questions_only
     }
 
-
-
-
-
 @router.post("/start_session/")
 async def start_session(db=Depends(get_db), user=Depends(get_current_user)):
         
@@ -234,7 +229,7 @@ async def submit_answer(
             files = {"file": (file.filename, file.file.read(), file.content_type)}
             response = await client.post(WHISPER_SERVICE_URL, files=files)
 
-        print(f"🛠️ DEBUG: Whisper API Response - Status {response.status_code}, Content: {response.text}")
+        print(f"DEBUG: Whisper API Response - Status {response.status_code}, Content: {response.text}")
 
         if response.status_code != 200:
             raise HTTPException(status_code=500, detail=f"Whisper API error: {response.text}")
@@ -273,7 +268,6 @@ async def submit_answer(
         error_details = traceback.format_exc()
         print(f"ERROR: {error_details}")
         raise HTTPException(status_code=500, detail=f"Speech-to-Text failed: {str(e)}")
-
     
 @router.get("/get_feedback/")
 async def get_feedback(user_session=Depends(get_interview_session_data), db=Depends(get_db)):
@@ -281,34 +275,51 @@ async def get_feedback(user_session=Depends(get_interview_session_data), db=Depe
 
     latest_answer = await db["answers"].find_one(
         {"session_id": session_id, "user_id": user_session["user_id"]},
-        sort=[("question_index", -1)]  
+        sort=[("question_index", -1)]
     )
 
     if not latest_answer:
         raise HTTPException(status_code=404, detail="User answer not found")
 
     question_index = latest_answer["question_index"]
-    
+
     session = await db["questions"].find_one(
-        {"session_id": session_id, "questions": {"$elemMatch": {"question_index": question_index}}},  
-        {"questions.$": 1} 
+        {"session_id": session_id, "questions": {"$elemMatch": {"question_index": question_index}}},
+        {"questions.$": 1}
     )
 
     if not session or "questions" not in session or not session["questions"]:
         raise HTTPException(status_code=400, detail="Question not found in session")
 
-    question_data = session["questions"][0]  
+    question_data = session["questions"][0]
     question_text = question_data["question"]
-    ideal_answer = question_data.get("best_model_answer", "N/A")  
-
+    ideal_answer = question_data.get("best_model_answer", "N/A")
     user_answer_text = latest_answer["answer_text"]
-    feedback = generate_feedback(user_answer_text)
+
+    feedback = generate_feedback(user_answer_text, question_text, ideal_answer)
+    similarity_score = analyze_answer(user_answer_text, ideal_answer)
+
+    await db["answers"].update_one(
+        {
+            "session_id": session_id,
+            "user_id": user_session["user_id"],
+            "question_index": question_index
+        },
+        {
+            "$set": {
+                "feedback": feedback,
+                "similarity_score": similarity_score
+            }
+        }
+    )
 
     return {
-        "question": question_text,  
+        "question": question_text,
         "user_answer": user_answer_text,
-        "ideal_answer": ideal_answer,  
-        **feedback  
+        "ideal_answer": ideal_answer,
+        **feedback,
+        "similarity_score": similarity_score
+        
     }
 
 
@@ -331,48 +342,5 @@ async def end_session(user_session=Depends(get_interview_session_data)):
     await redis_client.delete(f"session:{session_id}:scores")  
 
     return {"final_score": round(final_score, 2), "message": "Session completed"}
-
-
-
-@router.get("/analyze_answer/")
-async def analyze_user_answer(
-    user_session=Depends(get_interview_session_data),
-    db=Depends(get_db)
-):
-    session_id = int(user_session["session_id"])
-
-    latest_answer = await db["answers"].find_one(
-        {"session_id": session_id, "user_id": user_session["user_id"]},
-        sort=[("question_index", -1)]
-    )
-
-    if not latest_answer:
-        raise HTTPException(status_code=404, detail="User answer not found")
-
-    question_index = latest_answer["question_index"]
-
-    session = await db["questions"].find_one(
-        {"session_id": session_id, "questions": {"$elemMatch": {"question_index": question_index}}},
-        {"questions.$": 1}  
-    )
-
-    if not session or "questions" not in session or not session["questions"]:
-        raise HTTPException(status_code=400, detail="Question not found in session")
-
-    question_data = session["questions"][0]  
-    question_text = question_data["question"]
-    ideal_answer = question_data.get("best_model_answer", "N/A")
-
-    user_answer_text = latest_answer["answer_text"]
-
-    score = analyze_answer(user_answer_text, ideal_answer)
-
-    return {
-        "question": question_text,
-        "user_answer": user_answer_text,
-        "ideal_answer": ideal_answer,
-        "similarity_score": score,
-        "message": "The similarity score ranges from 0 to 10. A higher score means the answer is closer to the ideal answer."
-    }
 
 

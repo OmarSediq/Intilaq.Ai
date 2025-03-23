@@ -210,32 +210,40 @@ async def generate_best_model_answer(question: str, language: str = "en"):
         return f"Error generating model answer: {e}"
 
 
-
-
-def generate_feedback(answer):
+def generate_feedback(user_answer: str, question: str, ideal_answer: str):
     system_message = (
-        "You are an expert interview evaluator. Analyze the user's answer and provide feedback in this format:\n"
-        "**Strengths:** [list key strengths here]\n"
-        "**Weaknesses:** [list key weaknesses here]\n"
-        "**Constructive Feedback:** [detailed feedback]\n"
-        "Ensure that each section is clear and formatted properly."
+        "You are an expert interview evaluator. Based on the interview question and the ideal answer, "
+        "analyze the user's answer and provide feedback in the following format:\n"
+        "**Strengths:** [What the user did well in relation to the question and ideal answer.]\n"
+        "**Weaknesses:** [Where the user fell short or missed key points.]\n"
+        "**Constructive Feedback:** [How the user can improve their answer to better match expectations.]\n"
+        "Make sure your analysis is specific, detailed, and focuses on alignment with the ideal answer."
     )
 
-    prompt = f"{system_message}\n\nUser Answer: {answer}\n\nProvide your feedback:"
+    prompt = f"""
+{system_message}
+
+Interview Question:
+{question}
+
+Ideal Answer:
+{ideal_answer}
+
+User's Answer:
+{user_answer}
+
+Provide your feedback:
+""".strip()
 
     try:
-        response = model.generate_content(prompt)  
+        response = model.generate_content(prompt)
         response_text = response.text.strip()
 
-        print("🔍 DEBUG - Raw AI Response:\n", response_text)  
-
-        feedback_data = {
+        return {
             "strengths": extract_section(response_text, "Strengths"),
             "weaknesses": extract_section(response_text, "Weaknesses"),
             "constructive_feedback": extract_section(response_text, "Constructive Feedback"),
         }
-
-        return feedback_data
 
     except Exception as e:
         return {
@@ -243,6 +251,7 @@ def generate_feedback(answer):
             "weaknesses": "Error generating feedback",
             "constructive_feedback": f"An error occurred: {e}"
         }
+
 
 def extract_section(text, section_name):
     match = re.search(rf"\*\*{section_name}:\*\*\s*(.*?)(?=\n\*\*|\Z)", text, re.DOTALL)
