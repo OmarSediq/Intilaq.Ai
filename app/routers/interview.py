@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException ,UploadFile, File,Depends 
 from pydantic import BaseModel
-from app.services.mongo_services import get_mongo_client
-from app.services.redis_services import redis_client 
+from app.services.mongo_services import get_mongo_client,insert_question_session,find_session_by_session_id ,insert_user_answer,update_answer_feedback,find_latest_answer,get_all_answers_with_scores 
+from app.services.redis_services import redis_client ,set_user_session_id, set_current_question_index,get_current_question_index,add_completed_question,set_session_status
 from app.services.ai_services import generate_interview_questions,generate_best_model_answer,generate_feedback , analyze_answer
 from app.routers.auth import get_current_user
 import asyncio
@@ -10,8 +10,10 @@ import os
 import httpx
 from datetime import datetime
 router = APIRouter()
+       
 
 WHISPER_SERVICE_URL = os.getenv("WHISPER_SERVICE_URL", "http://whisper-container:5001/transcribe")
+
 async def get_db():
     client = await get_mongo_client()
     if client is None: 
@@ -19,11 +21,6 @@ async def get_db():
     return client["interview_db"]
 
 
-# async def get_db():
-#     client = await get_mongo_client()  
-#     return client["interview_db"]
-
-# model = whisper.load_model("small")  
 async def get_interview_session_data(user=Depends(get_current_user), db=Depends(get_db)):
     session_id = await redis_client.get(f"user:{user['user_id']}:session")
 
@@ -67,7 +64,7 @@ class JobData(BaseModel):
     level: str = None
     description: str = None
 
-@router.get("/job_titles", tags=["Reference Data"])
+@router.get("/api/sessions/job-titles", tags=["Reference Data"])
 async def get_job_titles(db=Depends(get_db)):
     try:
         job_titles_collection = db["job_titles"]
@@ -78,7 +75,7 @@ async def get_job_titles(db=Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching job titles: {str(e)}")
 
-@router.get("/job_levels", tags=["Reference Data"])
+@router.get("/api/sessions/job-levels", tags=["Reference Data"])
 async def get_job_levels(db=Depends(get_db)):
     try:
         job_levels_collection = db["job_levels"]
@@ -88,116 +85,87 @@ async def get_job_levels(db=Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching job levels: {str(e)}")
-    
-  
-@router.post("/generate_questions/")
-async def generate_questions(
+
+
+
+@router.post("/api/sessions/", tags=["Interview Sessions"])
+async def create_interview_session(
     job_data: JobData,
     db=Depends(get_db),
     user=Depends(get_current_user)
 ):
     try:
+        # 1. Generate AI questions
         ai_questions = await generate_interview_questions(job_data.job_title, job_data.level, job_data.description)
-
         if not ai_questions:
             raise HTTPException(status_code=400, detail="No questions generated")
 
         questions_list = [q.strip() for q in ai_questions.split("\n") if q.strip()]
 
-        session_id = random.randint(1000, 9999)
+        # 2. Generate session ID
+        session_id = random.randint(100000, 999999)
 
+        # 3. Generate model answers
         best_model_answers = await asyncio.gather(
             *[generate_best_model_answer(q) for q in questions_list]
         )
 
-  
+        # 4. Format questions and answers
         questions_with_answers = [
             {"question_index": idx, "question": q, "best_model_answer": a}
             for idx, (q, a) in enumerate(zip(questions_list, best_model_answers))
         ]
 
-        await db["questions"].insert_one({
+        # 5. Store session in Mongo
+        session_data = {
             "session_id": session_id,
             "user_id": user["user_id"],
             "job_title": job_data.job_title,
             "level": job_data.level,
             "questions": questions_with_answers,
-            "current_question_index": 0 
-        })
+            "current_question_index": 0
+        }
+        await insert_question_session(session_data)
 
-        async with redis_client.pipeline() as pipe:
-            pipe.set(f"user:{user['user_id']}:session", int(session_id))
-            pipe.set(f"session:{session_id}:current_question", 0)
-            await pipe.execute()
+        # 6. Store session info in Redis
+        await set_user_session_id(user["user_id"], session_id)
+        await set_current_question_index(session_id, 0)
 
-        return {"message": "Questions generated successfully", "session_id": session_id}
+        return {"message": "Interview session created", "session_id": session_id}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating interview questions: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating interview session: {str(e)}")
+
 
     
 
-@router.get("/get_questions/")
-async def get_questions(user_session=Depends(get_interview_session_data), db=Depends(get_db)):
 
-    session_id = int(user_session["session_id"]) 
-
-    session = await db["questions"].find_one(
-        {"session_id": session_id},  
-        {"questions.question": 1, "_id": 0}
-    )
-
+@router.get("/api/sessions/{session_id}/questions")
+async def get_questions(session_id: int, user=Depends(get_current_user)):
+    session = await find_session_by_session_id(session_id, user["user_id"])
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    questions_only = [q["question"] for q in session["questions"]]  
-    return {
-        "session_id": session_id,
-        "questions": questions_only
-    }
+    questions_only = [q["question"] for q in session["questions"]]
+    return {"session_id": session_id, "questions": questions_only}
 
-@router.post("/start_session/")
-async def start_session(db=Depends(get_db), user=Depends(get_current_user)):
-        
-    session_id = await redis_client.get(f"user:{user['user_id']}:session")
-    if not session_id:
-        raise HTTPException(status_code=404, detail="No active session found")
 
-    session_id = int(session_id)  
-    session = await db["questions"].find_one({"session_id": session_id})
 
+
+@router.get("/api/sessions/{session_id}/questions/next")
+async def get_next_question(session_id: int, user=Depends(get_current_user)):
+    session = await find_session_by_session_id(session_id, user["user_id"])
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    async with redis_client.pipeline() as pipe:
-        pipe.set(f"session:{session_id}:status", "active")  # 
-        pipe.set(f"session:{session_id}:current_question", 0)  
-        await pipe.execute()
-
-    return {"message": "Session started successfully", "session_id": session_id}
-
-
-
-@router.get("/get_next_question/")
-async def get_next_question(user_session=Depends(get_interview_session_data), db=Depends(get_db)):
-    session_id = int(user_session["session_id"])
-    current_index = user_session["current_question_index"]
-
-    session = await db["questions"].find_one({"session_id": session_id}, {"questions": 1})
-    if not session or "questions" not in session:
-        raise HTTPException(status_code=404, detail="Session not found or no questions available.")
-
+    current_index = await get_current_question_index(session_id)
     questions = session["questions"]
-    total_questions = len(questions)
 
-    if current_index >= total_questions:
+    if current_index >= len(questions):
         return {"message": "No more questions available."}
 
     question = questions[current_index]
-
-    async with redis_client.pipeline() as pipe:
-        pipe.set(f"session:{session_id}:current_question", current_index + 1)
-        await pipe.execute()
+    await set_current_question_index(session_id, current_index + 1)
 
     return {
         "question": question["question"],
@@ -206,141 +174,138 @@ async def get_next_question(user_session=Depends(get_interview_session_data), db
 
 
 
-@router.post("/submit_answer/")
-async def submit_answer(
-    user_session=Depends(get_interview_session_data),  
-    file: UploadFile = File(...),
-    db=Depends(get_db)
-):
-    session_id = int(user_session["session_id"])
-    current_question_index = user_session["current_question_index"]
-
-    session = await db["questions"].find_one({"session_id": session_id})
+@router.post("/api/sessions/{session_id}/answers")
+async def submit_answer(session_id: int, file: UploadFile = File(...), user=Depends(get_current_user)):
+    session = await find_session_by_session_id(session_id, user["user_id"])
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    if current_question_index >= len(session["questions"]):
+    current_index = await get_current_question_index(session_id)
+    if current_index >= len(session["questions"]):
         raise HTTPException(status_code=400, detail="No more questions remaining")
 
     try:
-        print(f"📂 DEBUG: File received - Name: {file.filename}, Type: {file.content_type}")
-
         async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
             files = {"file": (file.filename, file.file.read(), file.content_type)}
             response = await client.post(WHISPER_SERVICE_URL, files=files)
 
-        print(f"DEBUG: Whisper API Response - Status {response.status_code}, Content: {response.text}")
-
         if response.status_code != 200:
             raise HTTPException(status_code=500, detail=f"Whisper API error: {response.text}")
 
-        result = response.json()
-        transcribed_text = result.get("text", "").strip()
-
+        transcribed_text = response.json().get("text", "").strip()
         if not transcribed_text:
             raise HTTPException(status_code=400, detail="Transcription failed, no text found.")
 
-        answer_record = {
+        await insert_user_answer({
             "session_id": session_id,
-            "user_id": user_session["user_id"],
-            "question_index": current_question_index,
+            "user_id": user["user_id"],
+            "question_index": current_index,
             "answer_text": transcribed_text,
             "timestamp": datetime.utcnow()
-        }
+        })
 
-        insert_result = await db["answers"].insert_one(answer_record)
-
-        if not insert_result.inserted_id:
-            raise Exception("Failed to save answer in MongoDB.")
-
-        async with redis_client.pipeline() as pipe:
-            pipe.sadd(f"session:{session_id}:completed_questions", current_question_index)
-            await pipe.execute()
+        await add_completed_question(session_id, current_index)
 
         return {
             "message": "Answer submitted successfully",
-            "question_index": current_question_index,
+            "question_index": current_index,
             "transcribed_text": transcribed_text
         }
 
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"ERROR: {error_details}")
         raise HTTPException(status_code=500, detail=f"Speech-to-Text failed: {str(e)}")
-    
-@router.get("/get_feedback/")
-async def get_feedback(user_session=Depends(get_interview_session_data), db=Depends(get_db)):
-    session_id = int(user_session["session_id"])
 
-    latest_answer = await db["answers"].find_one(
-        {"session_id": session_id, "user_id": user_session["user_id"]},
-        sort=[("question_index", -1)]
-    )
 
+@router.get("/api/sessions/{session_id}/answers/{question_index}/feedback")
+async def get_feedback(session_id: int, question_index: int, user=Depends(get_current_user)):
+    latest_answer = await find_latest_answer(session_id, user["user_id"])
     if not latest_answer:
         raise HTTPException(status_code=404, detail="User answer not found")
 
-    question_index = latest_answer["question_index"]
+    session = await find_session_by_session_id(session_id, user["user_id"])
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
 
-    session = await db["questions"].find_one(
-        {"session_id": session_id, "questions": {"$elemMatch": {"question_index": question_index}}},
-        {"questions.$": 1}
-    )
-
-    if not session or "questions" not in session or not session["questions"]:
-        raise HTTPException(status_code=400, detail="Question not found in session")
-
-    question_data = session["questions"][0]
-    question_text = question_data["question"]
+    question_data = session["questions"][question_index]
+    user_answer = latest_answer["answer_text"]
     ideal_answer = question_data.get("best_model_answer", "N/A")
-    user_answer_text = latest_answer["answer_text"]
+    question_text = question_data["question"]
 
-    feedback = generate_feedback(user_answer_text, question_text, ideal_answer)
-    similarity_score = analyze_answer(user_answer_text, ideal_answer)
+    feedback = generate_feedback(user_answer, question_text, ideal_answer)
+    similarity_score = analyze_answer(user_answer, ideal_answer)
 
-    await db["answers"].update_one(
-        {
-            "session_id": session_id,
-            "user_id": user_session["user_id"],
-            "question_index": question_index
-        },
-        {
-            "$set": {
-                "feedback": feedback,
-                "similarity_score": similarity_score
-            }
-        }
-    )
+    await update_answer_feedback(session_id, user["user_id"], question_index, {
+        "feedback": feedback,
+        "similarity_score": similarity_score
+    })
 
     return {
         "question": question_text,
-        "user_answer": user_answer_text,
+        "user_answer": user_answer,
         "ideal_answer": ideal_answer,
         **feedback,
         "similarity_score": similarity_score
-        
     }
 
+@router.post("/api/sessions/{session_id}/start")
+async def start_session(session_id: int, user=Depends(get_current_user)):
+    session = await find_session_by_session_id(session_id, user["user_id"])
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    await set_session_status(session_id, "active")
+    await set_current_question_index(session_id, 0)
+
+    return {"message": "Session started successfully", "session_id": session_id}
 
 
-@router.post("/end_session/")
-async def end_session(user_session=Depends(get_interview_session_data)):
-    session_id = int(user_session["session_id"]) 
+@router.post("/api/sessions/{session_id}/end")
+async def end_session(session_id: int, user=Depends(get_current_user)):
+    answers = await get_all_answers_with_scores(session_id, user["user_id"])
+    if not answers:
+        raise HTTPException(status_code=404, detail="No answers with scores found for this session")
 
-    scores = await redis_client.hgetall(f"session:{session_id}:scores")  
-
+    scores = [ans.get("similarity_score", 0) for ans in answers]
     if not scores:
-        raise HTTPException(status_code=404, detail="No scores found for this session")
+        raise HTTPException(status_code=404, detail="No similarity scores found")
 
-    total_score = sum(map(int, scores.values()))
-    max_possible_score = len(scores) * 100  
-    final_score = (total_score / max_possible_score) * 100
+    total_score = sum(scores)
+    max_score = len(scores) * 10
+    final_score = (total_score / max_score) * 100
 
-    await redis_client.delete(f"session:{session_id}:answers")  
-    await redis_client.delete(f"session:{session_id}:feedbacks")  
-    await redis_client.delete(f"session:{session_id}:scores")  
+    await set_session_status(session_id, "ended")
 
-    return {"final_score": round(final_score, 2), "message": "Session completed"}
+    return {
+        "final_score": round(final_score, 2),
+        "answered_questions": len(scores),
+        "message": "Session completed and evaluated successfully"
+    }
 
+@router.get("/api/sessions/{session_id}/score")
+async def calculate_score(session_id: int, user=Depends(get_current_user)):
+    answers = await get_all_answers_with_scores(session_id, user["user_id"])
+    if not answers:
+        raise HTTPException(status_code=404, detail="No answers with scores found for this session")
 
+    scores = []
+    question_scores = []
+
+    for ans in answers:
+        score = ans.get("similarity_score", 0)
+        question_index = ans.get("question_index", -1)
+        scores.append(score)
+        question_scores.append({
+            "question_index": question_index,
+            "score": round(score, 2)
+        })
+
+    total_score = sum(scores)
+    max_score = len(scores) * 10
+    final_score = (total_score / max_score) * 100
+
+    return {
+        "session_id": session_id,
+        "answered_questions": len(scores),
+        "final_score": round(final_score, 2),
+        "question_scores": question_scores
+    }

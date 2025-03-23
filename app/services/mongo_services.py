@@ -3,7 +3,7 @@ import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import asyncio
-import time
+from fastapi import  HTTPException 
 
 load_dotenv()
 
@@ -13,6 +13,13 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
 mongo_client = None
 mongo_db = None
 mongo_ready = asyncio.Event() 
+
+
+async def get_db():
+    client = await get_mongo_client()
+    if client is None: 
+        raise HTTPException(status_code=500, detail="MongoDB connection is not available")
+    return client["interview_db"]
 
 async def connect_to_mongo():
     global mongo_client, mongo_db
@@ -44,3 +51,44 @@ async def get_mongo_client():
         raise Exception("MongoDB client is not initialized properly")
     return mongo_client
 
+
+
+async def insert_question_session(session_data: dict):
+    db = await get_db()
+    return await db["questions"].insert_one(session_data)
+
+async def find_session_by_user_id(user_id: str):
+    db = await get_db()
+    return await db["questions"].find_one({"user_id": user_id})
+
+async def find_session_by_session_id(session_id: int, user_id: str = None):
+    db = await get_db()
+    query = {"session_id": session_id}
+    if user_id:
+        query["user_id"] = user_id
+    return await db["questions"].find_one(query)
+
+async def insert_user_answer(answer_data: dict):
+    db = await get_db()
+    return await db["answers"].insert_one(answer_data)
+
+async def find_latest_answer(session_id: int, user_id: str):
+    db = await get_db()
+    return await db["answers"].find_one(
+        {"session_id": session_id, "user_id": user_id},
+        sort=[("question_index", -1)]
+    )
+
+async def update_answer_feedback(session_id: int, user_id: str, question_index: int, feedback_data: dict):
+    db = await get_db()
+    return await db["answers"].update_one(
+        {"session_id": session_id, "user_id": user_id, "question_index": question_index},
+        {"$set": feedback_data}
+    )
+
+async def get_all_answers_with_scores(session_id: int, user_id: str):
+    db = await get_db()
+    return await db["answers"].find(
+        {"session_id": session_id, "user_id": user_id},
+        {"similarity_score": 1, "question_index": 1}
+    ).to_list(length=None)

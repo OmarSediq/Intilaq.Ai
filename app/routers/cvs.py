@@ -10,11 +10,11 @@ from weasyprint import HTML,CSS
 from app.services.ai_services import generate_objective_from_ai,fetch_project_descriptions_from_ai,generate_experience_from_ai,generate_skills_from_ai,generate_volunteering_description_from_ai
 from app.services.db_services import get_user_by_header_id,generate_docx_from_html
 from app.config import env
-import io
-import pdfkit
 from fastapi.responses import StreamingResponse, HTMLResponse
 from app.utils.response_schemas import error_response,success_response,serialize_sqlalchemy_object
 from app.routers.auth import get_current_user
+import io
+import pdfkit
 
 router = APIRouter()
 
