@@ -1,0 +1,88 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb-container
+    networks:
+      - my_network
+    ports:
+      - "27017:27017"  
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: 84000
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis
+    container_name: redis-container
+    networks:
+      - my_network
+    ports:
+      - "6379:6379"  
+    volumes:
+      - redis_data:/data
+
+  postgres:
+    image: postgres
+    container_name: postgres-container
+    networks:
+      - my_network
+    ports:
+      - "5432:5432"  
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 84000
+      POSTGRES_DB: intilaq_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  whisper_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.whisper
+    container_name: whisper-container
+    networks:
+      - my_network
+    ports:
+      - "5001:5001"
+    volumes:
+      - whisper_model_cache:/root/.cache/whisper
+    depends_on:
+      - mongodb
+      - redis
+      - postgres
+   
+    restart: always
+    command: ["uvicorn", "whisper_service:app", "--host", "0.0.0.0", "--port", "5001"]
+
+
+  fastapi:
+    image: intilaqai-fastapi 
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: fastapi-container
+    networks:
+      - my_network
+    ports:
+      - "8443:8443"
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - whisper_service  
+      - mongodb          
+      - redis            
+      - postgres         
+    restart: always
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8443", "--ssl-keyfile", "/app/certs/key.pem", "--ssl-certfile", "/app/certs/cert.pem"]
+
+networks:
+  my_network:
+  
+volumes:
+  mongodb_data:
+  redis_data:
+  postgres_data:
+  whisper_model_cache:
