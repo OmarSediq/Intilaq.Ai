@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATES_DIR = "/app/app/templates"
+TEMPLATES_DIR = "/app/templates"
 PDF_DIR = "/app/generated_pdfs" 
 
 print(f"Templates directory: {TEMPLATES_DIR}")
@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     
+    whisper_service_url: str
+
 
     # Redis Expiry Settings
     REDIS_OTP_EXPIRE_SECONDS: int = 300

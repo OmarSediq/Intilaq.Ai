@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,status
 from sqlalchemy.ext.asyncio import AsyncSession 
 from app.core.dependencies import get_db 
 from app.database.models import Header, Experience, Education, SkillsLanguages, Certifications, Projects, VolunteeringExperience, Awards, Objective
@@ -13,6 +13,8 @@ from app.utils.response_schemas import error_response,success_response,serialize
 from app.api.routes_auth import get_current_user
 import io
 import pdfkit
+from sqlalchemy import select
+
 
 router = APIRouter()
 
@@ -23,19 +25,43 @@ config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')
 # --------------------- Endpoints --------------------- #
 
 # Header Endpoints
+
 @router.post("/api/headers/", tags=["Personal Information"])
 async def create_header(
     request: HeaderRequest, 
     user: dict = Depends(get_current_user), 
     db: AsyncSession = Depends(get_db)
 ):
-  
-    header = Header(user_id=int(user["user_id"]), **request.dict()) 
-    db.add(header)
-    await db.commit()
-    await db.refresh(header)
+    try:
+        result = await db.execute(
+            select(Header).where(Header.user_id == int(user["user_id"]))
+        )
+        existing_header = result.scalar_one_or_none()
+        if existing_header:
+            return error_response(
+                code=status.HTTP_400_BAD_REQUEST,
+                error_message="Header already exists for this user"
+            )
+
+        header = Header(user_id=int(user["user_id"]), **request.dict()) 
+        db.add(header)
+        await db.commit()
+        await db.refresh(header)
+
+        return success_response(
+            code=status.HTTP_201_CREATED,
+            data={
+                "message": "Header created successfully",
+                "header": serialize_sqlalchemy_object(header)
+            }
+        )
     
-    return success_response(code=201, data={"message": "Header created successfully","header": serialize_sqlalchemy_object(header)})
+    except Exception as e:
+        print(f"[ERROR] Failed to create header: {e}")
+        return error_response(
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            error_message="Internal error while creating header"
+        )
 
 
 @router.get("/api/headers/{header_id}/", tags=["Personal Information"])

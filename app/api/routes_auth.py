@@ -11,7 +11,8 @@ from fastapi import Depends
 from app.utils.response_schemas import success_response,error_response
 from datetime import datetime, timezone
 import jwt
-from app.schemas.auth import SignupRequest,VerifyAccountRequest,UpdateUserRequest,LogoutRequest,RefreshTokenRequest,ResendCodeRequest,TwoFactorAuthRequest,ForgotPasswordRequest,LoginRequest
+import asyncio
+from app.schemas.auth import SignupRequest,VerifyAccountRequest,UpdateUserRequest,ResendCodeRequest,ForgotPasswordRequest,LoginRequest
 
 
 router = APIRouter()
@@ -103,8 +104,8 @@ async def login(request: LoginRequest, response: Response, db: AsyncSession = De
     response = success_response(code=200, data={"message": "Login successful"})
 
    
-    response.set_cookie("access_token", access_token, httponly=True, samesite="Lax", max_age=900, secure=False, path="/")
-    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Lax", max_age=604800, secure=False, path="/")
+    response.set_cookie("access_token", access_token, httponly=True, samesite="None", max_age=900, secure=True, path="/")
+    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="None", max_age=604800, secure=True, path="/")
 
     return response
 
@@ -144,7 +145,7 @@ async def refresh_token(request: Request, response: Response):
         return error_response(code=401, error_message="Refresh token not found")
 
     try:
-        payload = decode_refresh_token(refresh_token)  # فك تشفير `Refresh Token`
+        payload = decode_refresh_token(refresh_token)  
         user_id = payload["user_id"]
 
         stored_refresh_token = await get_stored_refresh_token(user_id) 
@@ -237,7 +238,14 @@ async def resend_verification_code(request: ResendCodeRequest, db: AsyncSession 
     await save_reset_code(request.email, new_code, db)
 
     try:
-        send_email(user.email, "Resend Verification Code", f"Your new verification code is: {new_code}")
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(
+            None,  # Use default ThreadPoolExecutor
+            send_email,
+            user.email,
+            "Resend Verification Code",
+            f"Your new verification code is: {new_code}"
+        )
     except Exception as e:
         return error_response(code=500, error_message=f"Failed to send email: {str(e)}")
 

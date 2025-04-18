@@ -5,7 +5,10 @@ import os
 import torch
 import shutil
 import io
+import warnings
 
+
+warnings.filterwarnings("ignore", message="FP16 is not supported on CPU")
 
 app = FastAPI()
 

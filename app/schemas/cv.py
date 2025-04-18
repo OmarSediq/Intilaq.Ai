@@ -6,13 +6,13 @@ from datetime import date
 
 class HeaderRequest(BaseModel):
     full_name: str
-    job_title: Optional[str] #  input for objective  
+    job_title: Optional[str]=None #  input for objective  
     email: EmailStr
-    phone_number: Optional[str]
-    address: Optional[str]
-    linkedin_profile: Optional[str]
-    github_profile: Optional[str]
-    years_of_experience: Optional[int]  #  input for objective 
+    phone_number: Optional[str]=None
+    address: Optional[str]=None
+    linkedin_profile: Optional[str]=None
+    github_profile: Optional[str]=None
+    years_of_experience: Optional[int]=None #  input for objective 
 
 class ExperienceRequest(BaseModel):
     header_id: int

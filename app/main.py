@@ -7,15 +7,24 @@ from app.api.routes_cv import router as cv_router
 from app.api.routes_interview import router as interview_router
 from app.services.mongo_services import connect_to_mongo,close_mongo_connection 
 from app.core.config import env
-from app.core.middlewares import setup_cors
+from app.utils.exception_handlers import (http_exception_handler,validation_exception_handler,global_exception_handler)
+from fastapi.exceptions import RequestValidationError
+from fastapi import HTTPException
+
+# from app.core.middlewares import setup_cors
 
 
 app = FastAPI()
-setup_cors(app)
+# setup_cors(app)
 # Add application routes
 app.include_router(app_router)
 app.include_router(cv_router)
 app.include_router(interview_router)
+
+# Attach custom exception handlers
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, global_exception_handler)
 
 async def create_tables():
     try:
@@ -36,3 +45,4 @@ async def on_startup():
 async def on_shutdown():
     await close_mongo_connection()
     
+

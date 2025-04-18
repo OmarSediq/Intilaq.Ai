@@ -4,7 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import asyncio
 from fastapi import  HTTPException 
-
+ 
 load_dotenv()
 
 MONGO_URI = os.getenv("MONGO_URI")
@@ -61,12 +61,20 @@ async def find_session_by_user_id(user_id: str):
     db = await get_db()
     return await db["questions"].find_one({"user_id": user_id})
 
-async def find_session_by_session_id(session_id: int, user_id: str = None):
+async def find_session_by_session_id(session_id: int, user_id: str):
+    if not user_id:
+        raise HTTPException(status_code=403, detail="User not authorized")
+
     db = await get_db()
-    query = {"session_id": session_id}
-    if user_id:
-        query["user_id"] = user_id
-    return await db["questions"].find_one(query)
+    query = {"session_id": session_id, "user_id": user_id}
+    session = await db["questions"].find_one(query)
+
+    if not session:
+        print(f"[❌ Session Not Found] user_id={user_id} session_id={session_id}")
+        raise HTTPException(status_code=404, detail="Session not found or unauthorized")
+
+    return session
+
 
 async def insert_user_answer(answer_data: dict):
     db = await get_db()

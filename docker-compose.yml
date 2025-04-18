@@ -37,6 +37,7 @@ services:
       POSTGRES_DB: intilaq_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
   whisper_service:
     build:
       context: .
@@ -52,13 +53,11 @@ services:
       - mongodb
       - redis
       - postgres
-   
     restart: always
     command: ["uvicorn", "whisper_service:app", "--host", "0.0.0.0", "--port", "5001"]
 
-
   fastapi:
-    image: intilaqai-fastapi 
+    image: intilaqai-fastapi
     build:
       context: .
       dockerfile: Dockerfile.fastapi
@@ -66,21 +65,39 @@ services:
     networks:
       - my_network
     ports:
-      - "8443:8443"
       - "8000:8000"
     env_file:
       - .env
     depends_on:
-      - whisper_service  
-      - mongodb          
-      - redis            
-      - postgres         
+      - whisper_service
+      - mongodb
+      - redis
+      - postgres
     restart: always
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8443", "--ssl-keyfile", "/app/certs/key.pem", "--ssl-certfile", "/app/certs/cert.pem"]
+    volumes:
+      - .:/app  
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  nginx:
+    image: nginx
+    container_name: nginx-container
+    restart: always
+    depends_on:
+      - fastapi
+    ports:
+    - "8443:443"
+    - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs
+    networks:
+      - my_network
+
 
 networks:
   my_network:
-  
+
 volumes:
   mongodb_data:
   redis_data:
