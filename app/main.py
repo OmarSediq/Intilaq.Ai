@@ -3,14 +3,14 @@ from fastapi import FastAPI
 from app.database.models import Base
 from app.core.dependencies import postgres_engine
 from app.api.routes_auth import router as app_router
-from app.api.routes_cv import router as cv_router
+# from app.api.routes_cv import router as cv_router
 from app.api.routes_interview import router as interview_router
 from app.services.mongo_services import connect_to_mongo,close_mongo_connection 
 from app.core.config import env
 from app.utils.exception_handlers import (http_exception_handler,validation_exception_handler,global_exception_handler)
 from fastapi.exceptions import RequestValidationError
 from fastapi import HTTPException
-
+from app.api import all_routers  #
 # from app.core.middlewares import setup_cors
 
 
@@ -18,8 +18,10 @@ app = FastAPI()
 # setup_cors(app)
 # Add application routes
 app.include_router(app_router)
-app.include_router(cv_router)
+# app.include_router(cv_router)
 app.include_router(interview_router)
+for router in all_routers:
+    app.include_router(router)
 
 # Attach custom exception handlers
 app.add_exception_handler(HTTPException, http_exception_handler)

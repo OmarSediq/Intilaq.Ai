@@ -4,7 +4,13 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import asyncio
 from fastapi import  HTTPException 
- 
+import gridfs
+from datetime import datetime
+from fastapi import UploadFile
+from fastapi.responses import StreamingResponse
+from bson import ObjectId
+from io import BytesIO
+
 load_dotenv()
 
 MONGO_URI = os.getenv("MONGO_URI")
@@ -100,3 +106,34 @@ async def get_all_answers_with_scores(session_id: int, user_id: str):
         {"session_id": session_id, "user_id": user_id},
         {"similarity_score": 1, "question_index": 1}
     ).to_list(length=None)
+
+
+
+
+async def save_pdf_to_gridfs(file: UploadFile, user_id: str, resume_name: str, db):
+    fs = gridfs.AsyncIOMotorGridFSBucket(db)
+
+    file_content = await file.read()
+
+    metadata = {
+        "user_id": user_id,
+        "resume_name": resume_name,
+        "uploaded_at": datetime.utcnow()
+    }
+
+    file_id = await fs.upload_from_stream(
+        file.filename,
+        file_content,
+        metadata=metadata
+    )
+
+    return file_id
+
+
+async def get_pdf_from_gridfs(file_id: str, db):
+    fs = gridfs.AsyncIOMotorGridFSBucket(db)
+
+    stream = await fs.open_download_stream(ObjectId(file_id))
+    file_data = await stream.read()
+
+    return StreamingResponse(BytesIO(file_data), media_type="application/pdf")

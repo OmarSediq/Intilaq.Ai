@@ -6,6 +6,7 @@ from app.core.config import settings
 from passlib.context import CryptContext
 import os 
 
+
 # -------------------- PostgreSQL Configuration -------------------- #
 
 # Initialize the asynchronous PostgreSQL engine

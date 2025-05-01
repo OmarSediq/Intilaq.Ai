@@ -29,7 +29,7 @@ async def get_model():
         return pickle.loads(cached_model) 
     else:
         model = whisper.load_model("small")
-        redis_client.set("whisper_model", pickle.dumps(model))  # تخزين النموذج في Redis
+        redis_client.set("whisper_model", pickle.dumps(model)) 
         return model
 
 
@@ -39,10 +39,11 @@ async def generate_objective_from_ai(job_title: str, years_of_experience: int) -
     """
     try:
         system_message = (
-            "You are an AI assistant for CV generation. Your task is to generate professional career objectives. "
-            "Provide clear, concise, and tailored descriptions based on the job title and years of experience. "
-            "Suggest 4 different descriptions, each with a maximum of 4 lines."
-        )
+                "You are a CV generation assistant. Your task is to provide a clear and concise "
+                "professional summary or career objective tailored to the role and experience level provided. "
+                "Suggest 4 different descriptions, each with a maximum of 4 lines, temperature=0."
+            )
+
         human_message = f"Generate a career objective for the job title '{job_title}' with {years_of_experience} years of experience."
         
         prompt = f"{system_message}\n\nUser: {human_message}"

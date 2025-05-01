@@ -1,11 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends,Request,Response
 from app.database.db_services import create_user, get_user_by_username, verify_reset_code, save_reset_code, get_user_by_email, update_verification_status, update_user_details, delete_user_by_id,get_user_by_id,get_email_by_code
-# from app.utils.jwt_utils import create_access_token, decode_access_token
 from app.core.dependencies import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 import random
 from app.utils.email_utils import send_email
-# from app.services.redis_services import get_code, set_code, delete_code
 from app.utils.jwt_utils import create_access_token,decode_access_token,delete_refresh_token,store_refresh_token,create_refresh_token,get_stored_refresh_token,decode_refresh_token
 from fastapi import Depends
 from app.utils.response_schemas import success_response,error_response
@@ -104,7 +102,7 @@ async def login(request: LoginRequest, response: Response, db: AsyncSession = De
     response = success_response(code=200, data={"message": "Login successful"})
 
    
-    response.set_cookie("access_token", access_token, httponly=True, samesite="None", max_age=900, secure=True, path="/")
+    response.set_cookie("access_token", access_token, httponly=True, samesite="None", max_age=604800, secure=True, path="/")
     response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="None", max_age=604800, secure=True, path="/")
 
     return response
