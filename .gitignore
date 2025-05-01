@@ -23,4 +23,9 @@ __pycache__/
 **/__init__.py
 
 # BUT DO NOT ignore this one specific file
-!app/api/__init__.py
+
+!app/api/cv_api/__init__.py
+!app/api/home_api/__init__.py
+!app/api/interview_api/__init__.py
+!app/api/auth_api/auth/__init__.py
+!app/api/auth_api/auth_hr/__init__.py

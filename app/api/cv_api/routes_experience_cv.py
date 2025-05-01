@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-
-from app.api.auth_api.auth.routes_auth import get_current_user
 from app.core.dependencies import get_db
-from app.database.models import Header, Experience
+from app.api.auth_api.auth.routes_auth import get_current_user
 from app.schemas.cv import ExperienceRequest, ExperienceSaveRequest
-from app.utils.response_schemas import success_response, error_response, serialize_sqlalchemy_object
-from app.services.ai_services import generate_experience_from_ai
+from app.services.cv_services.experience_services import (
+    create_experience_service,
+    get_experience_service,
+    update_experience_service,
+    delete_experience_service,
+    generate_experience_suggestions_service,
+    save_experience_description_service
+)
 
 router = APIRouter()
 
@@ -18,22 +21,7 @@ async def create_experience(
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Header).where(Header.user_id == int(user["user_id"])))
-    header = result.scalars().first()
-    if not header:
-        return error_response(code=404, error_message="Header not found for this user.")
-
-    ExperienceRequest.validate_dates(request.start_date, request.end_date)
-
-    experience = Experience(**request.dict(exclude={"header_id"}), header_id=header.id)
-    db.add(experience)
-    await db.commit()
-    await db.refresh(experience)
-
-    return success_response(code=201, data={
-        "message": "Experience created successfully",
-        "experience": serialize_sqlalchemy_object(experience)
-    })
+    return await create_experience_service(request, int(user["user_id"]), db)
 
 
 @router.get("/api/experiences/{experience_id}/", tags=["Experience Management"])
@@ -42,17 +30,7 @@ async def get_experience(
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(Experience).where(Experience.id == experience_id)
-    result = await db.execute(stmt)
-    experience = result.scalars().first()
-    if not experience:
-        return error_response(code=404, error_message="Experience not found")
-
-    header = await db.get(Header, experience.header_id)
-    if not header or header.user_id != int(user["user_id"]):
-        return error_response(code=403, error_message="Unauthorized access to this experience")
-
-    return success_response(code=200, data={"experience": serialize_sqlalchemy_object(experience)})
+    return await get_experience_service(experience_id, int(user["user_id"]), db)
 
 
 @router.put("/api/experiences/{experience_id}/", tags=["Experience Management"])
@@ -62,23 +40,7 @@ async def update_experience(
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(Experience).where(Experience.id == experience_id)
-    result = await db.execute(stmt)
-    experience = result.scalars().first()
-    if not experience:
-        return error_response(code=404, error_message="Experience not found")
-
-    header = await db.get(Header, experience.header_id)
-    if not header or header.user_id != int(user["user_id"]):
-        return error_response(code=403, error_message="Unauthorized access to this experience")
-
-    request.validate_dates(request.start_date, request.end_date)
-    for key, value in request.dict(exclude_unset=True).items():
-        setattr(experience, key, value)
-
-    await db.commit()
-    await db.refresh(experience)
-    return success_response(code=200, data={"message": "Experience updated successfully", "experience": serialize_sqlalchemy_object(experience)})
+    return await update_experience_service(experience_id, request, int(user["user_id"]), db)
 
 
 @router.delete("/api/experiences/{experience_id}/", tags=["Experience Management"])
@@ -87,20 +49,7 @@ async def delete_experience(
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(Experience).where(Experience.id == experience_id)
-    result = await db.execute(stmt)
-    experience = result.scalars().first()
-    if not experience:
-        return error_response(code=404, error_message="Experience not found")
-
-    header = await db.get(Header, experience.header_id)
-    if not header or header.user_id != int(user["user_id"]):
-        return error_response(code=403, error_message="Unauthorized access to this experience")
-
-    await db.delete(experience)
-    await db.commit()
-
-    return success_response(code=200, data={"message": "Experience deleted successfully"})
+    return await delete_experience_service(experience_id, int(user["user_id"]), db)
 
 
 @router.post("/api/experiences/suggestions/", tags=["AI Enhancements"])
@@ -108,31 +57,7 @@ async def generate_experience_suggestions(
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    try:
-        result = await db.execute(select(Header).where(Header.user_id == int(user["user_id"])))
-        header = result.scalars().first()
-        if not header:
-            return error_response(code=404, error_message="Header not found for this user.")
-
-        result = await db.execute(select(Experience).where(Experience.header_id == header.id))
-        experience = result.scalars().first()
-        if not experience:
-            return error_response(code=404, error_message="Experience not found for this user.")
-
-        ai_suggestions = await generate_experience_from_ai(
-            role=experience.role,
-            start_date=experience.start_date,
-            end_date=experience.end_date
-        )
-
-        return success_response(code=200, data={
-            "experience_id": experience.id,
-            "role": experience.role,
-            "suggestions": ai_suggestions
-        })
-
-    except Exception as e:
-        return error_response(code=500, error_message="Unexpected error occurred", data=str(e))
+    return await generate_experience_suggestions_service(int(user["user_id"]), db)
 
 
 @router.put("/api/experiences/save-description/{experience_id}/", tags=["AI Enhancements"])
@@ -142,28 +67,9 @@ async def save_experience_description(
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    try:
-        experience = await db.get(Experience, experience_id)
-        if not experience:
-            return error_response(code=404, error_message="Experience not found.")
-
-        result = await db.execute(select(Header).where(Header.user_id == int(user["user_id"])))
-        header = result.scalars().first()
-        if not header:
-            return error_response(code=404, error_message="Header not found for this user.")
-
-        if experience.header_id != header.id:
-            return error_response(code=403, error_message="Unauthorized access to this experience.")
-
-        experience.description = request.selected_description
-        await db.commit()
-        await db.refresh(experience)
-
-        return success_response(code=200, data={
-            "experience_id": experience.id,
-            "description": request.selected_description
-        })
-
-    except Exception as e:
-        await db.rollback()
-        return error_response(code=500, error_message="Error updating experience description", data=str(e))
+    return await save_experience_description_service(
+        experience_id,
+        request.selected_description,
+        int(user["user_id"]),
+        db
+    )

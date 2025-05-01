@@ -2,9 +2,9 @@ import asyncio
 from fastapi import FastAPI
 from app.database.models import Base
 from app.core.dependencies import postgres_engine
-from app.api.routes_auth import router as app_router
+from app.api.auth_api.auth.routes_auth import router as app_router
 # from app.api.routes_cv import router as cv_router
-from app.api.routes_interview import router as interview_router
+from app.api.interview_api.routes_interview import router as interview_router
 from app.services.mongo_services import connect_to_mongo,close_mongo_connection 
 from app.core.config import env
 from app.utils.exception_handlers import (http_exception_handler,validation_exception_handler,global_exception_handler)

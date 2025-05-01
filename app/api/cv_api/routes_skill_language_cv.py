@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.auth_api.auth.routes_auth import get_current_user
 from app.core.dependencies import get_db
 from app.schemas.cv import SkillsLanguagesRequest, SaveSkillsRequest, GenerateSkillsRequest
-from app.services.cv_services.skills_services import (
+from app.services.cv_services.skill_language_services import (
     create_skills_languages_service,
     get_skills_languages_service,
     delete_skills_languages_service,
