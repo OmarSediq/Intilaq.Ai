@@ -4,11 +4,11 @@
 #openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem
 from fastapi import APIRouter, Depends
 from app.services.mongo_services import get_db
-from app.api.routes_auth import get_current_user
+from app.api.auth_api.auth.routes_auth import get_current_user
 from app.utils.response_schemas import success_response, error_response
 from app.services.redis_services import get_user_session_ids
 from datetime import datetime
-from app.api.routes_interview import validate_and_sync_session
+from app.api.interview_api.routes_interview import validate_and_sync_session
 from app.services.mongo_services import get_mongo_client
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from fastapi.responses import StreamingResponse

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.api.routes_auth import get_current_user
+from app.api.auth_api.auth.routes_auth import get_current_user
 from app.core.dependencies import get_db
 from app.database.models import Header, Objective
 from app.schemas.cv import ObjectiveSaveRequest

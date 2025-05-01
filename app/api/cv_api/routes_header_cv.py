@@ -6,7 +6,7 @@ from app.core.dependencies import get_db
 from app.database.models import Header
 from app.schemas.cv import HeaderRequest
 from app.utils.response_schemas import error_response, success_response, serialize_sqlalchemy_object
-from app.api.routes_auth import get_current_user
+from app.api.auth_api.auth.routes_auth import get_current_user
 
 
 router = APIRouter() 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_db
-from app.api.routes_auth import get_current_user
+from app.api.auth_api.auth.routes_auth import get_current_user
 from app.database.models import Header, Education
 from app.schemas.cv import EducationRequest
 from app.utils.response_schemas import success_response, error_response, serialize_sqlalchemy_object

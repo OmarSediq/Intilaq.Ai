@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException ,UploadFile, File,Depends
 from app.services.mongo_services import get_mongo_client,insert_question_session,find_session_by_session_id ,insert_user_answer,update_answer_feedback,find_latest_answer,get_all_answers_with_scores 
 from app.services.redis_services import redis_client , set_current_question_index,get_current_question_index,add_completed_question,set_session_status,get_user_session_ids,add_user_session_id
 from app.services.ai_services import generate_interview_questions,generate_best_model_answer,generate_feedback , analyze_answer
-from app.api.routes_auth import get_current_user
+from app.api.auth_api.auth.routes_auth import get_current_user
 from app.utils.response_schemas import error_response , success_response
 import asyncio
 import random
