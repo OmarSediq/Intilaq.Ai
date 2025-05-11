@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import HTTPException
 
-from app.database.models import Header, Awards
+from app.database.models.cv_section_models import Header, Awards
 from app.schemas.cv import AwardsRequest
 
 

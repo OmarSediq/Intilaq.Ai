@@ -30,29 +30,29 @@ async def create_header(
     return await create_header_service(request, int(user["user_id"]), db)
 
 
-@router.get("/api/headers/{header_id}/", tags=["Personal Information"])
-async def get_header(
-    header_id: int,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await get_header_service(header_id, int(user["user_id"]), db)
+# @router.get("/api/headers/{header_id}/", tags=["Personal Information"])
+# async def get_header(
+#     header_id: int,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await get_header_service(header_id, int(user["user_id"]), db)
 
 
-@router.put("/api/headers/{header_id}/", tags=["Personal Information"])
-async def update_header(
-    header_id: int,
-    request: HeaderRequest,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await update_header_service(header_id, request, int(user["user_id"]), db)
+# @router.put("/api/headers/{header_id}/", tags=["Personal Information"])
+# async def update_header(
+#     header_id: int,
+#     request: HeaderRequest,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await update_header_service(header_id, request, int(user["user_id"]), db)
 
 
-@router.delete("/api/headers/{header_id}/", tags=["Personal Information"])
-async def delete_header(
-    header_id: int,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await delete_header_service(header_id, int(user["user_id"]), db)
+# @router.delete("/api/headers/{header_id}/", tags=["Personal Information"])
+# async def delete_header(
+#     header_id: int,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await delete_header_service(header_id, int(user["user_id"]), db)

@@ -271,3 +271,20 @@ def analyze_answer(answer: str, model_answer: str):
 
     return round(score, 2)
 
+
+async def generate_questions_using_gemini_hr(job_name: str, job_level: str, job_requirements: str) -> str:
+    try:
+        system_message = (
+            f"Generate exactly 10 unique technical interview questions for a {job_level} {job_name} role "
+            f"based on these job requirements: {job_requirements}.\n"
+            "Return only the questions, each on a new line, without numbering, labels, explanations, or additional formatting."
+        )
+
+        human_message = f"Generate 10 interview questions for a {job_level} {job_name} role."
+        prompt = f"System: {system_message}\nHuman: {human_message}"
+
+        response = await model.generate_content_async(prompt)
+        return response.text.strip()
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")

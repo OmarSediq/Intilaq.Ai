@@ -23,32 +23,32 @@ async def create_project(
     return await create_project_service(request, user["user_id"], db)
 
 
-@router.get("/api/projects/{project_id}/", tags=["Projects & Certifications"])
-async def get_project(
-    project_id: int,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await get_project_service(project_id, user["user_id"], db)
+# @router.get("/api/projects/{project_id}/", tags=["Projects & Certifications"])
+# async def get_project(
+#     project_id: int,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await get_project_service(project_id, user["user_id"], db)
 
 
-@router.put("/api/projects/{project_id}/", tags=["Projects & Certifications"])
-async def update_project(
-    project_id: int,
-    request: ProjectRequest,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await update_project_service(project_id, request, user["user_id"], db)
+# @router.put("/api/projects/{project_id}/", tags=["Projects & Certifications"])
+# async def update_project(
+#     project_id: int,
+#     request: ProjectRequest,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await update_project_service(project_id, request, user["user_id"], db)
 
 
-@router.delete("/api/projects/{project_id}/", tags=["Projects & Certifications"])
-async def delete_project(
-    project_id: int,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await delete_project_service(project_id, user["user_id"], db)
+# @router.delete("/api/projects/{project_id}/", tags=["Projects & Certifications"])
+# async def delete_project(
+#     project_id: int,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await delete_project_service(project_id, user["user_id"], db)
 
 
 @router.post("/api/projects/generate-description/", tags=["AI Enhancements"])

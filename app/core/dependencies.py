@@ -5,6 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from passlib.context import CryptContext
 import os 
+from fastapi import Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 # -------------------- PostgreSQL Configuration -------------------- #
@@ -15,14 +17,9 @@ postgres_engine = create_async_engine(settings.POSTGRES_URL, future=True, echo=T
 # Create a sessionmaker for PostgreSQL
 SessionLocal = sessionmaker(bind=postgres_engine, class_=AsyncSession, expire_on_commit=False)
 
-async def get_db():
-    """
-    Dependency to provide an AsyncSession for the PostgreSQL database.
-
-    Yields:
-        AsyncSession: The database session.
-    """
+async def get_db(request: Request) -> AsyncSession:
     async with SessionLocal() as session:
+        request.state.db = session  # مهم للـ Middleware
         yield session
 
 # -------------------- Password Hashing Configuration -------------------- #

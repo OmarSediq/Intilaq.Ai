@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.database.models import Header, Education
+from app.database.models.cv_section_models import Header, Education
 from app.utils.response_schemas import success_response, error_response, serialize_sqlalchemy_object
 
 async def get_user_header(user_id: int, db: AsyncSession):

@@ -1,10 +1,11 @@
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import pool 
 from alembic import context
 
-# Import your models
-from app.database.models import Base  # تأكد من تعديل المسار بناءً على مشروعك
+from app.database.models.base import Base
+# Import models to register their metadata for Alembic (even if not used directly)
+from app.database.models import cv_section_models, hr_models # noqa: F401
 
 # Alembic Config
 config = context.config
@@ -18,7 +19,6 @@ DATABASE_URL = "postgresql+psycopg2://admin:84000@localhost/intilaq_db"
 
 
 def run_migrations_offline():
-    """Run migrations in 'offline' mode."""
     url = DATABASE_URL
     context.configure(
         url=url,
@@ -26,22 +26,18 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
 def run_migrations_online():
-    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
         {"sqlalchemy.url": DATABASE_URL},
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
-
         with context.begin_transaction():
             context.run_migrations()
 

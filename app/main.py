@@ -1,50 +1,51 @@
-import asyncio
 from fastapi import FastAPI
-from app.database.models import Base
+from app.database.models.base import Base
+from app.database.models import cv_section_models, hr_models  # noqa: F401
 from app.core.dependencies import postgres_engine
-from app.api.auth_api.auth.routes_auth import router as app_router
-# from app.api.routes_cv import router as cv_router
-from app.api.interview_api.routes_interview import router as interview_router
-from app.services.mongo_services import connect_to_mongo,close_mongo_connection 
-from app.core.config import env
-from app.utils.exception_handlers import (http_exception_handler,validation_exception_handler,global_exception_handler)
-from fastapi.exceptions import RequestValidationError
-from fastapi import HTTPException
-from app.api import all_routers  #
-# from app.core.middlewares import setup_cors
+from app.api import all_routers  
+from app.utils.exception_handlers import register_exception_handlers
+from app.core.middlewares.db_transaction import DBTransactionMiddleware 
+from app.core.middlewares.auth_logging import AuthenticationMiddleware
+from app.core.middlewares.performance_logging import PerformanceLoggingMiddleware
+from app.services.mongo_services import connect_to_mongo, close_mongo_connection
+from contextlib import asynccontextmanager
+import sqlalchemy as sa
 
 
-app = FastAPI()
-# setup_cors(app)
-# Add application routes
-app.include_router(app_router)
-# app.include_router(cv_router)
-app.include_router(interview_router)
-for router in all_routers:
-    app.include_router(router)
-
-# Attach custom exception handlers
-app.add_exception_handler(HTTPException, http_exception_handler)
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(Exception, global_exception_handler)
 
 async def create_tables():
     try:
         print("Starting table creation...")
+
         async with postgres_engine.begin() as conn:
+            # 1. Create schema if it does not exist
+            await conn.execute(sa.text("CREATE SCHEMA IF NOT EXISTS hr_section"))
+
+            # 2. Create all tables
             await conn.run_sync(Base.metadata.create_all)
+
         print("Tables created successfully.")
     except Exception as e:
         print(f"Error creating tables: {e}")
 
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     print("Running startup tasks...")
     await create_tables()
-    asyncio.create_task(connect_to_mongo())  
+    await connect_to_mongo()
 
-@app.on_event("shutdown")
-async def on_shutdown():
+
+    yield
+
     await close_mongo_connection()
-    
 
+app = FastAPI(lifespan=lifespan)
+
+register_exception_handlers(app)
+app.add_middleware(AuthenticationMiddleware)
+app.add_middleware(PerformanceLoggingMiddleware)
+app.add_middleware(DBTransactionMiddleware)
+
+
+for router in all_routers:
+    app.include_router(router)

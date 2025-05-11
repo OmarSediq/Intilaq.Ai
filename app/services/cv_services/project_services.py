@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.database.models import Header, Projects
+from app.database.models.cv_section_models import Header, Projects
 from app.utils.response_schemas import success_response, error_response, serialize_sqlalchemy_object
 from app.services.ai_services import fetch_project_descriptions_from_ai
 

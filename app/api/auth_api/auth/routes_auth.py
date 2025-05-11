@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends,Request,Response
-from app.database.db_services import create_user, get_user_by_username, verify_reset_code, save_reset_code, get_user_by_email, update_verification_status, update_user_details, delete_user_by_id,get_user_by_id,get_email_by_code
+from app.services.db_services import create_user, get_user_by_username, verify_reset_code, save_reset_code, get_user_by_email, update_verification_status, update_user_details, delete_user_by_id,get_user_by_id,get_email_by_code
 from app.core.dependencies import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 import random
@@ -15,37 +15,12 @@ from app.schemas.auth import SignupRequest,VerifyAccountRequest,UpdateUserReques
 
 router = APIRouter()
 
+
 async def get_current_user(request: Request):
-    access_token = request.cookies.get("access_token") 
-    
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Not authenticated (No access token)")
-
-    try:
-        print(f"Received Token from Cookies: {access_token}")  
-        user_data = decode_access_token(access_token)
-        print(f"Decoded Token: {user_data}")  
-
-        exp = user_data.get("exp")
-        if exp is None:
-            raise HTTPException(status_code=401, detail="Invalid token: No expiration found")
-
-        exp_time = datetime.fromtimestamp(exp, tz=timezone.utc)  
-        now_time = datetime.now(timezone.utc) 
-        print(f"Token Expiration: {exp_time}, Current Time: {now_time}")  
-
-        if exp_time < now_time:
-            raise HTTPException(status_code=401, detail="Token has expired")
-
-        return user_data
-
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        print(f"Unexpected Error: {e}")  
-        raise HTTPException(status_code=401, detail="Invalid token")
+    user = getattr(request.state, "user", None)
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return user
 # Models
 
 
@@ -169,38 +144,38 @@ async def refresh_token(request: Request, response: Response):
     except jwt.InvalidTokenError:
         return error_response(code=401, error_message="Invalid Refresh Token")
 
-@router.get("/api/users/{user_id}/", tags=["User Management"])
-async def get_user_endpoint(user_id: int, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if int(user["user_id"]) != user_id: 
-        return error_response(code=403, error_message="You can only access your own data.")
+# @router.get("/api/users/{user_id}/", tags=["User Management"])
+# async def get_user_endpoint(user_id: int, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+#     if int(user["user_id"]) != user_id: 
+#         return error_response(code=403, error_message="You can only access your own data.")
 
-    user_data = await get_user_by_id(user_id, db)
-    if not user_data:
-        return error_response(code=404, error_message="User not found")
+#     user_data = await get_user_by_id(user_id, db)
+#     if not user_data:
+#         return error_response(code=404, error_message="User not found")
 
-    return success_response(code=200, data={"id": user_data.id, "username": user_data.username, "email": user_data.email})
-
-
-@router.put("/api/users/update/", tags=["User Management"])
-async def update_user_endpoint(request: UpdateUserRequest, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    user_id = int(user["user_id"])  
-
-    updated_user = await update_user_details(user_id, request.model_dump(), db)
-    if not updated_user:
-        return error_response(code=404, error_message="User not found")
-
-    return success_response(code=200, data={"username": updated_user.username, "email": updated_user.email})
+#     return success_response(code=200, data={"id": user_data.id, "username": user_data.username, "email": user_data.email})
 
 
-@router.delete("/api/users/delete/", tags=["User Management"])
-async def delete_user_endpoint(user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    user_id = int(user["user_id"])  
+# @router.put("/api/users/update/", tags=["User Management"])
+# async def update_user_endpoint(request: UpdateUserRequest, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+#     user_id = int(user["user_id"])  
 
-    deletion_status = await delete_user_by_id(user_id, db)
-    if not deletion_status:
-        return error_response(code=404, error_message="User not found")
+#     updated_user = await update_user_details(user_id, request.model_dump(), db)
+#     if not updated_user:
+#         return error_response(code=404, error_message="User not found")
 
-    return success_response(code=200, data={"message": "Account deleted successfully"})
+#     return success_response(code=200, data={"username": updated_user.username, "email": updated_user.email})
+
+
+# @router.delete("/api/users/delete/", tags=["User Management"])
+# async def delete_user_endpoint(user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+#     user_id = int(user["user_id"])  
+
+#     deletion_status = await delete_user_by_id(user_id, db)
+#     if not deletion_status:
+#         return error_response(code=404, error_message="User not found")
+
+#     return success_response(code=200, data={"message": "Account deleted successfully"})
 
 
 @router.post("/api/security/forgot-password/", tags=["Security"])

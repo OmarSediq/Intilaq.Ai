@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.database.models import Header
+from app.database.models.cv_section_models import Header
 from app.schemas.cv import HeaderRequest
 from app.utils.response_schemas import success_response, error_response, serialize_sqlalchemy_object
 from fastapi import status

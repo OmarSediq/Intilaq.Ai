@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 from fastapi.responses import HTMLResponse, StreamingResponse
-from app.database.db_services import get_user_by_header_id, generate_docx_from_html
-from app.database.models import Header
+from app.services.db_services import get_user_by_header_id, generate_docx_from_html
+from app.database.models.cv_section_models import Header
 from app.utils.response_schemas import error_response
 from sqlalchemy.future import select
 from app.core.config import env

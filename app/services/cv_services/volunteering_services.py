@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.database.models import Header, VolunteeringExperience
+from app.database.models.cv_section_models import Header, VolunteeringExperience
 from app.utils.response_schemas import success_response, error_response, serialize_sqlalchemy_object
 from app.services.ai_services import generate_volunteering_description_from_ai
 

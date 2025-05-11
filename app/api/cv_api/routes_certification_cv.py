@@ -21,29 +21,29 @@ async def create_certification(
     return await create_certification_service(request, user["user_id"], db)
 
 
-@router.get("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
-async def get_certification(
-    certification_id: int,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await get_certification_service(certification_id, user["user_id"], db)
+# @router.get("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
+# async def get_certification(
+#     certification_id: int,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await get_certification_service(certification_id, user["user_id"], db)
 
 
-@router.put("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
-async def update_certification(
-    certification_id: int,
-    request: CertificationUpdateRequest,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await update_certification_service(certification_id, request, user["user_id"], db)
+# @router.put("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
+# async def update_certification(
+#     certification_id: int,
+#     request: CertificationUpdateRequest,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await update_certification_service(certification_id, request, user["user_id"], db)
 
 
-@router.delete("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
-async def delete_certification(
-    certification_id: int,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await delete_certification_service(certification_id, user["user_id"], db)
+# @router.delete("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
+# async def delete_certification(
+#     certification_id: int,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await delete_certification_service(certification_id, user["user_id"], db)

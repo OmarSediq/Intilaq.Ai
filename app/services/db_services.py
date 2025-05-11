@@ -2,7 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import delete
 from sqlalchemy.sql import text
-from app.database.models import User, ResetCode,Header,Education,Experience,Objective,VolunteeringExperience,SkillsLanguages,Awards,Certifications,Projects
+from app.database.models.cv_section_models import User, ResetCode,Header,Education,Experience,Objective,VolunteeringExperience,SkillsLanguages,Awards,Certifications,Projects
+from app.database.models.hr_models import HrUser, ResetCode as HrResetCode
 from app.core.dependencies import get_password_hash
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
@@ -12,7 +13,6 @@ from docx import Document
 from docx.shared import Pt
 from bs4 import BeautifulSoup
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
-from fastapi import Depends, HTTPException
 
 # from app.utils.jwt_utils import decode_access_token
 
@@ -550,4 +550,62 @@ async def delete_objective(objective_id: int, db: AsyncSession):
     return True
 
 
-# --------------------- Objective Management --------------------- #
+# --------------------- HR  --------------------- #
+async def get_hr_by_email(email: str, db: AsyncSession) -> HrUser | None:
+    """Retrieve an HR user by their business email."""
+    result = await db.execute(
+        select(HrUser).where(HrUser.business_email == email)
+    )
+    return result.scalar_one_or_none()
+
+
+async def create_hr_user(request, db: AsyncSession) -> HrUser:
+    """Create a new HR user and hash their password."""
+    hr = HrUser(
+        name=request.name,
+        company_name=request.company_name,
+        business_email=request.business_email,
+        company_field=request.company_field,
+    )
+    hr.set_password(request.password)
+    db.add(hr)
+    await db.commit()
+    await db.refresh(hr)
+    return hr
+
+
+async def save_hr_reset_code(email: str, code: str, db: AsyncSession):
+    """Save a verification code for the HR user."""
+    reset_code = HrResetCode(email=email, code=code)
+    db.add(reset_code)
+    await db.commit()
+
+
+async def verify_hr_reset_code(email: str, code: str, db: AsyncSession) -> bool:
+    """Verify if the given email and code match an existing record."""
+    result = await db.execute(
+        select(HrResetCode).where(
+            HrResetCode.email == email,
+            HrResetCode.code == code
+        )
+    )
+    return result.scalar_one_or_none() is not None
+
+
+async def update_hr_verification_status(email: str, db: AsyncSession):
+    """Mark an HR user's account as verified."""
+    result = await db.execute(
+        select(HrUser).where(HrUser.business_email == email)
+    )
+    hr_user = result.scalar_one_or_none()
+    if hr_user:
+        hr_user.is_verified = 1
+        await db.commit()
+        await db.refresh(hr_user)
+
+async def get_email_by_code_hr(code: str, db: AsyncSession) -> str | None:
+    """Retrieve email associated with a given HR verification code."""
+    result = await db.execute(
+        select(HrResetCode.email).where(HrResetCode.code == code)
+    )
+    return result.scalar_one_or_none()

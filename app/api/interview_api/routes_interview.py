@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException ,UploadFile, File,Depends 
 from app.services.mongo_services import get_mongo_client,insert_question_session,find_session_by_session_id ,insert_user_answer,update_answer_feedback,find_latest_answer,get_all_answers_with_scores 
-from app.services.redis_services import redis_client , set_current_question_index,get_current_question_index,add_completed_question,set_session_status,get_user_session_ids,add_user_session_id
+from app.services.redis_services import  set_current_question_index,get_current_question_index,add_completed_question,set_session_status,get_user_session_ids,add_user_session_id
 from app.services.ai_services import generate_interview_questions,generate_best_model_answer,generate_feedback , analyze_answer
 from app.api.auth_api.auth.routes_auth import get_current_user
 from app.utils.response_schemas import error_response , success_response
@@ -136,7 +136,7 @@ async def create_interview_session(
         return error_response(code=500, error_message=f"Error creating interview session: {str(e)}")
 
 
-@router.get("/api/sessions/{session_id}/questions")
+@router.get("/api/sessions/{session_id}/questions" , tags=["Interview Questions"])
 async def get_questions(session_id: int, user=Depends(get_current_user)):
     is_valid = await validate_and_sync_session(session_id, user["user_id"])
     if not is_valid:
@@ -147,7 +147,7 @@ async def get_questions(session_id: int, user=Depends(get_current_user)):
     return success_response(code=200, data={"session_id": session_id, "questions": questions_only})
 
 
-@router.get("/api/sessions/{session_id}/questions/next")
+@router.get("/api/sessions/{session_id}/questions/next" , tags=["Interview Questions"])
 async def get_next_question(session_id: int, user=Depends(get_current_user)):
     is_valid = await validate_and_sync_session(session_id, user["user_id"])
     if not is_valid:
@@ -169,7 +169,7 @@ async def get_next_question(session_id: int, user=Depends(get_current_user)):
     })
 
 
-@router.post("/api/sessions/{session_id}/answers")
+@router.post("/api/sessions/{session_id}/answers" , tags=["Answer Submission"])
 async def submit_answer(session_id: int, file: UploadFile = File(...), user=Depends(get_current_user)):
     is_valid = await validate_and_sync_session(session_id, user["user_id"])
     if not is_valid:
@@ -214,7 +214,7 @@ async def submit_answer(session_id: int, file: UploadFile = File(...), user=Depe
         return error_response(code=500, error_message=f"Speech-to-Text failed: {str(e)}")
 
 
-@router.get("/api/sessions/{session_id}/answers/{question_index}/feedback")
+@router.get("/api/sessions/{session_id}/answers/{question_index}/feedback" , tags=["Answer Submission"] )
 async def get_feedback(session_id: int, question_index: int, user=Depends(get_current_user)):
     is_valid = await validate_and_sync_session(session_id, user["user_id"])
     if not is_valid:
@@ -247,7 +247,7 @@ async def get_feedback(session_id: int, question_index: int, user=Depends(get_cu
     })
 
 
-@router.post("/api/sessions/{session_id}/start")
+@router.post("/api/sessions/{session_id}/start" , tags=["Interview Sessions"])
 async def start_session(session_id: int, user=Depends(get_current_user)):
     is_valid = await validate_and_sync_session(session_id, user["user_id"])
     if not is_valid:
@@ -259,7 +259,7 @@ async def start_session(session_id: int, user=Depends(get_current_user)):
     return success_response(code=200, data={"message": "Session started successfully", "session_id": session_id})
 
 
-@router.post("/api/sessions/{session_id}/end")
+@router.post("/api/sessions/{session_id}/end" , tags=["Interview Sessions"])
 async def end_session(session_id: int, user=Depends(get_current_user), db=Depends(get_db)):
     is_valid = await validate_and_sync_session(session_id, user["user_id"])
     if not is_valid:
@@ -347,7 +347,7 @@ async def end_session(session_id: int, user=Depends(get_current_user), db=Depend
 
 
 
-@router.get("/api/sessions/{session_id}/score")
+@router.get("/api/sessions/{session_id}/score" , tags=["Scoring"] )
 async def calculate_score(session_id: int, user=Depends(get_current_user)):
     is_valid = await validate_and_sync_session(session_id, user["user_id"])
     if not is_valid:

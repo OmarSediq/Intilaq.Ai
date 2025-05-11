@@ -1,12 +1,12 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text,Date,func
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import  relationship
 from passlib.context import CryptContext
+from app.database.models.base import Base
 
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-Base = declarative_base()
 
 # Existing User Model
 class User(Base):
@@ -36,31 +36,12 @@ class User(Base):
     
     headers = relationship("Header", back_populates="user", cascade="all, delete-orphan")
 
-
-
-    # # Session Model 
-    # class Session(Base):
-    #     __tablename__ = "sessions"
-        
-    #     session_id = Column(Integer, primary_key=True, index=True)
-    #     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE")) 
-    #     status = Column(String(50), default="active")  
-
-    #     user = relationship("User", back_populates="sessions")
-
-    #     def __repr__(self):
-    #         return f"<Session(session_id={self.session_id}, user_id={self.user_id}, status={self.status})>"
-
-
-
-
 # Existing ResetCode Model
 class ResetCode(Base):
     __tablename__ = "reset_codes"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), nullable=False)
     code = Column(String(6), nullable=False)
-    # created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc)) 
     created_at = Column(DateTime(timezone=True), server_default=func.now()) 
 
     def __repr__(self):

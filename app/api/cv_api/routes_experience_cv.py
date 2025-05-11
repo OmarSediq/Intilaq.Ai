@@ -33,23 +33,23 @@ async def get_experience(
     return await get_experience_service(experience_id, int(user["user_id"]), db)
 
 
-@router.put("/api/experiences/{experience_id}/", tags=["Experience Management"])
-async def update_experience(
-    experience_id: int,
-    request: ExperienceRequest,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await update_experience_service(experience_id, request, int(user["user_id"]), db)
+# @router.put("/api/experiences/{experience_id}/", tags=["Experience Management"])
+# async def update_experience(
+#     experience_id: int,
+#     request: ExperienceRequest,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await update_experience_service(experience_id, request, int(user["user_id"]), db)
 
 
-@router.delete("/api/experiences/{experience_id}/", tags=["Experience Management"])
-async def delete_experience(
-    experience_id: int,
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await delete_experience_service(experience_id, int(user["user_id"]), db)
+# @router.delete("/api/experiences/{experience_id}/", tags=["Experience Management"])
+# async def delete_experience(
+#     experience_id: int,
+#     user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     return await delete_experience_service(experience_id, int(user["user_id"]), db)
 
 
 @router.post("/api/experiences/suggestions/", tags=["AI Enhancements"])

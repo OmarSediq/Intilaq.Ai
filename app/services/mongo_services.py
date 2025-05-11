@@ -76,7 +76,7 @@ async def find_session_by_session_id(session_id: int, user_id: str):
     session = await db["questions"].find_one(query)
 
     if not session:
-        print(f"[❌ Session Not Found] user_id={user_id} session_id={session_id}")
+        print(f"[Session Not Found] user_id={user_id} session_id={session_id}")
         raise HTTPException(status_code=404, detail="Session not found or unauthorized")
 
     return session
