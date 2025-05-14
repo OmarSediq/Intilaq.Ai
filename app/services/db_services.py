@@ -4,7 +4,7 @@ from sqlalchemy.sql import delete
 from sqlalchemy.sql import text
 from app.database.models.cv_section_models import User, ResetCode,Header,Education,Experience,Objective,VolunteeringExperience,SkillsLanguages,Awards,Certifications,Projects
 from app.database.models.hr_models import HrUser, ResetCode as HrResetCode
-from app.core.dependencies import get_password_hash
+from app.utils.password_utils import get_password_hash
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 import json

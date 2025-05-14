@@ -38,7 +38,7 @@ async def delete_code(key: str):
 #     session_id = await redis_client.get(f"user:{user_id}:session")
 #     return int(session_id) if session_id else None
 
-# ✅ الجديد لدعم multi sessions:
+
 
 async def add_user_session_id(user_id: str, session_id: int):
     """Add a session ID to the user's set of sessions."""
@@ -99,3 +99,6 @@ async def get_user_session_ids(user_id: str) -> set[int]:
         return {int(session_id) for session_id in session_ids} if session_ids else set()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve session IDs: {str(e)}")
+
+
+

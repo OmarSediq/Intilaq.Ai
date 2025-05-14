@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
-
+from pydantic import BaseModel, EmailStr 
+from typing import Optional
 
 class SignupRequest(BaseModel):
     username: str
@@ -12,11 +12,10 @@ class LoginRequest(BaseModel):
     password: str
 
 class VerifyAccountRequest(BaseModel):
-    # email: EmailStr
     code: str
-
-class TwoFactorAuthRequest(BaseModel):
-    two_fa_code: str
+    new_password: Optional[str] = None  
+# class TwoFactorAuthRequest(BaseModel):
+#     two_fa_code: str
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
@@ -33,8 +32,8 @@ class ResendCodeRequest(BaseModel):
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
-class LogoutRequest(BaseModel):
-    refresh_token: str 
+# class LogoutRequest(BaseModel):
+#     refresh_token: str 
 
 class UpdateUserRequest(BaseModel):
     username: str

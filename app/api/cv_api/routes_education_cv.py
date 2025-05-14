@@ -1,14 +1,8 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.dependencies import get_db
-from app.api.auth_api.auth.routes_auth import get_current_user
+from app.core.providers.services.cv_providers import  get_cv_education_service
+from app.core.providers.services.user_provider import get_current_user
 from app.schemas.cv import EducationRequest
-from app.services.cv_services.education_services import (
-    create_education_service,
-    get_education_service,
-    update_education_service,
-    delete_education_service
-)
+from app.services.cv_services.cv_education_service import CVEducationService
 
 router = APIRouter()
 
@@ -16,18 +10,18 @@ router = APIRouter()
 async def create_education(
     request: EducationRequest,
     user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    service: CVEducationService = Depends(get_cv_education_service)
 ):
-    return await create_education_service(request, int(user["user_id"]), db)
+    return await service.create(request, int(user["user_id"]))
 
 
-# @router.get("/api/educations/{education_id}/", tags=["Education Management"])
-# async def get_education(
-#     education_id: int,
-#     user: dict = Depends(get_current_user),
-#     db: AsyncSession = Depends(get_db)
-# ):
-#     return await get_education_service(education_id, int(user["user_id"]), db)
+@router.get("/api/educations/{education_id}/", tags=["Education Management"])
+async def get_education(
+    education_id: int,
+    user: dict = Depends(get_current_user),
+    service: CVEducationService = Depends(get_cv_education_service)
+):
+    return await service.get(education_id, int(user["user_id"]))
 
 
 # @router.put("/api/educations/{education_id}/", tags=["Education Management"])
@@ -35,15 +29,15 @@ async def create_education(
 #     education_id: int,
 #     request: EducationRequest,
 #     user: dict = Depends(get_current_user),
-#     db: AsyncSession = Depends(get_db)
+#     service: CVEducationService = Depends(get_cv_education_service)
 # ):
-#     return await update_education_service(education_id, request, int(user["user_id"]), db)
+#     return await service.update(education_id, request, int(user["user_id"]))
 
 
 # @router.delete("/api/educations/{education_id}/", tags=["Education Management"])
 # async def delete_education(
 #     education_id: int,
 #     user: dict = Depends(get_current_user),
-#     db: AsyncSession = Depends(get_db)
+#     service: CVEducationService = Depends(get_cv_education_service)
 # ):
-#     return await delete_education_service(education_id, int(user["user_id"]), db)
+#     return await service.delete(education_id, int(user["user_id"]))

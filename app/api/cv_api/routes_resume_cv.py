@@ -1,52 +1,30 @@
 from fastapi import APIRouter, Depends
-from fastapi.responses import  HTMLResponse
-from motor.motor_asyncio import AsyncIOMotorClient
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.api.auth_api.auth.routes_auth import get_current_user
-from app.core.dependencies import get_db
-from app.services.mongo_services import get_mongo_client
-from app.services.cv_services.resume_services import (
-    generate_cv_html,
-    generate_pdf_and_store,
-    generate_docx_file,
-    download_pdf_from_gridfs
-)
+from fastapi.responses import HTMLResponse
+from app.core.providers.services.user_provider import get_current_user
+from app.services.cv_services.cv_resume_export_service import CVResumeExportService
+from app.core.providers.services.cv_providers import get_resume_export_service
 
 router = APIRouter()
 
 @router.get("/api/generate-cv/", response_class=HTMLResponse, tags=["CV Exporting"])
-async def generate_cv(
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await generate_cv_html(user["user_id"], db)
+async def generate_cv(user=Depends(get_current_user), service: CVResumeExportService = Depends(get_resume_export_service)):
+    return await service.generate_html(user["user_id"])
 
 @router.get("/api/download-cv/pdf/", tags=["CV Exporting"])
-async def download_and_store_cv_pdf(
-    user: dict = Depends(get_current_user),
-    db_sql: AsyncSession = Depends(get_db),
-    mongo_client: AsyncIOMotorClient = Depends(get_mongo_client)
-):
-    return await generate_pdf_and_store(user["user_id"], db_sql, mongo_client)
+async def download_and_store_cv_pdf(user=Depends(get_current_user), service: CVResumeExportService = Depends(get_resume_export_service)):
+    return await service.generate_pdf_and_store(user["user_id"])
 
 @router.get("/api/download-cv/docx/", tags=["CV Exporting"])
-async def download_cv_docx(
-    user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    return await generate_docx_file(user["user_id"], db)
+async def download_cv_docx(user=Depends(get_current_user), service: CVResumeExportService = Depends(get_resume_export_service)):
+    return await service.generate_docx(user["user_id"])
+
+@router.get("/api/resumes/{file_id}/download", tags=["My Resume"])
+async def download_resume_from_mongo(file_id: str, user=Depends(get_current_user), service: CVResumeExportService = Depends(get_resume_export_service)):
+    return await service.download_from_gridfs(file_id, user["user_id"])
 
 @router.get("/api/regenerate-cv/", response_class=HTMLResponse, tags=["CV Exporting"])
 async def regenerate_cv(
     user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    service: CVResumeExportService = Depends(get_resume_export_service)
 ):
-    return await generate_cv_html(user["user_id"], db)
-
-@router.get("/api/resumes/{file_id}/download", tags=["My Resume"])
-async def download_resume_from_mongo(
-    file_id: str,
-    user: dict = Depends(get_current_user),
-    db = Depends(get_mongo_client)
-):
-    return await download_pdf_from_gridfs(file_id, user["user_id"], db)
+    return await service.generate_html(user["user_id"])

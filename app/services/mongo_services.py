@@ -137,3 +137,5 @@ async def get_pdf_from_gridfs(file_id: str, db):
     file_data = await stream.read()
 
     return StreamingResponse(BytesIO(file_data), media_type="application/pdf")
+
+

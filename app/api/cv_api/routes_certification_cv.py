@@ -1,33 +1,28 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.api.auth_api.auth.routes_auth import get_current_user
-from app.core.dependencies import get_db
-from app.schemas.cv import CertificationRequest, CertificationUpdateRequest
-from app.services.cv_services.certification_services import (
-    create_certification_service,
-    get_certification_service,
-    update_certification_service,
-    delete_certification_service
-)
+from app.core.providers.services.user_provider import get_current_user
+from app.core.providers.services.cv_providers import  get_cv_certification_service
+from app.schemas.cv import CertificationRequest
+from app.services.cv_services.cv_certification_service import CVCertificationService
 
 router = APIRouter()
+
 
 @router.post("/api/certifications/", tags=["Projects & Certifications"])
 async def create_certification(
     request: CertificationRequest,
     user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    service: CVCertificationService = Depends(get_cv_certification_service)
 ):
-    return await create_certification_service(request, user["user_id"], db)
+    return await service.create(request, user["user_id"])
 
 
 # @router.get("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
 # async def get_certification(
 #     certification_id: int,
 #     user: dict = Depends(get_current_user),
-#     db: AsyncSession = Depends(get_db)
+#     service: CVCertificationService = Depends(get_cv_certification_service)
 # ):
-#     return await get_certification_service(certification_id, user["user_id"], db)
+#     return await service.get(certification_id, user["user_id"])
 
 
 # @router.put("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
@@ -35,15 +30,15 @@ async def create_certification(
 #     certification_id: int,
 #     request: CertificationUpdateRequest,
 #     user: dict = Depends(get_current_user),
-#     db: AsyncSession = Depends(get_db)
+#     service: CVCertificationService = Depends(get_cv_certification_service)
 # ):
-#     return await update_certification_service(certification_id, request, user["user_id"], db)
+#     return await service.update(certification_id, request, user["user_id"])
 
 
 # @router.delete("/api/certifications/{certification_id}/", tags=["Projects & Certifications"])
 # async def delete_certification(
 #     certification_id: int,
 #     user: dict = Depends(get_current_user),
-#     db: AsyncSession = Depends(get_db)
+#     service: CVCertificationService = Depends(get_cv_certification_service)
 # ):
-#     return await delete_certification_service(certification_id, user["user_id"], db)
+#     return await service.delete(certification_id, user["user_id"])
