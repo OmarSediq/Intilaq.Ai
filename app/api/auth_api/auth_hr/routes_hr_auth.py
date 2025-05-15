@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Response
-from app.core.providers.services.hr_providers import get_hr_auth_service , get_hr_register_service , get_hr_verification_service 
+from app.core.providers.domain_providers.hr_providers import get_hr_auth_service , get_hr_register_service , get_hr_verification_service 
 from app.schemas.hr_schemas.hr_auth import HrSignupRequest, HrLoginRequest, HrVerifyRequest , HrResendCodeRequest
-from app.services.hr_services.auth_services.hr_auth_service import HRAuthService
-from app.services.hr_services.auth_services.hr_register_service import HRRegisterService
-from app.services.hr_services.auth_services.hr_verification_service import HRVerificationService 
+from app.domain_services.hr_services.auth_services.hr_auth_service import HRAuthService
+from app.domain_services.hr_services.auth_services.hr_register_service import HRRegisterService
+from app.domain_services.hr_services.auth_services.hr_verification_service import HRVerificationService 
 router = APIRouter()
 
 

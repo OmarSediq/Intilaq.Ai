@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, UploadFile, File
 from app.schemas.interview import JobData
-from app.core.providers.services.user_provider import get_current_user
-from app.services.interview_services.session_service import InterviewSessionService
-from app.services.interview_services.question_service import InterviewQuestionService
-from app.services.interview_services.answer_service import InterviewAnswerService
-from app.services.interview_services.feedback_service import InterviewFeedbackService
-from app.services.interview_services.score_service import InterviewScoreService
-from app.core.providers.services.interview_providers import (
+from app.core.providers.domain_providers.user_provider import get_current_user
+from app.domain_services.interview_services.session_service import InterviewSessionService
+from app.domain_services.interview_services.question_service import InterviewQuestionService
+from app.domain_services.interview_services.answer_service import InterviewAnswerService
+from app.domain_services.interview_services.feedback_service import InterviewFeedbackService
+from app.domain_services.interview_services.score_service import InterviewScoreService
+from app.core.providers.domain_providers.interview_providers import (
     get_interview_session_service,
     get_interview_question_service,
     get_interview_answer_service,
@@ -14,7 +14,7 @@ from app.core.providers.services.interview_providers import (
     get_interview_score_service
     
 )
-from app.services.mongo_services import get_db
+from app.data_access.mongo.mongo_services import get_db
 
 router = APIRouter()
 @router.post("/api/sessions/", tags=["Interview Sessions"])

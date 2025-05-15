@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
-from app.core.providers.services.user_provider import get_current_user
+from app.core.providers.domain_providers.user_provider import get_current_user
 from app.schemas.hr_schemas.create_hr_interview import (
     InterviewMetadataRequest,
     HRAddQuestionRequest,
     InterviewInvitationRequest
 )
-from app.services.hr_services.create_interview_services.hr_interview_service import HRInterviewService
-from app.services.hr_services.create_interview_services.hr_invitation_service import HRInvitationService
-from app.core.providers.services.hr_providers import get_hr_interview_service, get_hr_invitation_service
+from app.domain_services.hr_services.create_interview_services.hr_interview_service import HRInterviewService
+from app.domain_services.hr_services.create_interview_services.hr_invitation_service import HRInvitationService
+from app.core.providers.domain_providers.hr_providers import get_hr_interview_service, get_hr_invitation_service
 
 router = APIRouter()
 

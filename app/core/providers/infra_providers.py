@@ -1,7 +1,7 @@
 from fastapi import Depends, Request
 from app.core.config import settings
 
-from app.services.mongo_services import get_mongo_client
+from app.data_access.mongo.mongo_services import get_mongo_client
 from motor.motor_asyncio import AsyncIOMotorClient
 import redis.asyncio as redis
 import os

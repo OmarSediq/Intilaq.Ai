@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
-from app.core.providers.services.user_provider import get_current_user
-from app.services.home_services.home_stats_service import HomeStatsService
-from app.services.home_services.interview_session_service import InterviewSessionServiceHome
-from app.services.home_services.resume_download_service import ResumeDownloadService
-from app.core.providers.services.home_providers import (
+from app.core.providers.domain_providers.user_provider import get_current_user
+from app.domain_services.home_services.home_stats_service import HomeStatsService
+from app.domain_services.home_services.interview_session_service import InterviewSessionServiceHome
+from app.domain_services.home_services.resume_download_service import ResumeDownloadService
+from app.core.providers.domain_providers.home_providers import (
     get_home_stats_service,
     get_interview_session_service_home,
     get_resume_download_service,

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.database.models.base import Base
-from app.database.models import cv_section_models, hr_models  # noqa: F401
+from app.database.models import cv_models, hr_models  # noqa: F401
 from app.core.providers.infra_providers import postgres_engine
 from app.api.cv_api import all_routers as cv_routers
 from app.api.auth_api.auth import all_routers as auth_routers
@@ -12,7 +12,7 @@ from app.utils.exception_handlers import register_exception_handlers
 from app.core.middlewares.db_transaction import DBTransactionMiddleware 
 from app.core.middlewares.auth_logging import AuthenticationMiddleware
 from app.core.middlewares.performance_logging import PerformanceLoggingMiddleware
-from app.services.mongo_services import connect_to_mongo, close_mongo_connection
+from app.data_access.mongo.mongo_services import connect_to_mongo, close_mongo_connection
 from contextlib import asynccontextmanager
 import sqlalchemy as sa
 

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
-from app.core.providers.services.user_provider import get_current_user
-from app.core.providers.services.cv_providers import get_cv_volunteering_service
+from app.core.providers.domain_providers.user_provider import get_current_user
+from app.core.providers.domain_providers.cv_providers import get_cv_volunteering_service
 from app.schemas.cv import VolunteeringRequest, SaveVolunteeringRequest, GenerateVolunteeringRequest
-from app.services.cv_services.cv_volunteering_service import CVVolunteeringService
+from app.domain_services.cv_services.cv_volunteering_service import CVVolunteeringService
 
 router = APIRouter()
 

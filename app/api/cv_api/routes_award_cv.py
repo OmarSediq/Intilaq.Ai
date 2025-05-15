@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
-from app.core.providers.services.user_provider import get_current_user
-from app.core.providers.services.cv_providers import get_cv_award_service
+from app.core.providers.domain_providers.user_provider import get_current_user
+from app.core.providers.domain_providers.cv_providers import get_cv_award_service
 from app.schemas.cv import AwardsRequest
-from app.services.cv_services.cv_award_service import CVAwardService
+from app.domain_services.cv_services.cv_award_service import CVAwardService
 from app.utils.response_schemas import success_response, serialize_sqlalchemy_object
 
 router = APIRouter()

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, Request, Response, HTTPException
-from app.core.providers.services.auth_providers import get_auth_service, get_account_service, get_password_service
+from app.core.providers.domain_providers.auth_providers import get_auth_service, get_account_service, get_password_service
 from app.schemas.auth import (
     SignupRequest, VerifyAccountRequest, LoginRequest,
     ForgotPasswordRequest, ResendCodeRequest
 )
-from app.services.auth_services.auth_service import AuthService
-from app.services.auth_services.account_service import AccountService
-from app.services.auth_services.password_service import PasswordRecoveryService
-from app.core.providers.services.user_provider import get_current_user
+from app.domain_services.auth_services.auth_service import AuthService
+from app.domain_services.auth_services.account_service import AccountService
+from app.domain_services.auth_services.password_service import PasswordRecoveryService
+from app.core.providers.domain_providers.user_provider import get_current_user
 
 router = APIRouter()
 

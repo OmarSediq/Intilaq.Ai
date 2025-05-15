@@ -5,7 +5,7 @@ from alembic import context
 
 from app.database.models.base import Base
 # Import models to register their metadata for Alembic (even if not used directly)
-from app.database.models import cv_section_models, hr_models # noqa: F401
+from app.database.models import cv_models, hr_models # noqa: F401
 
 # Alembic Config
 config = context.config

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
-from app.core.providers.services.user_provider import get_current_user
-from app.services.cv_services.cv_resume_export_service import CVResumeExportService
-from app.core.providers.services.cv_providers import get_resume_export_service
+from app.core.providers.domain_providers.user_provider import get_current_user
+from app.domain_services.cv_services.cv_resume_export_service import CVResumeExportService
+from app.core.providers.domain_providers.cv_providers import get_resume_export_service
 
 router = APIRouter()
 
