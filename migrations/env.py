@@ -3,9 +3,9 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool 
 from alembic import context
 
-from app.database.models.base import Base
+from backend.database.models.base import Base
 # Import models to register their metadata for Alembic (even if not used directly)
-from app.database.models import cv_models, hr_models # noqa: F401
+from backend.database.models import cv_models, hr_models # noqa: F401
 
 # Alembic Config
 config = context.config

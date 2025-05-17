@@ -44,9 +44,9 @@ COPY migrations /app/alembic
 # COPY ./app/reset_db.py /app/reset_db.py
 
 EXPOSE 8000
-
+RUN pip install debugpy
 # # CMD ["dockerize", "-wait", "tcp://postgres:5432", "-timeout", "60s", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # CMD ["dockerize", "-wait", "tcp://postgres:5432", "-timeout", "60s", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # for deploy in railway 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "/app/key.pem", "--ssl-certfile", "/app/cert.pem"]
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "/app/key.pem", "--ssl-certfile", "/app/cert.pem"]
 

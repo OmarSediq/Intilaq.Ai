@@ -38,23 +38,26 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  whisper_service:
+  speech_to_text_service:  
     build:
-      context: .
-      dockerfile: Dockerfile.whisper
-    container_name: whisper-container
+      context: ./speech_to_text_service
+      dockerfile: Dockerfile
+    container_name: stt-container
     networks:
       - my_network
     ports:
       - "5001:5001"
     volumes:
-      - whisper_model_cache:/root/.cache/whisper
+      - whisper_model_cache:/whisper_model  
+    env_file:
+      - .env  
     depends_on:
       - mongodb
       - redis
       - postgres
     restart: always
-    command: ["uvicorn", "whisper_service:app", "--host", "0.0.0.0", "--port", "5001"]
+    command: ["uvicorn", "speech_to_text_service.app.main:app", "--host", "0.0.0.0", "--port", "5001"]
+
 
   fastapi:
     image: intilaqai-fastapi
@@ -66,17 +69,18 @@ services:
       - my_network
     ports:
       - "8000:8000"
+      - "5678:5678" 
     env_file:
       - .env
     depends_on:
-      - whisper_service
+      - speech_to_text_service
       - mongodb
       - redis
       - postgres
     restart: always
     volumes:
       - .:/app  
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
   nginx:
     image: nginx
