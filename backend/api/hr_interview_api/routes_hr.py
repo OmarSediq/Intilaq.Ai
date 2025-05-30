@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from backend.core.providers.domain_providers.user_provider import get_current_user
-from backend.schemas.hr_schemas.create_hr_interview import (
+from backend.schemas.hr_schemas.hr_create_schema import (
     InterviewMetadataRequest,
     HRAddQuestionRequest,
     InterviewInvitationRequest

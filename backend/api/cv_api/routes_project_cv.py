@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from backend.core.providers.domain_providers.user_provider import get_current_user
 from backend.core.providers.domain_providers.cv_providers import  get_cv_project_service
-from backend.schemas.cv import ProjectRequest, ProjectDescriptionSaveRequest
+from backend.schemas.cv_schema import ProjectRequest, ProjectDescriptionSaveRequest
 from backend.domain_services.cv_services.cv_project_service import CVProjectService
 
 router = APIRouter()

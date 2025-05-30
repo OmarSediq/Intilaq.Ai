@@ -7,8 +7,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from google.generativeai import GenerativeModel
 import google.generativeai as genai
-
-class GeminiAIService:
+from backend.core.base_service import TraceableService
+class GeminiAIService(TraceableService):
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key)
         self.model = GenerativeModel(model_name="gemini-1.5-flash")
@@ -146,11 +146,12 @@ class GeminiAIService:
 
     async def generate_best_answer(self, question: str) -> str:
         system_message = (
-        "Generate the best possible answer for the given interview question "
-        "that helps candidates understand their mistakes and learn."
+            "You are a professional career coach who helps candidates prepare for job interviews. "
+            "Based on the question provided, infer the context and generate a strong, short, and confident model answer. "
+            "The answer should be no more than 4-5 sentences and must highlight the candidate's strengths and clear thinking."
         )
 
-        prompt = f"System: {system_message}\nHuman: Question: \"{question}\""
+        prompt = f"System: {system_message}\nHuman: Interview Question: \"{question}\"\nAssistant:"
 
         try:
             response = await self.model.generate_content_async(prompt)

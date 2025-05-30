@@ -2,7 +2,7 @@ from backend.data_access.postgres.cv.header_repository import CVHeaderRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import status
 from backend.database.models.cv_models import Header
-from backend.schemas.cv import HeaderRequest
+from backend.schemas.cv_schema import HeaderRequest
 from backend.utils.response_schemas import success_response, error_response
 
 

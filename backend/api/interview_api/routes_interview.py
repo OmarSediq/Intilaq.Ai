@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File
-from backend.schemas.interview import JobData
+from backend.schemas.interview_schema import JobData
 from backend.core.providers.domain_providers.user_provider import get_current_user
 from backend.domain_services.interview_services.session_service import InterviewSessionService
 from backend.domain_services.interview_services.question_service import InterviewQuestionService
@@ -14,7 +14,6 @@ from backend.core.providers.domain_providers.interview_providers import (
     get_interview_score_service
     
 )
-from backend.core.providers.infra_providers import get_db
 
 router = APIRouter()
 @router.post("/api/sessions/", tags=["Interview Sessions"])
@@ -71,10 +70,10 @@ async def get_feedback(
 async def end_session(
     session_id: int,
     user=Depends(get_current_user),
-    db=Depends(get_db),
     score_service: InterviewScoreService = Depends(get_interview_score_service)
 ):
-    return await score_service.end_session(session_id, user["user_id"], db)
+    return await score_service.end_session(session_id, user["user_id"])
+
 
 @router.get("/api/sessions/{session_id}/score", tags=["Scoring"])
 async def calculate_score(

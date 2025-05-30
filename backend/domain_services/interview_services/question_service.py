@@ -2,7 +2,8 @@ from backend.utils.response_schemas import success_response, error_response
 from backend.domain_services.interview_services.validator_service import InterviewValidatorService
 from backend.data_access.mongo.interview.interview_repository import InterviewRepository
 from backend.data_access.redis.session_redis_repository import SessionRedisRepository
-class InterviewQuestionService:
+from backend.core.base_service import TraceableService
+class InterviewQuestionService(TraceableService):
     def __init__(self, validator: InterviewValidatorService , repo_interview : InterviewRepository , repo_session : SessionRedisRepository) :
         self.validator = validator
         self.repo_interview = repo_interview

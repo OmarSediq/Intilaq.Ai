@@ -1,49 +1,66 @@
 import httpx
 import tempfile
 import os
+import shutil
 import asyncio
 import subprocess
 from fastapi import UploadFile
-
+from backend.core.base_service import TraceableService
+import json
 WHISPER_URL = os.getenv("WHISPER_SERVICE_URL", "http://speech_to_text_service:5001/transcribe")
 
-class WhisperTranscriberService:
-    async def compress_to_webm(self, input_path: str) -> str:
-        output_path = input_path.replace(".wav", ".webm")
-        command = [
-            "ffmpeg", "-i", input_path,
-            "-c:a", "libopus", "-b:a", "32k",
-            "-vn", output_path
-        ]
-        await asyncio.to_thread(subprocess.run, command, check=True)
-        return output_path
+class WhisperTranscriberService(TraceableService):
 
-    async def transcribe_audio(self, file: UploadFile) -> str:
+    async def transcribe_audio(self, file: UploadFile) -> dict:
+        input_path = None
+
         try:
-            ext = os.path.splitext(file.filename)[-1]
+            ext = os.path.splitext(file.filename)[-1].lower()
+
+            # 🟢 احفظ الملف بدون ضغط
             with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_audio:
-                await asyncio.to_thread(file.file.seek, 0)
-                await asyncio.to_thread(temp_audio.write, file.file.read())
+                await asyncio.to_thread(shutil.copyfileobj, file.file, temp_audio)
                 input_path = temp_audio.name
 
-            # 2. اضغط الملف إلى .webm
-            output_path = await self.compress_to_webm(input_path)
+            # 🟢 اقرأ الملف بايتات كما هو
+            audio_bytes = await asyncio.to_thread(lambda: open(input_path, "rb").read())
 
-            # 3. اقرأ الملف المضغوط
-            audio_bytes = await asyncio.to_thread(lambda: open(output_path, "rb").read())
+            # ✅ إعداد نوع الملف حسب الامتداد الأصلي
+            content_type = {
+                ".mp3": "audio/mpeg",
+                ".wav": "audio/wav",
+                ".webm": "audio/webm",
+                ".m4a": "audio/mp4",
+            }.get(ext, "application/octet-stream")
+            headers = {"Content-Type": content_type}
 
-            headers = {"Content-Type": "audio/webm"}
-            async with httpx.AsyncClient() as client:
+            # 🟢 إرسال إلى خدمة Whisper بدون ضغط
+            async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(WHISPER_URL, content=audio_bytes, headers=headers)
 
-            await asyncio.to_thread(os.remove, input_path)
-            await asyncio.to_thread(os.remove, output_path)
+            if response.status_code != 200:
+                error_text = await response.aread()
+                return {
+                    "text": "",
+                    "error": f"[Whisper Error {response.status_code}]: {error_text.decode('utf-8')}"
+                }
 
-            if response.status_code == 200:
-                result = response.json()
-                return result.get("text", "")
-            else:
-                return f"Whisper error {response.status_code}: {response.text}"
+            try:
+                json_data = response.json()
+                return {
+                    "text": json_data.get("text", "").strip(),
+                    "error": None if json_data.get("text", "").strip() else "Empty transcription"
+                }
+
+            except Exception as parse_err:
+                return {"text": "", "error": f"Failed to parse Whisper response: {str(parse_err)}"}
 
         except Exception as e:
-            return f"Transcription failed: {str(e)}"
+            return {"text": "", "error": f"Transcription failed: {str(e)}"}
+
+        finally:
+            try:
+                if input_path and os.path.exists(input_path):
+                    await asyncio.to_thread(os.remove, input_path)
+            except Exception as cleanup_err:
+                print("[CLEANUP ERROR]", cleanup_err)

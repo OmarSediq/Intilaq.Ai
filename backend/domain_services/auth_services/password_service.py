@@ -3,8 +3,8 @@ from backend.data_access.postgres.user_repository import UserRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.response_schemas import success_response, error_response
 from backend.utils.email_utils import send_email
-
-class PasswordRecoveryService:
+from backend.core.base_service import TraceableService
+class PasswordRecoveryService(TraceableService):
     def __init__(self, db: AsyncSession , user_repo : UserRepository):
         self.db = db
         self.user_repo =user_repo

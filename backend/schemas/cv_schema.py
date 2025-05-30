@@ -2,8 +2,6 @@ from pydantic import BaseModel, EmailStr,HttpUrl
 from typing import Optional
 from datetime import date
 
-
-
 class HeaderRequest(BaseModel):
     full_name: str
     job_title: Optional[str]=None #  input for objective  
@@ -20,7 +18,6 @@ class ExperienceRequest(BaseModel):
     start_date: date
     end_date: Optional[date]
     company_name: Optional[str] = None
-    
 
     @staticmethod
     def validate_dates(start_date: date, end_date: Optional[date]):

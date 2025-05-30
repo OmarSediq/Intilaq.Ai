@@ -1,6 +1,9 @@
 from fastapi import Depends
+
+from backend.core.providers.ai_providers.whisper_provider import get_whisper_transcriber_service
 from backend.data_access.mongo.interview.interview_repository import InterviewRepository
 from backend.data_access.redis.session_redis_repository import SessionRedisRepository
+from backend.domain_services.ai_services.whisper_transcriber_service import WhisperTranscriberService
 from backend.domain_services.interview_services.session_service import InterviewSessionService
 from backend.domain_services.interview_services.question_service import InterviewQuestionService
 from backend.domain_services.interview_services.answer_service import InterviewAnswerService
@@ -41,10 +44,11 @@ def get_interview_question_service(
 
 def get_interview_answer_service(
     validator: InterviewValidatorService = Depends(get_validator_service),
+    whisper_service : WhisperTranscriberService = Depends(get_whisper_transcriber_service),
     repo_interview: InterviewRepository = Depends(get_interview_repository),
     repo_session: SessionRedisRepository = Depends(get_session_redis_repository),
 ) -> InterviewAnswerService:
-    return InterviewAnswerService(validator, repo_interview, repo_session)
+    return InterviewAnswerService(validator, repo_interview, repo_session , whisper_service)
 
 
 def get_interview_feedback_service(

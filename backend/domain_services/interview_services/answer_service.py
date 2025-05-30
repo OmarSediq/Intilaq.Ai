@@ -1,23 +1,27 @@
 from datetime import datetime, timezone
-import httpx
-import os
 from fastapi import UploadFile
 from backend.utils.response_schemas import success_response, error_response
 from backend.domain_services.interview_services.validator_service import InterviewValidatorService
 from backend.data_access.mongo.interview.interview_repository import InterviewRepository
 from backend.data_access.redis.session_redis_repository import SessionRedisRepository
+from backend.domain_services.ai_services.whisper_transcriber_service import WhisperTranscriberService
+from backend.core.base_service import TraceableService
 
-
-
-WHISPER_URL = os.getenv("WHISPER_SERVICE_URL", "http://speech_to_text_service:5001/transcribe")
-class InterviewAnswerService:
-    def __init__(self, validator: InterviewValidatorService , repo_interview : InterviewRepository , repo_session : SessionRedisRepository):
+class InterviewAnswerService(TraceableService):
+    def __init__(
+        self,
+        validator: InterviewValidatorService,
+        repo_interview: InterviewRepository,
+        repo_session: SessionRedisRepository,
+        whisper_service: WhisperTranscriberService
+    ):
         self.validator = validator
         self.repo_interview = repo_interview
         self.repo_session = repo_session
+        self.whisper_service = whisper_service
 
     async def submit_answer(self, session_id: int, file: UploadFile, user_id: str):
-        is_valid = await self.validator. validate_and_sync_session(session_id, user_id)
+        is_valid = await self.validator.validate_and_sync_session(session_id, user_id)
         if not is_valid:
             return error_response(code=404, error_message="Session not found or unauthorized")
 
@@ -28,16 +32,21 @@ class InterviewAnswerService:
             return error_response(code=400, error_message="No more questions remaining")
 
         try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
-                files = {"file": (file.filename, file.file.read(), file.content_type)}
-                response = await client.post(WHISPER_URL, files=files)
+            result = await self.whisper_service.transcribe_audio(file)
+            transcribed_text = result.get("text", "").strip()
+            whisper_error = result.get("error")
 
-            if response.status_code != 200:
-                return error_response(code=500, error_message=f"Whisper API error: {response.text}")
-
-            transcribed_text = response.json().get("text", "").strip()
             if not transcribed_text:
-                return error_response(code=400, error_message="Transcription failed, no text found.")
+
+                error_msg = whisper_error or "Empty transcription"
+                is_user_error = any(keyword in error_msg.lower() for keyword in [
+                    "unsupported", "invalid", "empty", "format", "parse", "transcription"
+                ])
+
+                return error_response(
+                    code=400 if is_user_error else 500,
+                    error_message=f"Whisper error: {error_msg}"
+                )
 
             await self.repo_interview.insert_user_answer({
                 "session_id": session_id,

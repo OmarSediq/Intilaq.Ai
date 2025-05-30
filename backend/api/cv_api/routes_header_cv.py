@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request, status, HTTPException
 from backend.core.providers.domain_providers.user_provider import get_current_user
 from backend.core.providers.domain_providers.cv_providers import get_cv_header_service
-from backend.schemas.cv import HeaderRequest
+from backend.schemas.cv_schema import HeaderRequest
 from backend.domain_services.cv_services.cv_header_service import CVHeaderService
 
 router = APIRouter()

@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.response_schemas import success_response, error_response
 from backend.utils.email_utils import send_email
 from backend.utils.password_utils import get_password_hash
-
-class AccountService:
+from backend.core.base_service import TraceableService
+class AccountService(TraceableService):
     def __init__(self, db: AsyncSession , user_repo : UserRepository):
         self.db = db
         self.user_repo = user_repo

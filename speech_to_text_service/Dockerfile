@@ -9,6 +9,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN pip install debugpy
+
 RUN python -c "import whisper; whisper.load_model('base.en', download_root='/whisper_model')"
 
 # ========== Stage 2: Final Image ==========
@@ -26,5 +28,8 @@ COPY --from=builder /whisper_model /whisper_model
 
 COPY . /app/speech_to_text_service
 
+EXPOSE 5001
+EXPOSE 5679
 
-CMD ["uvicorn", "speech_to_text_service.app.main:app", "--host", "0.0.0.0", "--port", "5001"]
+
+CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5679", "-m", "uvicorn", "speech_to_text_service.app.main:app", "--host", "0.0.0.0", "--port", "5001"]

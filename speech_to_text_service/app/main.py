@@ -1,23 +1,40 @@
 from fastapi import FastAPI, Request
-import tempfile, os, asyncio
+from fastapi.responses import JSONResponse
 from speech_to_text_service.services.whisper_transcriber import WhisperTranscriber
-import warnings
+from contextlib import asynccontextmanager
 
-warnings.filterwarnings("ignore", message="FP16 is not supported on CPU")
+transcriber: WhisperTranscriber = None
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global transcriber
+    transcriber = WhisperTranscriber()
+    print("Whisper model loaded and cached once.")
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 @app.post("/transcribe")
 async def transcribe(request: Request):
-    audio_bytes = await request.body()
+    try:
+        audio_bytes = await request.body()
+        result = await transcriber.transcribe_bytes(audio_bytes)
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
-        tmp.write(audio_bytes)
-        temp_path = tmp.name
+        print("✅ Whisper Result:", result)
 
-    transcriber = WhisperTranscriber()
-    result = await transcriber.transcribe(temp_path)
+        if not isinstance(result, dict) or "text" not in result:
+            print("[DEBUG] Invalid result structure:", result)
+            return JSONResponse(
+                content={"text": "", "error": "[Whisper Error] Invalid response format"},
+                status_code=200
+            )
 
-    await asyncio.to_thread(os.remove, temp_path)
+        return JSONResponse(content=result, status_code=200)
 
-    return result
+    except Exception as e:
+        print("Whisper Exception:", str(e))
+        return JSONResponse(
+            content={"text": "", "error": f"[Whisper Error] Exception: {str(e)}"},
+            status_code=200
+        )

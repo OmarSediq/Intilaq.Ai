@@ -1,9 +1,5 @@
 fastapi
 uvicorn
 openai-whisper
-ffmpeg-python
-librosa
-noisereduce
 soundfile
 python-multipart
-aiofiles

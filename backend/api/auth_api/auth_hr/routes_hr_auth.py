@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Response
 from backend.core.providers.domain_providers.hr_providers import get_hr_auth_service , get_hr_register_service , get_hr_verification_service 
-from backend.schemas.hr_schemas.hr_auth import HrSignupRequest, HrLoginRequest, HrVerifyRequest , HrResendCodeRequest
+from backend.schemas.hr_schemas.hr_auth_schema import HrSignupRequest, HrLoginRequest, HrVerifyRequest , HrResendCodeRequest
 from backend.domain_services.hr_services.auth_services.hr_auth_service import HRAuthService
 from backend.domain_services.hr_services.auth_services.hr_register_service import HRRegisterService
 from backend.domain_services.hr_services.auth_services.hr_verification_service import HRVerificationService 

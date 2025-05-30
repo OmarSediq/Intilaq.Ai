@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from backend.core.providers.domain_providers.cv_providers import  get_cv_education_service
 from backend.core.providers.domain_providers.user_provider import get_current_user
-from backend.schemas.cv import EducationRequest
+from backend.schemas.cv_schema import EducationRequest
 from backend.domain_services.cv_services.cv_education_service import CVEducationService
 
 router = APIRouter()

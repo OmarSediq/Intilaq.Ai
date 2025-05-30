@@ -2,8 +2,8 @@ from backend.utils.response_schemas import success_response, error_response
 from backend.domain_services.interview_services.validator_service import InterviewValidatorService
 from backend.domain_services.ai_services.gemini_ai_service import GeminiAIService
 from backend.data_access.mongo.interview.interview_repository import InterviewRepository
-
-class InterviewFeedbackService:
+from backend.core.base_service import TraceableService
+class InterviewFeedbackService(TraceableService):
     def __init__(self, validator: InterviewValidatorService, gemini_service: GeminiAIService , repo_interview : InterviewRepository):
         self.validator = validator
         self.gemini_service = gemini_service

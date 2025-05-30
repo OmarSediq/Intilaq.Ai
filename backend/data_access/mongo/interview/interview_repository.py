@@ -38,3 +38,18 @@ class InterviewRepository:
             {"session_id": session_id, "user_id": user_id},
             {"similarity_score": 1, "question_index": 1}
         ).to_list(length=None)
+
+    async def save_session_result(self, data: dict):
+        return await self.db["session_results"].insert_one(data)
+
+    async def find_user_summary(self, user_id: str):
+        return await self.db["user_home_summary"].find_one({"user_id": user_id})
+
+    async def update_user_summary(self, user_id: str, update_data: dict, inc_data: dict):
+        return await self.db["user_home_summary"].update_one(
+            {"user_id": user_id},
+            {"$set": update_data, "$inc": inc_data}
+        )
+
+    async def insert_user_summary(self, data: dict):
+        return await self.db["user_home_summary"].insert_one(data)

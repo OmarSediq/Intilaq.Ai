@@ -17,6 +17,9 @@ from contextlib import asynccontextmanager
 import sqlalchemy as sa
 from fastapi import Depends
 from backend.core.providers.domain_providers.token_provider import get_token_service
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 async def create_tables():
     try:
@@ -30,8 +33,25 @@ async def create_tables():
         print("Tables created successfully.")
     except Exception as e:
         print(f"Error creating tables: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+
+    if os.getenv("ENABLE_REMOTE_DEBUG", "false").lower() == "true":
+        try:
+            import pydevd_pycharm
+            print("[DEBUG] Trying to attach debugger...")
+            pydevd_pycharm.settrace(
+                'host.docker.internal',
+                port=5691,
+                stdoutToServer=True,
+                stderrToServer=True,
+                suspend=False
+            )
+            print("[DEBUG] Debugger attached")
+        except Exception as e:
+            print(f"[DEBUG] Debug attach failed: {e}")
+
     await create_tables()
     await connect_to_mongo()
 
@@ -42,8 +62,8 @@ async def lifespan(app: FastAPI):
 
     await close_mongo_connection()
 
-
 app = FastAPI(lifespan=lifespan)
+
 all_routers = [
     *cv_routers,
     *auth_routers,
@@ -57,5 +77,6 @@ register_exception_handlers(app)
 app.add_middleware(AuthenticationMiddleware)
 app.add_middleware(PerformanceLoggingMiddleware)
 app.add_middleware(DBTransactionMiddleware)
+
 for router in all_routers:
     app.include_router(router)

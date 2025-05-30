@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, Response
 from backend.core.providers.domain_providers.auth_providers import get_auth_service, get_account_service, get_password_service
-from backend.schemas.auth import (
+from backend.schemas.auth_schema import (
     SignupRequest, VerifyAccountRequest, LoginRequest,
     ForgotPasswordRequest, ResendCodeRequest
 )

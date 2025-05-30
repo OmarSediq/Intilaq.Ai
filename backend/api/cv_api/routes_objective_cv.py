@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from backend.core.providers.domain_providers.user_provider import get_current_user
-from backend.schemas.cv import ObjectiveSaveRequest
+from backend.schemas.cv_schema import ObjectiveSaveRequest
 from backend.domain_services.cv_services.cv_objective_service import CVObjectiveService
 from backend.core.providers.domain_providers.cv_providers import get_cv_objective_service
 

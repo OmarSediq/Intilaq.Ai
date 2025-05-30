@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.response_schemas import success_response, error_response
 from backend.utils.password_utils import  verify_password
 import jwt
-
-class AuthService:
+from backend.core.base_service import TraceableService
+class AuthService(TraceableService):
     def __init__(self, db: AsyncSession , user_repo : UserRepository ,token_service : TokenService ):
         self.db = db
         self.user_repo = user_repo

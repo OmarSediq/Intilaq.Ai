@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from backend.core.providers.domain_providers.user_provider import get_current_user
 from backend.core.providers.domain_providers.cv_providers import get_cv_volunteering_service
-from backend.schemas.cv import VolunteeringRequest, SaveVolunteeringRequest, GenerateVolunteeringRequest
+from backend.schemas.cv_schema import VolunteeringRequest, SaveVolunteeringRequest, GenerateVolunteeringRequest
 from backend.domain_services.cv_services.cv_volunteering_service import CVVolunteeringService
 
 router = APIRouter()

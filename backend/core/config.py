@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     REDIS_OTP_EXPIRE_SECONDS: int = 300
     REDIS_2FA_EXPIRE_SECONDS: int = 300
     GENAI_API_KEY: str
-
+    enable_remote_debug: bool = False
     class Config:
         env_file = ".env"
 

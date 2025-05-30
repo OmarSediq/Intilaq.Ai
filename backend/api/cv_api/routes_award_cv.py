@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from backend.core.providers.domain_providers.user_provider import get_current_user
 from backend.core.providers.domain_providers.cv_providers import get_cv_award_service
-from backend.schemas.cv import AwardsRequest
+from backend.schemas.cv_schema import AwardsRequest
 from backend.domain_services.cv_services.cv_award_service import CVAwardService
 
 router = APIRouter()

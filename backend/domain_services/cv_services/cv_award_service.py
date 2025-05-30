@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.schemas.cv import AwardsRequest
+from backend.schemas.cv_schema import AwardsRequest
 from backend.utils.response_schemas import success_response, error_response
 from backend.data_access.postgres.cv.award_repository import AwardRepository
 from backend.data_access.postgres.cv.header_repository import CVHeaderRepository

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from backend.core.providers.domain_providers.user_provider import get_current_user
 from backend.core.providers.domain_providers.cv_providers import get_cv_skills_service
-from backend.schemas.cv import SkillsLanguagesRequest, SaveSkillsRequest, GenerateSkillsRequest
+from backend.schemas.cv_schema import SkillsLanguagesRequest, SaveSkillsRequest, GenerateSkillsRequest
 from backend.domain_services.cv_services.cv_skill_language_service import CVSkillsService
 
 router = APIRouter()
