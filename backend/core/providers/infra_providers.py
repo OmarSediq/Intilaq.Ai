@@ -5,6 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import redis.asyncio as redis
 
 from backend.core.config import settings
+from collections.abc import AsyncGenerator
 
 # =================== PostgreSQL Configuration ===================
 postgres_engine = create_async_engine(settings.POSTGRES_URL, future=True, echo=True)
@@ -14,6 +15,11 @@ async def get_db(request: Request) -> AsyncSession:
     async with SessionLocal() as session:
         request.state.db = session
         yield session
+
+async def get_postgres_session() -> AsyncGenerator[AsyncSession, None]:
+    async with SessionLocal() as session:
+        yield session
+
 
 # =================== Redis Configuration ===================
 redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -44,6 +50,8 @@ async def get_mongo_client(request: Request) -> AsyncIOMotorClient:
 def get_mongo_collection(collection_name: str):
     return mongo_db[collection_name]
 
+async def get_mongo_client_raw() -> AsyncIOMotorClient:
+    return AsyncIOMotorClient(settings.MONGO_URI)
 
 # =================== MongoDB Startup / Shutdown ===================
 
@@ -58,3 +66,4 @@ async def connect_to_mongo():
 async def close_mongo_connection():
     mongo_client.close()
     print("MongoDB connection closed.")
+

@@ -1,10 +1,12 @@
 import uuid
 from datetime import datetime, timezone
+
+from backend.core.base_service import TraceableService
 from backend.utils.response_schemas import success_response, error_response
 from backend.data_access.mongo.hr.hr_interview_repository import HRInterviewRepository
 from backend.domain_services.ai_services.gemini_ai_service import  GeminiAIService
 
-class HRInterviewService:
+class HRInterviewService(TraceableService):
     def __init__(self, repository: HRInterviewRepository , gemini_service : GeminiAIService):
         self.repo = repository
         self.gemini_service = gemini_service
@@ -30,17 +32,23 @@ class HRInterviewService:
             job_requirements=request.job_requirements or ""
         )
         questions = [q.strip() for q in ai_questions_raw.split("\n") if q.strip()]
+
+
+        questions_with_answers = []
+        for i, q in enumerate(questions):
+            best_answer = await self.gemini_service.generate_best_answer(q)
+            questions_with_answers.append({
+                "index": i + 1,
+                "question": q,
+                "response_type": "text",
+                "time_limit": None,
+                "ideal_answer": best_answer
+            })
+
         question_doc = {
             "interview_token": interview_token,
             "hr_id": hr_id,
-            "questions": [
-                {
-                    "index": i + 1,
-                    "text": q,
-                    "response_type": "text",
-                    "time_limit": None
-                } for i, q in enumerate(questions)
-            ],
+            "questions": questions_with_answers,
             "created_at": datetime.now(timezone.utc)
         }
 
@@ -49,7 +57,7 @@ class HRInterviewService:
         return success_response(code=201, data={
             "message": "Interview metadata and AI questions created successfully.",
             "interview_token": interview_token,
-            "ai_questions": [f"{i+1}. {q}" for i, q in enumerate(questions)]
+            "ai_questions": [f"{i + 1}. {q['question']}" for i, q in enumerate(questions_with_answers)]
         })
 
     async def update_question(self, interview_token: str, index: int, update_data):
@@ -61,13 +69,25 @@ class HRInterviewService:
         if index < 0 or index >= len(questions):
             return error_response(code=404, error_message="Question index out of range.")
 
+        existing = questions[index]
+
+        old_question_text = existing.get("question", "").strip()
+        new_question_text = update_data.question_text.strip()
+
+        if new_question_text != old_question_text:
+            new_ideal_answer = await self.gemini_service.generate_best_answer(new_question_text)
+        else:
+            new_ideal_answer = existing.get("ideal_answer")
+
         updated_question = {
             "index": index,
-            "text": update_data.question_text,
+            "question": new_question_text,
             "response_type": update_data.response_type,
             "time_limit": update_data.time_limit,
+            "ideal_answer": new_ideal_answer
         }
 
         await self.repo.update_question_by_index(interview_token, index, updated_question)
 
         return success_response(code=200, data=updated_question)
+

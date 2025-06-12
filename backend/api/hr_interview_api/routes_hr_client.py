@@ -3,6 +3,7 @@ from backend.core.providers.domain_providers.hr_providers import get_hr_answer_s
 from backend.utils.response_schemas import success_response, error_response
 from fastapi import APIRouter, UploadFile, File, Form, Depends
 from backend.schemas.hr_schemas.hr_client_schema import InterviewLoginRequest , InterviewAnswerRequest
+from backend.core.job_runners.video_jobs import enqueue_process_video_job
 
 router = APIRouter()
 @router.post("/api/hr/interviews/login/{interview_token}")
@@ -48,3 +49,10 @@ async def submit_answer(
         return error_response(code=400, error_message=str(e))
     except Exception as e:
         return error_response(code=500, error_message="Unexpected error", data={"details": str(e)})
+
+
+
+@router.post("/upload")
+async def upload_video_route(video_id: str):
+    enqueue_process_video_job(video_id)
+    return {"message": "Video processing started in background"}

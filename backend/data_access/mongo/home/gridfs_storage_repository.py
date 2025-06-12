@@ -2,7 +2,10 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 from bson import ObjectId
 from io import BytesIO
 
-class GridFSStorageService:
+from backend.core.base_service import TraceableService
+
+
+class GridFSStorageService (TraceableService):
     def __init__(self, mongo_client: AsyncIOMotorClient):
         self.fs = AsyncIOMotorGridFSBucket(mongo_client["resumes_db"])
         self.mongo = mongo_client

@@ -23,8 +23,13 @@ from backend.domain_services.hr_services.create_interview_services.hr_interview_
 from backend.domain_services.hr_services.create_interview_services.hr_invitation_service import HRInvitationService
 from motor.motor_asyncio import AsyncIOMotorClient
 from backend.domain_services.ai_services.gemini_ai_service import GeminiAIService
-
-
+from backend.data_access.mongo.hr.hr_interview_gridfs_repository import HRGridFSStorageService
+from backend.core.providers.data_access_providers.hr_providers.hr_gridfs_storage_repository_provider import get_hr_gridfs_storage_service_async
+from backend.core.job_triggers.video_job_trigger_service import VideoJobTriggerService
+from backend.core.providers.video_providers.job_trigger_provider import VideoJobTriggerService, \
+    get_video_job_trigger_service
+from backend.core.providers.video_providers.job_trigger_provider import TextJobTriggerService , get_text_job_trigger_service
+from backend.core.providers.video_providers.job_trigger_provider import EmailJobTriggerService , get_email_job_trigger_service
 # ========== HR ==========
 def get_hr_auth_service(
     db: AsyncSession = Depends(get_db),
@@ -56,14 +61,20 @@ def get_hr_interview_service(
 def get_hr_invitation_service(
     db: AsyncSession = Depends(get_db),
     mongo_client: AsyncIOMotorClient = Depends(get_mongo_client),
-    repo : HRInvitationRepository = Depends (get_hr_invitation_repository)
+    repo: HRInvitationRepository = Depends(get_hr_invitation_repository),
+    email_trigger: EmailJobTriggerService = Depends(get_email_job_trigger_service)
 ) -> HRInvitationService:
-    return HRInvitationService(repo =repo, db = db)
+    return HRInvitationService(repo=repo, db=db, email_trigger=email_trigger)
 
 def get_hr_answer_service(
     mongo_client: AsyncIOMotorClient = Depends(get_mongo_client),
     answer_repo: HRAnswerRepository = Depends(get_hr_answer_repository),
-    invitation_repo: HRInvitationRepository = Depends(get_hr_invitation_repository)
+    invitation_repo: HRInvitationRepository = Depends(get_hr_invitation_repository),
+    gridfs_storage : HRGridFSStorageService = Depends(get_hr_gridfs_storage_service_async),
+    video_job_trigger: VideoJobTriggerService = Depends(get_video_job_trigger_service),
+    text_job_trigger : TextJobTriggerService = Depends(get_text_job_trigger_service),
+    question_repo : HRInterviewRepository = Depends(get_hr_interview_repository),
+
 ) -> HRAnswerService:
-    return HRAnswerService(answer_repo=answer_repo , invitation_repo =invitation_repo)
+    return HRAnswerService(answer_repo=answer_repo , invitation_repo =invitation_repo , gridfs_storage=gridfs_storage , video_job_trigger=video_job_trigger , text_job_trigger=text_job_trigger , question_repo=question_repo)
 

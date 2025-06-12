@@ -204,7 +204,18 @@ class GeminiAIService(TraceableService):
                         return match.group(1).strip() if match else "N/A"
 
     def analyze_similarity_score(self, answer: str, model_answer: str) -> float:
-                        vectorizer = TfidfVectorizer().fit_transform([answer, model_answer])
-                        similarity_matrix = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
-                        return round(similarity_matrix[0][0] * 10, 2)
 
+        if not answer.strip() or not model_answer.strip():
+            return 0.0
+
+        combined = f"{answer} {model_answer}".strip().lower()
+        if len(combined.split()) < 3:
+            return 0.0
+
+        try:
+            vectorizer = TfidfVectorizer(stop_words="english").fit_transform([answer, model_answer])
+            similarity_matrix = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
+            return round(similarity_matrix[0][0] * 10, 2)
+        except ValueError as e:
+            print(f"[Gemini] TF-IDF Vectorizer failed: {e}")
+            return 0.0

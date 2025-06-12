@@ -17,15 +17,12 @@ class WhisperTranscriberService(TraceableService):
         try:
             ext = os.path.splitext(file.filename)[-1].lower()
 
-            # 🟢 احفظ الملف بدون ضغط
             with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_audio:
                 await asyncio.to_thread(shutil.copyfileobj, file.file, temp_audio)
                 input_path = temp_audio.name
 
-            # 🟢 اقرأ الملف بايتات كما هو
             audio_bytes = await asyncio.to_thread(lambda: open(input_path, "rb").read())
 
-            # ✅ إعداد نوع الملف حسب الامتداد الأصلي
             content_type = {
                 ".mp3": "audio/mpeg",
                 ".wav": "audio/wav",
@@ -34,7 +31,6 @@ class WhisperTranscriberService(TraceableService):
             }.get(ext, "application/octet-stream")
             headers = {"Content-Type": content_type}
 
-            # 🟢 إرسال إلى خدمة Whisper بدون ضغط
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(WHISPER_URL, content=audio_bytes, headers=headers)
 

@@ -21,10 +21,8 @@ async def transcribe(request: Request):
         audio_bytes = await request.body()
         result = await transcriber.transcribe_bytes(audio_bytes)
 
-        print("✅ Whisper Result:", result)
-
         if not isinstance(result, dict) or "text" not in result:
-            print("[DEBUG] Invalid result structure:", result)
+
             return JSONResponse(
                 content={"text": "", "error": "[Whisper Error] Invalid response format"},
                 status_code=200

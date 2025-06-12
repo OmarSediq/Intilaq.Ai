@@ -79,3 +79,14 @@ class HRInterviewRepository:
             {"$set": {f"questions.{index}": questions[index]}}
         )
         return questions[index]
+
+    async def get_question_by_index(self, interview_token: str, index: int) -> dict:
+        doc = await self.questions.find_one({"interview_token": interview_token})
+        if not doc:
+            raise ValueError(f"No questions found for token: {interview_token}")
+
+        questions = doc.get("questions", [])
+        if index >= len(questions):
+            raise ValueError(f"No question found at index: {index}")
+
+        return questions[index]
