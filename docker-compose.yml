@@ -4,17 +4,20 @@ services:
   mongodb:
     image: mongo
     container_name: mongodb-container
+    networks:
+      - my_network
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: 84000
+    env_file:
+      - .env
     volumes:
       - mongodb_data:/data/db
 
   redis:
     image: redis
     container_name: redis-container
+    networks:
+      - my_network
     ports:
       - "6379:6379"
     volumes:
@@ -23,34 +26,95 @@ services:
   postgres:
     image: postgres
     container_name: postgres-container
+    networks:
+      - my_network
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: 84000
-      POSTGRES_DB: intilaq_db
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  fastapi:
-    image: omaahassanin/intilaq-ai
+  speech_to_text_service:
     build:
-      context: .
+      context: ./speech_to_text_service
       dockerfile: Dockerfile
+    container_name: stt-container
+    networks:
+      - my_network
     ports:
-      - "8000:8000"
+      - "5001:5001"
+    volumes:
+      - whisper_model_cache:/whisper_model
     env_file:
       - .env
     depends_on:
       - mongodb
       - redis
       - postgres
+    restart: always
+    command: ["uvicorn", "speech_to_text_service.app.main:app", "--host", "0.0.0.0", "--port", "5001"]
 
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]   # # for deploy in railway 
+
+  fastapi:
+    image: intilaqai-fastapi
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: fastapi-container
+    networks:
+      - my_network
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    env_file:
+      - .env
+    depends_on:
+      - speech_to_text_service
+      - mongodb
+      - redis
+      - postgres
+    restart: always
+    volumes:
+      - .:/app
+    command: ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  nginx:
+    image: nginx
+    container_name: nginx-container
+    restart: always
+    depends_on:
+      - fastapi
+    ports:
+    - "8443:443"
+    - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs
+    networks:
+      - my_network
+  rq_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: rq-worker
+    depends_on:
+      - redis
+      - mongodb
+    networks:
+      - my_network
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    command: ["python", "backend/job_worker/worker.py"]
+
+networks:
+  my_network:
 
 volumes:
   mongodb_data:
   redis_data:
   postgres_data:
-
-  
+  whisper_model_cache:

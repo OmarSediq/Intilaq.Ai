@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HR Interview Invitation</title>
+</head>
+<body style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 40px;">
+  <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);">
+    
+    <p style="font-size: 16px; margin: 0 0 16px;">Hi {{ candidate_name }},</p>
+    <p style="font-size: 16px; margin-bottom: 16px;">
+      Thank You For Applying To The <strong>{{ job_title }}</strong> Position At <strong>{{ company_field }}</strong>.<br/>
+      After Reviewing Your Application, We Are Excited To Move Forward With The Interview Process.
+    </p>
+
+    <p style="font-size: 15px; margin-bottom: 30px;">
+      <strong>Note:</strong> Please Start The Interview <strong>5 Minutes</strong> Early To Fill In Your Details. Once You Click <strong>'Start Interview'</strong> Your Attendance Will Be Recorded As On Time
+    </p>
+
+    <!-- INTERVIEW BOX -->
+    <div style="border: 1px solid #e0e0e0; border-radius: 12px; padding: 40px; margin-bottom: 24px;">
+      
+      <!-- FLEX ROW FOR ICON + DETAILS -->
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <!-- ICON -->
+        <img src="https://i.imgur.com/FZQ4VhD.jpeg" alt="Calendar Icon" width="80" height="80" style="border-radius: 10px;" />
+        
+        <!-- TEXT CONTENT -->
+        <div>
+          <h2 style="font-size: 18px; font-weight: bold; margin: 0 0 10px;">HR Interview</h2>
+          <p style="margin: 6px 0; font-size: 15px; color: #6c6c6c;">
+            <span>Time:</span> <strong style="color: #000;">At Any Moment</strong>
+          </p>
+          <p style="margin: 6px 0; font-size: 15px; color: #6c6c6c;">
+            <span>Date:</span> <strong style="color: #1a73e8;">{{ interview_date.strftime('%d %b, %A').upper() }}</strong>
+          </p>
+          
+          <p style="margin: 6px 0; font-size: 15px; color: #6c6c6c;">
+            <span>Type:</span> <strong style="color: #000;">Video & Text</strong>
+          </p>
+        </div>
+      </div>
+
+      <!-- LINK SECTION -->
+      <p style="font-size: 15px; font-weight: bold; margin-top: 24px; margin-bottom: 8px;">Join With This Link</p>
+      <div style="background-color: #f1f3f4; padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+        <span id="interview-link" style="font-size: 14px; color: #1a73e8;">{{ interview_link }}</span>
+        <img src="https://cdn-icons-png.flaticon.com/512/60/60990.png" alt="Copy Icon" width="18" title="Copy Link" style="cursor: pointer;" onclick="copyInterviewLink()" />
+      </div>
+
+      <p style="text-align: right; margin-top: 12px; font-size: 14px;">
+        <a href="#" style="color: #1a73e8; text-decoration: none;">Request To Reschedule?</a>
+      </p>
+    </div>
+
+    <!-- NOTE SECTION -->
+    <div style="background-color: #fff8db; padding: 10px 16px; border-left: 5px solid #ffc107; font-size: 14px; color: #444; display: flex; align-items: center; gap: 8px;">
+      <svg width="25px" height="25px" stroke-width="1.5" viewBox="0 0 24 24" fill="none"
+           xmlns="http://www.w3.org/2000/svg" color="#000000">
+        <path d="M12 11.5V16.5" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 7.51L12.01 7.49889" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+              stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <span>Before Starting Your Interview, Please Ensure That Your Camera And Microphone Permissions Are Enabled On Your Browser</span>
+    </div>
+    
+  </div>
+    
+  <!-- ✅ Copy to Clipboard JS -->
+  <script>
+    function copyInterviewLink() {
+      const linkText = document.getElementById("interview-link").innerText;
+      navigator.clipboard.writeText(linkText).then(() => {
+        alert("Interview link copied!");
+      }).catch(err => {
+        console.error("Failed to copy: ", err);
+      });
+    }
+  </script>
+</body>
+</html>

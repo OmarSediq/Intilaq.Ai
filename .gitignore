@@ -3,7 +3,6 @@ services/__pycache__/
 utils/__pycache__/
 migrations/versions/__pycache__
 app/__pycache__
-__init__.py
 migrations/__pycache__
 migrations/README
 migrations/script.py.mako
@@ -13,6 +12,22 @@ app/.DS_Store
 migrations/.DS_Store
 app/services/__pycache__/
 app/utils/__pycache__
-app/routers/__pycache__
+app/api/__pycache__
 test.py
 app/reset_db.py
+certs
+scripts
+__pycache__/
+*.pyc
+# Ignore all __init__.py files
+**/__init__.py
+
+# BUT DO NOT ignore this one specific file
+
+!app/api/cv_api/__init__.py
+!app/api/home_api/__init__.py
+!app/api/interview_api/__init__.py
+!app/api/auth_api/auth/__init__.py
+!app/api/auth_api/auth_hr/__init__.py
+logs/*.log
+docs
