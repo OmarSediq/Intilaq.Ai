@@ -7,7 +7,7 @@ from backend.domain_services.cv_services.cv_certification_service import CVCerti
 router = APIRouter()
 
 
-@router.post("/api/certifications/", tags=["Projects & Certifications"])
+@router.post("/api/certifications/",tags=["CV - Designer-Assistant"])
 async def create_certification(
     request: CertificationRequest,
     user: dict = Depends(get_current_user),

@@ -3,17 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 def send_email(to_email: str, subject: str, body: str):
-    """
-    Sends an email using SMTP settings defined in the application configuration.
 
-    Args:
-        to_email (str): Recipient's email address.
-        subject (str): Subject of the email.
-        body (str): Body of the email.
-
-    Returns:
-        None
-    """
     try:
         smtp_server = settings.SMTP_SERVER
         smtp_port = settings.SMTP_PORT

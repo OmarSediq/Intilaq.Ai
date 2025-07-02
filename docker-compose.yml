@@ -8,9 +8,8 @@ services:
       - my_network
     ports:
       - "27017:27017"  
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: 84000
+    env_file:
+      - .env
     volumes:
       - mongodb_data:/data/db
 
@@ -31,10 +30,8 @@ services:
       - my_network
     ports:
       - "5432:5432"  
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: 84000
-      POSTGRES_DB: intilaq_db
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

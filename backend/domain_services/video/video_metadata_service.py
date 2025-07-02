@@ -13,7 +13,7 @@ class VideoMetadataService:
             "-of", "default=noprint_wrappers=1:nokey=1",
             temp_video_path
         ]
-        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True , timeout=1200)
 
         try:
             return float(result.stdout.strip())

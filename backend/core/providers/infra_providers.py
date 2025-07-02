@@ -1,8 +1,9 @@
-from fastapi import Request
+from fastapi import Request , Depends
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 import redis.asyncio as redis
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 
 from backend.core.config import settings
 from collections.abc import AsyncGenerator
@@ -52,6 +53,15 @@ def get_mongo_collection(collection_name: str):
 
 async def get_mongo_client_raw() -> AsyncIOMotorClient:
     return AsyncIOMotorClient(settings.MONGO_URI)
+
+def get_gridfs_bucket(
+    client: AsyncIOMotorClient = Depends(get_mongo_client)
+) -> AsyncIOMotorGridFSBucket:
+    db = client["hr_db"]
+    return AsyncIOMotorGridFSBucket(db)
+
+def get_mongo_db() -> AsyncIOMotorDatabase:
+    return mongo_db
 
 # =================== MongoDB Startup / Shutdown ===================
 

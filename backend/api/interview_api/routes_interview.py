@@ -16,7 +16,7 @@ from backend.core.providers.domain_providers.interview_providers import (
 )
 
 router = APIRouter()
-@router.post("/api/sessions/", tags=["Interview Sessions"])
+@router.post("/api/sessions/", tags=["Virtual - Interview"])
 async def create_session(
     job_data: JobData,
     user=Depends(get_current_user),
@@ -24,7 +24,7 @@ async def create_session(
 ):
     return await session_service.create_session(job_data, user)
 
-@router.post("/api/sessions/{session_id}/start", tags=["Interview Sessions"])
+@router.post("/api/sessions/{session_id}/start", tags=["Virtual - Interview"])
 async def start_session(
     session_id: int,
     user=Depends(get_current_user),
@@ -32,7 +32,7 @@ async def start_session(
 ):
     return await session_service.start_session(session_id, user["user_id"])
 
-@router.get("/api/sessions/{session_id}/questions", tags=["Interview Questions"])
+@router.get("/api/sessions/{session_id}/questions", tags=["Virtual - Interview"])
 async def get_questions(
     session_id: int,
     user=Depends(get_current_user),
@@ -40,7 +40,7 @@ async def get_questions(
 ):
     return await question_service.get_questions(session_id, user["user_id"])
 
-@router.get("/api/sessions/{session_id}/questions/next", tags=["Interview Questions"])
+@router.get("/api/sessions/{session_id}/questions/next", tags=["Virtual - Interview"])
 async def get_next_question(
     session_id: int,
     user=Depends(get_current_user),
@@ -48,7 +48,7 @@ async def get_next_question(
 ):
     return await question_service.get_next_question(session_id, user["user_id"])
 
-@router.post("/api/sessions/{session_id}/answers", tags=["Answer Submission"])
+@router.post("/api/sessions/{session_id}/answers", tags=["Virtual - Interview"])
 async def submit_answer(
     session_id: int,
     file: UploadFile = File(...),
@@ -57,7 +57,7 @@ async def submit_answer(
 ):
     return await answer_service.submit_answer(session_id, file, user["user_id"])
 
-@router.get("/api/sessions/{session_id}/answers/{question_index}/feedback", tags=["Answer Submission"])
+@router.get("/api/sessions/{session_id}/answers/{question_index}/feedback",tags=["Virtual - Interview"])
 async def get_feedback(
     session_id: int,
     question_index: int,
@@ -66,7 +66,7 @@ async def get_feedback(
 ):
     return await feedback_service.get_feedback(session_id, question_index, user["user_id"])
 
-@router.post("/api/sessions/{session_id}/end", tags=["Interview Sessions"])
+@router.post("/api/sessions/{session_id}/end", tags=["Virtual - Interview"])
 async def end_session(
     session_id: int,
     user=Depends(get_current_user),
@@ -75,7 +75,7 @@ async def end_session(
     return await score_service.end_session(session_id, user["user_id"])
 
 
-@router.get("/api/sessions/{session_id}/score", tags=["Scoring"])
+@router.get("/api/sessions/{session_id}/score", tags=["Virtual - Interview"])
 async def calculate_score(
     session_id: int,
     user=Depends(get_current_user),

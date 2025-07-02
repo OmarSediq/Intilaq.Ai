@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.schemas.cv_schema import AwardsRequest
+from backend.schemas.cv_schema import AwardsRequest, AwardResponse
 from backend.utils.response_schemas import success_response, error_response
 from backend.data_access.postgres.cv.award_repository import AwardRepository
 from backend.data_access.postgres.cv.header_repository import CVHeaderRepository
@@ -20,27 +20,8 @@ class CVAwardService:
             "header_id": header.id
         })
 
-        return success_response(201, data=award)
+        response_data = AwardResponse.model_validate(award)
 
-    async def get(self, award_id: int, user_id: int):
-        award = await self.award_repo.get_by_id(award_id)
-        if not award:
-            return error_response(404, "Award not found")
+        return success_response(201, data=response_data)
 
-        header = await self.header_repo.get_by_id(award.header_id)
-        if not header or header.user_id != user_id:
-            return error_response(403, "Unauthorized access")
 
-        return success_response(200, data=award)
-
-    async def delete(self, award_id: int, user_id: int):
-        award = await self.award_repo.get_by_id(award_id)
-        if not award:
-            return error_response(404, "Award not found")
-
-        header = await self.header_repo.get_by_id(award.header_id)
-        if not header or header.user_id != user_id:
-            return error_response(403, "Unauthorized")
-
-        await self.award_repo.delete(award)
-        return success_response(200, {"message": "Award deleted successfully"})

@@ -7,7 +7,8 @@ from backend.core.providers.domain_providers.cv_providers import get_cv_objectiv
 router = APIRouter()
 
 
-@router.post("/api/objectives/suggestions/", tags=["AI Enhancements"])
+
+@router.post("/api/objectives/suggestions/",tags=["CV - Designer-Assistant"])
 async def generate_objective_suggestions(
     request: ObjectiveSaveRequest, 
     user: dict = Depends(get_current_user),
@@ -16,7 +17,7 @@ async def generate_objective_suggestions(
     return await service.generate_objective_suggestions(request, int(user["user_id"]))
 
 
-@router.put("/api/objectives/save-description/{objective_id}/", tags=["AI Enhancements"])
+@router.put("/api/objectives/save-description/{objective_id}/",tags=["CV - Designer-Assistant"])
 async def save_objective_description(
     objective_id: int,
     request: ObjectiveSaveRequest,

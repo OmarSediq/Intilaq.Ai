@@ -33,7 +33,8 @@ class Settings(BaseSettings):
     # MongoDB Configuration
     MONGO_URI: str
     MONGO_DB_NAME: str
-    
+    MONGO_INITDB_ROOT_USERNAME: str
+    MONGO_INITDB_ROOT_PASSWORD: str
     # Redis Configuration
     REDIS_URL: str
     

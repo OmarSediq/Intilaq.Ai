@@ -1,6 +1,9 @@
 import asyncio
 import io
 import uuid
+from backend.domain_services.hr_services.hr_summary_service import HRUserSummaryService
+from backend.data_access.mongo.hr.hr_summary_repository import HRSummaryRepository
+from backend.data_access.mongo.hr.hr_interview_repository import HRInterviewRepository
 
 from backend.data_access.mongo.hr.hr_interview_client_repository import HRAnswerRepository
 from backend.core.providers.infra_providers import get_mongo_client_raw
@@ -20,7 +23,13 @@ async def process(video_id: str):
     mongo_client = await get_mongo_client_raw()
     db = mongo_client["hr_db"]
     answer_repo = HRAnswerRepository(db)
-
+    summary_repo = HRSummaryRepository(db)
+    interview_repo = HRInterviewRepository(db)
+    summary_service = HRUserSummaryService(
+        answer_repo=answer_repo,
+        interview_repo=interview_repo,
+        summary_repo=summary_repo
+    )
     gridfs_storage = await get_hr_gridfs_storage_service_async()
     video_compressor = get_video_compressor_service()
     audio_extractor = get_audio_extractor_service()
@@ -34,6 +43,7 @@ async def process(video_id: str):
         return
 
     interview_token = answer_record["interview_token"]
+    user_email = answer_record["user_email"]
     answers = answer_record.get("answers", [])
     target_index = next(
         (i for i, a in enumerate(answers) if str(a.get("video_file_id")) == video_id),
@@ -53,7 +63,7 @@ async def process(video_id: str):
     )
 
     await answer_repo.update_answer_by_index(
-        interview_token, target_index,
+        interview_token, user_email, target_index,
         {"video_file_id": str(compressed_video_id)}
     )
 
@@ -62,13 +72,13 @@ async def process(video_id: str):
     audio_file_id = await gridfs_storage.save_audio(audio_filename, audio_bytes)
 
     await answer_repo.update_answer_by_index(
-        interview_token, target_index,
+        interview_token, user_email, target_index,
         {"audio_file_id": str(audio_file_id)}
     )
 
     transcript = await whisper_sender.send_audio_for_transcription(audio_bytes)
     await answer_repo.update_answer_by_index(
-        interview_token, target_index,
+        interview_token, user_email, target_index,
         {"transcript": transcript}
     )
 
@@ -83,7 +93,7 @@ async def process(video_id: str):
         return
 
     question_data = questions[target_index]
-    time_limit = question_data.get("time_limit")  #
+    time_limit = question_data.get("time_limit")
     ideal_answer = question_data.get("ideal_answer", "").strip()
 
     if not ideal_answer:
@@ -96,8 +106,7 @@ async def process(video_id: str):
     duration = video_metadata.get_duration(compressed_video)
 
     await answer_repo.update_answer_by_index(
-        interview_token,
-        target_index,
+        interview_token, user_email, target_index,
         {
             "score": score,
             "video_duration": duration,
@@ -107,6 +116,11 @@ async def process(video_id: str):
 
     print(f"[DONE] Finished processing video_id: {video_id}, score={score}, duration={duration}, time_limit={time_limit}")
 
+    total_questions = len(questions)
+    await _maybe_set_overall(answer_repo, interview_token, user_email,
+                             total_questions)
+    await summary_service.list_participants(interview_token)
+
 
 def run(video_id: str):
     loop = asyncio.new_event_loop()
@@ -115,3 +129,16 @@ def run(video_id: str):
         loop.run_until_complete(process(video_id))
     finally:
         loop.close()
+
+async def _maybe_set_overall(answer_repo, interview_token, user_email,
+                             total_questions: int):
+    doc = await answer_repo.get_session_by_token_and_email(
+        interview_token, user_email)
+
+    scored = [a.get("score") for a in doc["answers"] if a.get("score") is not None]
+    if len(scored) != total_questions:
+        return
+
+    overall = round(sum(scored) / (total_questions * 10) * 100, 2)
+    await answer_repo.set_overall_score(interview_token, user_email, overall)
+# ─────────────────────────────────────────────────────────────────────────────

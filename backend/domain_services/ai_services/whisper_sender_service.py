@@ -9,7 +9,7 @@ class WhisperSenderService(TraceableService):
     def __init__(self, whisper_url: str = None):
         self.whisper_url = whisper_url or os.getenv(
             "WHISPER_SERVICE_URL",
-            "http://speech_to_text_service:5001/transcribe"
+            "http://speech_to_text_service:5001/api/transcribe"
         )
 
     async def send_audio_for_transcription(
@@ -26,7 +26,7 @@ class WhisperSenderService(TraceableService):
 
             headers = {"Content-Type": mime_type}
 
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
                     self.whisper_url,
                     content=audio_bytes,

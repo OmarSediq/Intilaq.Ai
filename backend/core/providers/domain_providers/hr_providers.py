@@ -1,3 +1,4 @@
+from typing import Any
 
 from backend.core.providers.ai_providers.gemini_provider import get_gemini_ai_service
 from backend.core.providers.data_access_providers.hr_providers.hr_answer_repository_provider import \
@@ -30,6 +31,13 @@ from backend.core.providers.video_providers.job_trigger_provider import VideoJob
     get_video_job_trigger_service
 from backend.core.providers.video_providers.job_trigger_provider import TextJobTriggerService , get_text_job_trigger_service
 from backend.core.providers.video_providers.job_trigger_provider import EmailJobTriggerService , get_email_job_trigger_service
+from backend.core.providers.data_access_providers.hr_providers.hr_interview_evaluation_repository_provider import get_hr_interview_evaluation_repository
+from backend.data_access.mongo.hr.hr_interview_evaluation_repository import HRInterviewEvaluationRepository
+from backend.domain_services.hr_services.home.hr_interview_evaluation_service import HRInterviewEvaluationService
+from motor.motor_asyncio import AsyncIOMotorGridFSBucket
+from backend.core.providers.infra_providers import get_gridfs_bucket
+# from backend.data_access.mongo.hr.hr_interview_repository import HRInterviewRepository
+
 # ========== HR ==========
 def get_hr_auth_service(
     db: AsyncSession = Depends(get_db),
@@ -78,3 +86,9 @@ def get_hr_answer_service(
 ) -> HRAnswerService:
     return HRAnswerService(answer_repo=answer_repo , invitation_repo =invitation_repo , gridfs_storage=gridfs_storage , video_job_trigger=video_job_trigger , text_job_trigger=text_job_trigger , question_repo=question_repo)
 
+def get_hr_interview_evaluation_service(
+    repo: HRInterviewEvaluationRepository = Depends(get_hr_interview_evaluation_repository),
+    bucket: Any = Depends(get_gridfs_bucket) ,
+    question_repo : HRInterviewRepository = Depends(get_hr_interview_repository)
+) -> HRInterviewEvaluationService:
+    return HRInterviewEvaluationService(evaluation_repo=repo, bucket=bucket , question_repo=question_repo)

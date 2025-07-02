@@ -38,7 +38,7 @@ class VideoCompressorService(TraceableService):
             ]
 
             try:
-                result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True , timeout=1200)
             except subprocess.CalledProcessError as e:
                 print("FFMPEG ERROR:", e.stderr.decode())
                 raise

@@ -11,13 +11,14 @@ class HRAnswerRepository(TraceableService):
         self.collection = db["hr_answers"]
 
 
-    async def create_session(self, interview_token: str, user_name: str, user_email: str, login_time: datetime):
+    async def create_session(self, interview_token: str, user_name: str, user_email: str, login_time: datetime , hr_id: int):
         session_doc = {
             "interview_token": interview_token,
             "user_name": user_name,
             "user_email": user_email,
             "login_time": login_time,
-            "status": "started",
+            "review_status": "pending",
+             "hr_id": hr_id,
             "answers": []
         }
         await self.collection.insert_one(session_doc)
@@ -25,15 +26,26 @@ class HRAnswerRepository(TraceableService):
     async def get_session_by_token(self, interview_token: str) -> Optional[dict]:
         return await self.collection.find_one({"interview_token": interview_token})
 
-    async def get_answer_by_index(self, interview_token: str, index: int) -> Optional[dict]:
+    async def get_answer_by_index(self, interview_token: str, user_email: str, index: int) -> Optional[dict]:
         result = await self.collection.find_one(
-            {"interview_token": interview_token},
-            {"answers": {"$elemMatch": {"question_index": index}}}
+            {
+                "interview_token": interview_token,
+                "user_email": user_email,
+            },
+            {
+                "answers": {"$elemMatch": {"question_index": index}}
+            }
         )
-        return result.get("answers", [None])[0]
+        return result.get("answers", [None])[0] if result else None
 
     async def session_exists(self, interview_token: str) -> bool:
         return await self.collection.count_documents({"interview_token": interview_token}, limit=1) > 0
+
+    async def session_exists_for_create(self, interview_token: str, user_email: str) -> bool:
+        return await self.collection.count_documents({
+            "interview_token": interview_token,
+            "user_email": user_email
+        }, limit=1) > 0
 
     async def add_answer(self, interview_token: str, answer_doc: dict):
         await self.collection.update_one(
@@ -41,13 +53,30 @@ class HRAnswerRepository(TraceableService):
             {"$push": {"answers": answer_doc}}
         )
 
-    async def update_answer_by_index(self, interview_token: str, index: int, update_fields: dict):
-        query = {"interview_token": interview_token, f"answers.{index}": {"$exists": True}}
-        set_fields = {f"answers.{index}.{k}": v for k, v in update_fields.items()}
+    async def update_answer_by_index(
+            self,
+            interview_token: str,
+            user_email: str,
+            question_index: int,
+            update_fields: dict,
+    ):
+        set_ops = {f"answers.$.{k}": v for k, v in update_fields.items()}
+        result = await self.collection.update_one(
+            {
+                "interview_token": interview_token,
+                "user_email": user_email,
+                "answers.question_index": question_index
+            },
+            {"$set": set_ops}
+        )
 
-        result = await self.collection.update_one(query, {"$set": set_fields})
         if result.modified_count == 0:
-            print(f"[WARNING] Answer at index {index} not updated.")
+            print(f"[INFO] No existing answer at q{question_index}; pushing new one.")
+            answer_doc = {"question_index": question_index, **update_fields}
+            await self.collection.update_one(
+                {"interview_token": interview_token, "user_email": user_email},
+                {"$push": {"answers": answer_doc}}
+            )
 
     async def get_answer_by_video_id(self, video_id: str) -> Optional[dict]:
         result = await self.collection.find_one(
@@ -65,5 +94,52 @@ class HRAnswerRepository(TraceableService):
                 {"answers.video_file_id": ObjectId(video_id)}
             ]
         }
+        return await self.collection.find_one(query,{"interview_token": 1, "user_email": 1, "answers": 1})
 
-        return await self.collection.find_one(query, {"interview_token": 1, "answers": 1})
+    async def get_session_by_token_and_email(self, interview_token: str, user_email: str):
+        return await self.collection.find_one({
+            "interview_token": interview_token,
+            "user_email": user_email
+        })
+
+    async def add_answer_to_user(self, interview_token: str, user_email: str, answer_doc: dict):
+        question_index = answer_doc.get("question_index")
+        if question_index is None:
+            raise ValueError("answer_doc must include 'question_index'")
+
+        await self.collection.update_one(
+            {
+                "interview_token": interview_token,
+                "user_email": user_email
+            },
+            {
+                "$set": {
+                    f"answers.{question_index}": answer_doc
+                }
+            }
+        )
+
+    async def set_overall_score(self, interview_token: str, user_email: str, score: float):
+        await self.collection.update_one(
+            {"interview_token": interview_token, "user_email": user_email},
+            {"$set": {"overall_score": score}}
+        )
+
+    async def set_review_status(self, interview_token: str, user_email: str, status: str):
+
+        if status not in ("accepted", "rejected"):
+            raise ValueError("Invalid review status")
+
+        result = await self.collection.update_one(
+            {
+                "interview_token": interview_token,
+                "user_email": user_email,
+                "review_status": {"$exists": True}
+            },
+            {"$set": {"review_status": status}}
+        )
+
+        if result.matched_count == 0:
+            raise ValueError(
+                "Session not found or `review_status` field missing — nothing updated."
+            )

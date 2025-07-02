@@ -30,7 +30,7 @@ class AudioExtractorService(TraceableService):
                 "-y"
             ]
 
-            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True , timeout=1200)
 
             with open(audio_file_path, "rb") as audio_file:
                 audio_bytes = audio_file.read()

@@ -12,7 +12,10 @@ class InterviewRepository:
         return await self.db["questions"].find_one({"user_id": user_id})
 
     async def find_session_by_session_id(self, session_id: int, user_id: str):
-        query = {"session_id": session_id, "user_id": user_id}
+        query = {
+            "session_id": session_id,
+            "user_id": int(user_id)
+        }
         session = await self.db["questions"].find_one(query)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found or unauthorized")

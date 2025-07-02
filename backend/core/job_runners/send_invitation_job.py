@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from backend.core.email.email_sender_service import EmailSenderService
 from backend.core.email.email_template_service import EmailTemplateService
 from backend.data_access.postgres.hr.hr_user_repository import HRUserRepository
@@ -9,10 +9,15 @@ from backend.utils.string_utils import extract_name_from_email
 def send_invitation_job(emails: list, job_title: str, raw_date: str, interview_link: str, hr_id: int):
     async def _internal():
         try:
+
             try:
-                parsed_date = datetime.strptime(raw_date, "%Y-%m-%d")
+                parsed_date = datetime.strptime(raw_date.strip(), "%Y-%m-%d") if isinstance(raw_date, str) else None
             except Exception:
-                parsed_date = raw_date
+                parsed_date = None
+
+
+            if not isinstance(parsed_date, datetime):
+                parsed_date = datetime.utcnow() + timedelta(days=2)
 
             async for session in get_postgres_session():
                 hr_repo = HRUserRepository(session)

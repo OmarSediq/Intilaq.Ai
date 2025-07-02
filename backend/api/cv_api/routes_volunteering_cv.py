@@ -6,7 +6,7 @@ from backend.domain_services.cv_services.cv_volunteering_service import CVVolunt
 
 router = APIRouter()
 
-@router.post("/api/volunteerings/", tags=["Volunteering & Awards"])
+@router.post("/api/volunteerings/", tags=["CV - Designer-Assistant"])
 async def create_volunteering(
     request: VolunteeringRequest,
     user=Depends(get_current_user),
@@ -14,35 +14,16 @@ async def create_volunteering(
 ):
     return await service.create(request, user["user_id"])
 
-
-# @router.get("/api/volunteerings/{volunteering_id}/", tags=["Volunteering & Awards"])
-# async def get_volunteering(
-#     volunteering_id: int,
-#     user=Depends(get_current_user),
-#     service: CVVolunteeringService = Depends(get_cv_volunteering_service)
-# ):
-#     return await service.get(volunteering_id, user["user_id"])
-
-
-# @router.delete("/api/volunteerings/{volunteering_id}/", tags=["Volunteering & Awards"])
-# async def delete_volunteering(
-#     volunteering_id: int,
-#     user=Depends(get_current_user),
-#     service: CVVolunteeringService = Depends(get_cv_volunteering_service)
-# ):
-#     return await service.delete(volunteering_id, user["user_id"])
-
-
-@router.post("/api/volunteerings-suggestions/", tags=["AI Enhancements"])
+@router.get("/api/volunteerings-suggestions/{volunteering_id}/", tags=["CV - Designer-Assistant"])
 async def generate_volunteering_suggestions(
-    request: GenerateVolunteeringRequest,
+    volunteering_id : int,
     user=Depends(get_current_user),
     service: CVVolunteeringService = Depends(get_cv_volunteering_service)
 ):
-    return await service.generate_suggestions(request.volunteering_id, user["user_id"])
+    return await service.generate_suggestions(volunteering_id, user["user_id"])
 
 
-@router.put("/api/volunteerings-save-description/{volunteering_id}/", tags=["AI Enhancements"])
+@router.put("/api/volunteerings-save-description/{volunteering_id}/", tags=["CV - Designer-Assistant"])
 async def save_volunteering_description(
     volunteering_id: int,
     request: SaveVolunteeringRequest,

@@ -12,7 +12,7 @@ from backend.core.providers.domain_providers.user_provider import get_current_us
 router = APIRouter()
 
 
-@router.post("/api/users/register/", tags=["Authentication"])
+@router.post("/api/users/register/", tags=["Account"])
 async def signup(
     request: SignupRequest,
     service: AccountService = Depends(get_account_service)
@@ -20,7 +20,7 @@ async def signup(
     return await service.signup(request)
 
 
-@router.post("/api/users/verify-account/", tags=["Security"])
+@router.post("/api/users/verify-account/", tags=["Account"])
 async def verify_account(
     request: VerifyAccountRequest,
     service: AccountService = Depends(get_account_service)
@@ -28,7 +28,7 @@ async def verify_account(
     return await service.verify_account(request)
 
 
-@router.post("/api/auth/login/", tags=["Authentication"])
+@router.post("/api/auth/login/", tags=["Account"])
 async def login(
     request: LoginRequest,
     response: Response,
@@ -37,7 +37,7 @@ async def login(
     return await service.login(request, response)
 
 
-@router.post("/api/auth/logout/", tags=["Authentication"])
+@router.post("/api/auth/logout/", tags=["Account"])
 async def logout(
     request: Request,
     response: Response,
@@ -46,7 +46,7 @@ async def logout(
     return await service.logout(request, response)
 
 
-@router.post("/api/auth/refresh-token/", tags=["Authentication"])
+@router.post("/api/auth/refresh-token/", tags=["Account"])
 async def refresh_token(
     request: Request,
     response: Response,
@@ -55,7 +55,7 @@ async def refresh_token(
     return await service.refresh_token(request, response)
 
 
-@router.post("/api/security/forgot-password/", tags=["Security"])
+@router.post("/api/security/forgot-password/", tags=["Account"])
 async def forgot_password(
     request: ForgotPasswordRequest,
     service: PasswordRecoveryService = Depends(get_password_service)
@@ -63,7 +63,7 @@ async def forgot_password(
     return await service.forgot_password(request)
 
 
-@router.post("/api/users/resend-verification-code/", tags=["Security"])
+@router.post("/api/users/resend-verification-code/", tags=["Account"])
 async def resend_verification_code(
     request: ResendCodeRequest,
     service: AccountService = Depends(get_account_service)

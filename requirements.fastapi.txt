@@ -58,3 +58,4 @@ uvicorn==0.34.0
 soundfile==0.13.1
 prometheus-fastapi-instrumentator ==7.1.0
 rq ==2.3.3
+imgkit == 1.2.3

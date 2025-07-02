@@ -6,7 +6,7 @@ from backend.domain_services.cv_services.cv_project_service import CVProjectServ
 
 router = APIRouter()
 
-@router.post("/api/projects/", tags=["Projects & Certifications"])
+@router.post("/api/projects/", tags=["CV - Designer-Assistant"])
 async def create_project(
     request: ProjectRequest,
     user: dict = Depends(get_current_user),
@@ -15,16 +15,16 @@ async def create_project(
     return await service.create(request, user["user_id"])
 
 
-@router.post("/api/projects/generate-description/", tags=["AI Enhancements"])
+@router.get("/api/projects/generate-description/{project_id}/", tags=["CV - Designer-Assistant"])
 async def generate_project_description(
-    request: ProjectRequest,
+    project_id: int,
     user: dict = Depends(get_current_user),
     service: CVProjectService = Depends(get_cv_project_service)
 ):
-    return await service.generate_description(request, user["user_id"])
+    return await service.generate_description(project_id, user["user_id"])
 
 
-@router.put("/api/projects/save-description/{project_id}/", tags=["AI Enhancements"])
+@router.put("/api/projects/save-description/{project_id}/", tags=["CV - Designer-Assistant"])
 async def save_project_description(
     project_id: int,
     request: ProjectDescriptionSaveRequest,

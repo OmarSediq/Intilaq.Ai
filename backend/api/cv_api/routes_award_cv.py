@@ -6,7 +6,7 @@ from backend.domain_services.cv_services.cv_award_service import CVAwardService
 
 router = APIRouter()
 
-@router.post("/api/awards/", tags=["Volunteering & Awards"])
+@router.post("/api/awards/", tags=["CV - Designer-Assistant"])
 async def create_award(
     request: AwardsRequest,
     user: dict = Depends(get_current_user),

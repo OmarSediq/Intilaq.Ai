@@ -33,24 +33,26 @@ class HRAnswerService(TraceableService):
         if not interview:
             raise ValueError("Invalid interview token")
 
-        existing = await self.repo.get_session_by_token(interview_token)
-        if existing:
-            raise ValueError("Session already started")
+        if await self.repo.session_exists_for_create(interview_token , email):
+            raise ValueError("Session already started for this email")
 
         now = datetime.utcnow()
-        await self.repo.create_session(interview_token, name, email, now)
+        hr_id = interview.get("hr_id")
+        await self.repo.create_session(interview_token, name, email, now, hr_id=hr_id)
         return now
 
     async def upload_answer(
             self,
             interview_token: str,
             index: int,
+            user_email: str,
             file: UploadFile = None,
             text_answer: Optional[str] = None
     ):
-        exists = await self.repo.session_exists(interview_token)
-        if not exists:
-            raise ValueError("Session not found")
+
+        session = await self.repo.get_session_by_token_and_email(interview_token, user_email)
+        if not session:
+            raise ValueError("Session not found for this user")
 
         now = datetime.now(timezone.utc)
         start_time = now
@@ -60,12 +62,10 @@ class HRAnswerService(TraceableService):
         response_type = "text"
         video_file_id = None
 
-
         question = await self.question_repo.get_question_by_index(interview_token, index)
-        time_limit = question.get("time_limit")  # may be None
+        time_limit = question.get("time_limit")
 
-
-        if file is not None and file.filename:
+        if file is not None and file.filename.strip():
             filename = f"{interview_token}_q{index}_{file.filename}"
             video_bytes = await file.read()
 
@@ -85,17 +85,15 @@ class HRAnswerService(TraceableService):
             response_type = "video"
             text_answer = None
 
-
         elif text_answer:
             word_count = len(text_answer.strip().split())
-            approx_duration = round((word_count / 30) * 60)  # 40 word/minute = 1.5 second/word
+            approx_duration = round((word_count / 30) * 60)
             end_time = now
             start_time = now - timedelta(seconds=approx_duration)
-
             answer_duration = approx_duration
+
             if time_limit and approx_duration > time_limit:
                 time_exceeded = True
-
 
         answer_doc = {
             "question_index": index,
@@ -109,14 +107,15 @@ class HRAnswerService(TraceableService):
             "answer_text": text_answer,
         }
 
-        await self.repo.add_answer(interview_token, answer_doc)
+
+        await self.repo.add_answer_to_user(interview_token, user_email, answer_doc)
 
         if response_type == "video":
             self.video_job_trigger.trigger_video_processing(str(video_file_id))
         else:
-            self.text_job_trigger.trigger_text_evaluation(interview_token, index)
+            self.text_job_trigger.trigger_text_evaluation(interview_token, user_email, index)
 
-        return await self.repo.get_answer_by_index(interview_token, index)
+        return await self.repo.get_answer_by_index(interview_token,user_email, index )
 
     async def get_video_bytes(self, file_id: str) -> bytes:
         try:

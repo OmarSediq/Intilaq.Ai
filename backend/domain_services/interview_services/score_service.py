@@ -60,7 +60,6 @@ class InterviewScoreService(TraceableService):
         final_score = (total_score / max_score) * 100
         answered_questions = len(scores)
 
-        # حفظ نتائج الجلسة في session_results
         await self.repo_interview.save_session_result({
             "session_id": session_id,
             "user_id": user_id,

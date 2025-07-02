@@ -1,4 +1,6 @@
 from datetime import datetime
+from http.client import HTTPException
+
 from backend.utils.response_schemas import success_response, error_response
 from backend.data_access.redis.session_redis_repository import SessionRedisRepository
 from backend.domain_services.interview_services.validator_service import InterviewValidatorService
@@ -80,5 +82,12 @@ class InterviewSessionHomeService:
                 "final_score": result_doc.get("final_score") if result_doc else None
             })
 
+
+        except HTTPException as http_exc:
+
+            raise http_exc
+
         except Exception as e:
-            return error_response(code=500, error_message=f"Details fetch error: {str(e)}")
+
+            return error_response(code=500, error_message=f"Unexpected error: {str(e)}")
+

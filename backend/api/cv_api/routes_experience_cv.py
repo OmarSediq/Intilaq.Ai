@@ -8,7 +8,7 @@ from backend.domain_services.cv_services.cv_experience_service import CVExperien
 router = APIRouter()
 
 
-@router.post("/api/experiences/", tags=["Experience Management"])
+@router.post("/api/experiences/", tags=["CV - Designer-Assistant"])
 async def create_experience(
     request: ExperienceRequest,
     user: dict = Depends(get_current_user),
@@ -17,24 +17,16 @@ async def create_experience(
     return await service.create(request, int(user["user_id"]))
 
 
-# @router.get("/api/experiences/{experience_id}/", tags=["Experience Management"])
-# async def get_experience(
-#     experience_id: int,
-#     user: dict = Depends(get_current_user),
-#     service: CVExperienceService = Depends(get_cv_experience_service)
-# ):
-#     return await service.get(experience_id, int(user["user_id"]))
-
-
-@router.post("/api/experiences/suggestions/", tags=["AI Enhancements"])
+@router.get("/api/experiences/suggestions/{experience_id}/", tags=["CV - Designer-Assistant"])
 async def generate_experience_suggestions(
+    experience_id: int,
     user: dict = Depends(get_current_user),
     service: CVExperienceService = Depends(get_cv_experience_service)
 ):
-    return await service.generate_suggestions(int(user["user_id"]))
+    return await service.generate_suggestions(int(user["user_id"]), experience_id)
 
 
-@router.put("/api/experiences/save-description/{experience_id}/", tags=["AI Enhancements"])
+@router.put("/api/experiences/save-description/{experience_id}/", tags=["CV - Designer-Assistant"])
 async def save_experience_description(
     experience_id: int,
     request: ExperienceSaveRequest,
@@ -43,21 +35,3 @@ async def save_experience_description(
 ):
     return await service.save_description(experience_id, request.selected_description, int(user["user_id"]))
 
-
-# @router.put("/api/experiences/{experience_id}/", tags=["Experience Management"])
-# async def update_experience(
-#     experience_id: int,
-#     request: ExperienceRequest,
-#     user: dict = Depends(get_current_user),
-#     service: CVExperienceService = Depends(get_cv_experience_service)
-# ):
-#     return await service.update(experience_id, request, int(user["user_id"]))
-
-
-# @router.delete("/api/experiences/{experience_id}/", tags=["Experience Management"])
-# async def delete_experience(
-#     experience_id: int,
-#     user: dict = Depends(get_current_user),
-#     service: CVExperienceService = Depends(get_cv_experience_service)
-# ):
-#     return await service.delete(experience_id, int(user["user_id"]))

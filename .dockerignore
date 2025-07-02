@@ -40,3 +40,4 @@ pip-log.txt
 pip-delete-this-directory.txt
 config.json
 config.yaml
+*.log/

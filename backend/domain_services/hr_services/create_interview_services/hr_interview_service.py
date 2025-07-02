@@ -18,7 +18,6 @@ class HRInterviewService(TraceableService):
             "job_title": request.job_title,
             "level": request.level,
             "job_requirements": request.job_requirements,
-            "specific_date": request.specific_date,
             "date_range": request.date_range,
             "time": request.time,
             "hr_id": hr_id,
@@ -38,7 +37,7 @@ class HRInterviewService(TraceableService):
         for i, q in enumerate(questions):
             best_answer = await self.gemini_service.generate_best_answer(q)
             questions_with_answers.append({
-                "index": i + 1,
+                "index": i ,
                 "question": q,
                 "response_type": "text",
                 "time_limit": None,
@@ -71,23 +70,46 @@ class HRInterviewService(TraceableService):
 
         existing = questions[index]
 
-        old_question_text = existing.get("question", "").strip()
-        new_question_text = update_data.question_text.strip()
+        new_question_text = (update_data.question_text or existing["question"]).strip()
+        new_response_type = update_data.response_type or existing["response_type"]
+        new_time_limit = update_data.time_limit if update_data.time_limit is not None else existing["time_limit"]
 
-        if new_question_text != old_question_text:
+        if new_question_text != existing["question"]:
             new_ideal_answer = await self.gemini_service.generate_best_answer(new_question_text)
         else:
             new_ideal_answer = existing.get("ideal_answer")
 
-        updated_question = {
-            "index": index,
+        updated_fields = {
             "question": new_question_text,
-            "response_type": update_data.response_type,
-            "time_limit": update_data.time_limit,
+            "response_type": new_response_type,
+            "time_limit": new_time_limit,
             "ideal_answer": new_ideal_answer
         }
 
-        await self.repo.update_question_by_index(interview_token, index, updated_question)
+        await self.repo.update_question_by_index(interview_token, index, updated_fields)
 
-        return success_response(code=200, data=updated_question)
+        return success_response(code=200, data={**existing, **updated_fields})
 
+    async def get_all_basic_questions(self, interview_token: str):
+        question_map = await self.repo.get_all_basic_questions_by_token(interview_token)
+        if not question_map:
+            return error_response(code=404, error_message="No questions found for this token")
+
+        return success_response(code=200, data={"questions": question_map})
+
+    async def get_unified_answer_by_index(
+            self,
+            interview_token: str,
+            user_email: str,
+            index: int
+    ):
+        result = await self.repo.get_unified_answer_by_index(
+            interview_token=interview_token,
+            user_email=user_email,
+            index=index
+        )
+
+        if not result:
+            return error_response(code=404, error_message="No answer found for given index.")
+
+        return success_response(code=200, data=result)

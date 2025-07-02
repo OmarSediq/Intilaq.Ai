@@ -1,9 +1,14 @@
+import tempfile
+
+import imgkit
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi import HTTPException
 from datetime import datetime
 from bson import ObjectId
 import io
+
+from starlette.responses import FileResponse
 
 from backend.utils.response_schemas import error_response
 from backend.data_access.postgres.cv.resume_repository import ResumeRepository
@@ -33,7 +38,7 @@ class CVResumeExportService:
         self.storage = gridfs_storage
         self.header_repo = header_repo
 
-    async def generate_html(self, user_id: int):
+    async def generate_html_image(self, user_id: int):
         try:
             header_id = await self.header_repo.get_header_id_by_user_id(user_id)
             if not header_id:
@@ -44,10 +49,25 @@ class CVResumeExportService:
                 return error_response(code=403, error_message="You do not have permission")
 
             html_content = self.html_renderer.render(user_data)
-            return HTMLResponse(content=html_content)
+
+            options = {
+                'format': 'png',
+                'width': '800',
+                'disable-smart-width': '',
+            }
+
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+                imgkit.from_string(html_content, tmp_file.name, options=options)
+                image_path = tmp_file.name
+            return FileResponse(
+                image_path,
+                media_type="image/png",
+                filename="cv_snapshot.png"
+            )
 
         except Exception as e:
-            return error_response(code=500, error_message=f"Template rendering error: {str(e)}")
+            return error_response(code=500, error_message=f"Image rendering error: {str(e)}")
 
     async def generate_pdf_and_store(self, user_id: int):
         try:

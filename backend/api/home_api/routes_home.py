@@ -12,7 +12,7 @@ from backend.core.providers.domain_providers.home_providers import (
 router = APIRouter()
 
 
-@router.get("/api/home/summary", tags=["Home Summary"])
+@router.get("/api/home/summary", tags=["Home - Summary"])
 async def get_home_summary(
     user=Depends(get_current_user),
     service: HomeStatsService = Depends(get_home_stats_service)
@@ -20,7 +20,7 @@ async def get_home_summary(
     return await service.get_summary(user["user_id"])
 
 
-@router.get("/api/home/interview-sessions", tags=["Home Summary"])
+@router.get("/api/home/interview-sessions", tags=["Home - Summary"])
 async def get_user_sessions(
     user=Depends(get_current_user),
     service: InterviewSessionHomeService = Depends(get_interview_session_service_home)
@@ -28,7 +28,7 @@ async def get_user_sessions(
     return await service.get_sessions(user["user_id"])
 
 
-@router.get("/api/sessions/{session_id}/details", tags=["Interview Sessions"])
+@router.get("/api/sessions/{session_id}/details", tags=["Home - Summary"])
 async def get_session_details(
     session_id: int,
     user=Depends(get_current_user),
@@ -37,7 +37,7 @@ async def get_session_details(
     return await service.get_session_details(session_id, user["user_id"])
 
 
-@router.get("/api/resumes/download", tags=["My Resume"])
+@router.get("/api/resumes/download", tags=["Home - Summary"])
 async def download_latest_resume(
     user=Depends(get_current_user),
     service: ResumeDownloadService = Depends(get_resume_download_service)

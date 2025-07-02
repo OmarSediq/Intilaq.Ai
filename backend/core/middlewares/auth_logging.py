@@ -6,7 +6,6 @@ import logging
 
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # ✅ خذ الخدمة من app.state
         token_service: TokenService = request.app.state.token_service
 
         token = request.cookies.get("access_token")

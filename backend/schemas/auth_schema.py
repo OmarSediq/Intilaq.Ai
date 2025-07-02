@@ -14,8 +14,6 @@ class LoginRequest(BaseModel):
 class VerifyAccountRequest(BaseModel):
     code: str
     new_password: Optional[str] = None  
-# class TwoFactorAuthRequest(BaseModel):
-#     two_fa_code: str
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
@@ -32,8 +30,6 @@ class ResendCodeRequest(BaseModel):
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
-# class LogoutRequest(BaseModel):
-#     refresh_token: str 
 
 class UpdateUserRequest(BaseModel):
     username: str

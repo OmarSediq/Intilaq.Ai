@@ -1,5 +1,6 @@
 from backend.data_access.postgres.cv.experience_repository import ExperienceRepository
 from backend.data_access.postgres.cv.header_repository import CVHeaderRepository
+from backend.schemas.cv_schema import ExperienceResponse
 from backend.utils.response_schemas import success_response, error_response
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.domain_services.ai_services.gemini_ai_service import GeminiAIService
@@ -16,71 +17,31 @@ class CVExperienceService:
         if not header:
             return error_response(code=404, error_message="Header not found for this user.")
 
-        request.validate_dates(request.start_date, request.end_date)
 
         experience = await self.experience_repo.create({
-            **request.dict(exclude={"header_id"}),
+            **request.model_dump(exclude={"header_id"}),
             "header_id": header.id
         })
 
+        response_data = ExperienceResponse.model_validate(experience)
+
         return success_response(code=201, data={
             "message": "Experience created successfully",
-            "experience": experience
+            "experience": response_data.model_dump()
         })
 
-    async def get(self, experience_id: int, user_id: int):
-        experience = await self.experience_repo.get_by_id(experience_id)
-        if not experience:
-            return error_response(code=404, error_message="Experience not found")
-
-        header = await self.header_repo.get_by_id(experience.header_id)
-        if not header or header.user_id != user_id:
-            return error_response(code=403, error_message="Unauthorized access to this experience")
-
-        return success_response(code=200, data={"experience": experience})
-
-    async def update(self, experience_id: int, request, user_id: int):
-        experience = await self.experience_repo.get_by_id(experience_id)
-        if not experience:
-            return error_response(code=404, error_message="Experience not found")
-
-        header = await self.header_repo.get_by_id(experience.header_id)
-        if not header or header.user_id != user_id:
-            return error_response(code=403, error_message="Unauthorized access to this experience")
-
-        request.validate_dates(request.start_date, request.end_date)
-
-        updated = await self.experience_repo.update(experience, request.dict(exclude_unset=True))
-
-        return success_response(code=200, data={
-            "message": "Experience updated successfully",
-            "experience": updated
-        })
-
-    async def delete(self, experience_id: int, user_id: int):
-        experience = await self.experience_repo.get_by_id(experience_id)
-        if not experience:
-            return error_response(code=404, error_message="Experience not found")
-
-        header = await self.header_repo.get_by_id(experience.header_id)
-        if not header or header.user_id != user_id:
-            return error_response(code=403, error_message="Unauthorized access to this experience")
-
-        await self.experience_repo.delete(experience)
-
-        return success_response(code=200, data={"message": "Experience deleted successfully"})
-
-    async def generate_suggestions(self, user_id: int):
+    async def generate_suggestions(self, user_id: int, experience_id: int):
         header = await self.header_repo.get_by_user_id(user_id)
         if not header:
             return error_response(code=404, error_message="Header not found for this user.")
 
-        experience = await self.experience_repo.get_by_header_id(header.id)
-        if not experience:
-            return error_response(code=404, error_message="Experience not found for this user.")
+        experience = await self.experience_repo.get_by_id(experience_id)
+        if not experience or experience.header_id != header.id:
+            return error_response(code=403, error_message="Unauthorized access to this experience.")
 
         ai_suggestions = await self.gemini_service.generate_experience(
             role=experience.role,
+            company_name=experience.company_name,
             start_date=experience.start_date,
             end_date=experience.end_date
         )

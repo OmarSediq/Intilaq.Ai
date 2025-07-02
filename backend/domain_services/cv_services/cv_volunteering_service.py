@@ -22,29 +22,6 @@ class CVVolunteeringService:
 
         return success_response(code=201, data=volunteering, message="Volunteering experience created successfully")
 
-    async def get(self, volunteering_id: int, user_id: int):
-        volunteering = await self.volunteer_repo.get_by_id(volunteering_id)
-        if not volunteering:
-            return error_response(code=404, error_message="Volunteering experience not found")
-
-        header = await self.header_repo.get_by_id(volunteering.header_id)
-        if not header or header.user_id != user_id:
-            return error_response(code=403, error_message="Unauthorized")
-
-        return success_response(code=200, data=volunteering)
-
-    async def delete(self, volunteering_id: int, user_id: int):
-        volunteering = await self.volunteer_repo.get_by_id(volunteering_id)
-        if not volunteering:
-            return error_response(code=404, error_message="Volunteering experience not found")
-
-        header = await self.header_repo.get_by_id(volunteering.header_id)
-        if not header or header.user_id != user_id:
-            return error_response(code=403, error_message="Unauthorized")
-
-        await self.volunteer_repo.delete(volunteering)
-        return success_response(code=200, data={"message": "Volunteering experience deleted successfully"})
-
     async def generate_suggestions(self, volunteering_id: int, user_id: int):
         volunteering = await self.volunteer_repo.get_by_id(volunteering_id)
         if not volunteering:

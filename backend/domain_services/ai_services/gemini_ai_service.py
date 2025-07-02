@@ -2,12 +2,12 @@ from datetime import date
 from typing import Optional
 from fastapi import HTTPException
 import re
-import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from google.generativeai import GenerativeModel
 import google.generativeai as genai
 from backend.core.base_service import TraceableService
+import httpx
 class GeminiAIService(TraceableService):
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key)
@@ -15,18 +15,32 @@ class GeminiAIService(TraceableService):
 
     async def generate_objective(self, job_title: str, years_of_experience: int) -> list:
         system_message = (
-                "You are a CV generation assistant. Your task is to provide a clear and concise "
-                "professional summary or career objective tailored to the role and experience level provided. "
-                "Suggest 4 different descriptions, each with a maximum of 4 lines, temperature=0."
-            )
-        user = f"Generate a career objective for the job title '{job_title}' with {years_of_experience} years of experience."
-        prompt = f"{system_message}\n\nUser: {user}"
+            "You are a CV-writing assistant. "
+            "Generate 4 career-objective statements ready for direct use in a CV. "
+            "Do NOT use any brackets, placeholders, or numbered bullet points. "
+            "Each statement ≤4 lines, professional tone."
+        )
+
+        user_prompt = (
+            f"The applicant is a '{job_title}' with {years_of_experience} years of experience. "
+            "Return the 4 statements separated by blank lines."
+        )
+
+        prompt = f"{system_message}\n\n{user_prompt}"
 
         try:
             response = self.model.generate_content(prompt)
-            return response.text.split("\n")
+            raw_blocks = [blk.strip() for blk in response.text.split("\n\n") if blk.strip()]
+
+            import re
+            def strip_brackets(t):
+                return re.sub(r"\[.*?\]", "", t).strip()
+
+            clean = [strip_brackets(b) for b in raw_blocks if len(strip_brackets(b)) >= 20]
+
+            return [f"{idx + 1}. {txt}" for idx, txt in enumerate(clean)]
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to generate objective: {str(e)}")
+            raise HTTPException(status_code=500,detail= f"Failed to generate objective: {e}")
 
     async def fetch_project_descriptions(self, project_name: str) -> list:
         system_message = (
@@ -39,23 +53,52 @@ class GeminiAIService(TraceableService):
 
         try:
             response = self.model.generate_content(prompt)
-            return response.text.split("\n")
+            return [line.strip() for line in response.text.split("\n") if line.strip()]
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to fetch project descriptions: {str(e)}")
 
-    async def generate_experience(self, role: str, start_date: date, end_date: Optional[date]) -> list:
+    async def generate_experience(
+            self,
+            role: str,
+            company_name: str,
+            start_date: date,
+            end_date: Optional[date]
+    ) -> list[list[str]]:
+        date_range = f"{start_date:%B %Y} – {end_date:%B %Y}" if end_date else f"{start_date:%B %Y} – Present"
+
         system_message = (
-            "You are an AI assistant specialized in generating CV work experience sections. Your task is to provide "
-            "detailed and structured work experience entries tailored to the role and dates provided. Include "
-            "the start date and end date in the format 'Role, Company Name (Month YYYY – Month YYYY)' and focus on "
-            "accomplishments. Suggest 5 different descriptions, each with a maximum of 5 lines."
+            "You are a CV writing assistant.\n"
+            "Generate 5 distinct and formatted resume blocks.\n"
+            "Each block must:\n"
+            "- Start with '**Option X (Focus on ...):**'\n"
+            "- Followed by 'Role, Company (Month YYYY – Month YYYY)'\n"
+            "- Followed by 3 to 5 bullet points, each on a new line, starting with '*'\n"
+            "No extra explanation.\n"
+            "Separate each full block with: ###"
         )
-        user = f"Generate a work experience section for the role '{role}', starting from {start_date} to {end_date or 'present'}."
-        prompt = f"{system_message}\n\nUser: {user}"
+
+        user_prompt = (
+            f"The user worked as a {role} at {company_name} from {date_range}. "
+            "Generate the blocks as described."
+        )
+
+        prompt = f"{system_message}\n\n{user_prompt}"
 
         try:
             response = self.model.generate_content(prompt)
-            return response.text.split("\n")
+
+            # Split blocks by separator ###
+            raw_blocks = [block.strip() for block in response.text.split("###") if block.strip()]
+
+            # Further split each block into lines
+            structured_blocks = []
+            for block in raw_blocks:
+                lines = [line.strip() for line in block.split("\n") if line.strip()]
+                if lines:
+                    structured_blocks.append(lines)
+
+            return structured_blocks[:5]
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to generate experience: {str(e)}")
 
@@ -105,7 +148,7 @@ class GeminiAIService(TraceableService):
 
         try:
             response = self.model.generate_content(prompt)
-            return response.text.strip().split("\n")
+            return [line.strip() for line in response.text.split("\n") if line.strip()]
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to generate volunteering descriptions: {str(e)}")
 
@@ -156,8 +199,18 @@ class GeminiAIService(TraceableService):
         try:
             response = await self.model.generate_content_async(prompt)
             return response.text.strip()
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429:
+                return (
+                    "⚠️ Gemini API quota exceeded for today (429 Too Many Requests). "
+                    "Please upgrade your plan or wait for the daily reset. "
+                    "More info: https://ai.google.dev/gemini-api/docs/rate-limits"
+                )
+            raise
+
         except Exception as e:
-            return f"Error generating model answer: {e}"
+            return f"Error generating model answer: {str(e)}"
 
     async def generate_feedback(self, user_answer: str, question: str, ideal_answer: str):
             system_message = (

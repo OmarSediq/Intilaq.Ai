@@ -6,7 +6,7 @@ from backend.domain_services.cv_services.cv_education_service import CVEducation
 
 router = APIRouter()
 
-@router.post("/api/educations/", tags=["Education Management"])
+@router.post("/api/educations/", tags=["CV - Designer-Assistant"])
 async def create_education(
     request: EducationRequest,
     user: dict = Depends(get_current_user),
@@ -15,13 +15,13 @@ async def create_education(
     return await service.create(request, int(user["user_id"]))
 
 
-@router.get("/api/educations/{education_id}/", tags=["Education Management"])
-async def get_education(
-    education_id: int,
-    user: dict = Depends(get_current_user),
-    service: CVEducationService = Depends(get_cv_education_service)
-):
-    return await service.get(education_id, int(user["user_id"]))
+# @router.get("/api/educations/{education_id}/", tags=["Education Management"])
+# async def get_education(
+#     education_id: int,
+#     user: dict = Depends(get_current_user),
+#     service: CVEducationService = Depends(get_cv_education_service)
+# ):
+#     return await service.get(education_id, int(user["user_id"]))
 
 
 # @router.put("/api/educations/{education_id}/", tags=["Education Management"])

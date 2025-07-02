@@ -3,11 +3,10 @@ import tempfile
 import os
 import shutil
 import asyncio
-import subprocess
 from fastapi import UploadFile
 from backend.core.base_service import TraceableService
-import json
-WHISPER_URL = os.getenv("WHISPER_SERVICE_URL", "http://speech_to_text_service:5001/transcribe")
+
+WHISPER_URL = os.getenv("WHISPER_SERVICE_URL", "http://speech_to_text_service:5001/api/transcribe")
 
 class WhisperTranscriberService(TraceableService):
 
@@ -31,7 +30,7 @@ class WhisperTranscriberService(TraceableService):
             }.get(ext, "application/octet-stream")
             headers = {"Content-Type": content_type}
 
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(WHISPER_URL, content=audio_bytes, headers=headers)
 
             if response.status_code != 200:

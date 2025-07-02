@@ -24,6 +24,6 @@ class HRAuthService:
         await self.token_service.store_refresh_token(str(hr_user.id), refresh_token)
 
         response = success_response(code=200, data={"message": "Login successful"})
-        response.set_cookie("access_token", access_token, httponly=True, samesite="None", max_age=604800, secure=True, path="/")
-        response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="None", max_age=604800, secure=True, path="/")
+        response.set_cookie("access_token", access_token, httponly=True, samesite="None", max_age=999999999999999999, secure=True, path="/")
+        response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="None", max_age=999999999999999999, secure=True, path="/")
         return response

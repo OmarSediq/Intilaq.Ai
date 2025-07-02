@@ -25,8 +25,8 @@ class AuthService(TraceableService):
         await self.token_service.store_refresh_token(str(user.id), refresh_token)
 
         response = success_response(code=200, data={"message": "Login successful"})
-        response.set_cookie("access_token", access_token, httponly=True, samesite="None", max_age=604800, secure=True, path="/")
-        response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="None", max_age=604800, secure=True, path="/")
+        response.set_cookie("access_token", access_token, httponly=True, samesite="None", max_age=9999999999999999999999, secure=True, path="/")
+        response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="None", max_age=9999999999999999999999, secure=True, path="/")
         return response
 
     async def logout(self, request: Request, response: Response):

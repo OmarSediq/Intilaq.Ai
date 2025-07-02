@@ -15,9 +15,10 @@ from backend.core.middlewares.performance_logging import PerformanceLoggingMiddl
 from backend.core.providers.infra_providers import connect_to_mongo, close_mongo_connection
 from contextlib import asynccontextmanager
 import sqlalchemy as sa
-from fastapi import Depends
 from backend.core.providers.domain_providers.token_provider import get_token_service
-import os
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -36,21 +37,6 @@ async def create_tables():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
-    if os.getenv("ENABLE_REMOTE_DEBUG", "false").lower() == "true":
-        try:
-            import pydevd_pycharm
-            print("[DEBUG] Trying to attach debugger...")
-            pydevd_pycharm.settrace(
-                'host.docker.internal',
-                port=5691,
-                stdoutToServer=True,
-                stderrToServer=True,
-                suspend=False
-            )
-            print("[DEBUG] Debugger attached")
-        except Exception as e:
-            print(f"[DEBUG] Debug attach failed: {e}")
 
     await create_tables()
     await connect_to_mongo()
@@ -80,3 +66,21 @@ app.add_middleware(DBTransactionMiddleware)
 
 for router in all_routers:
     app.include_router(router)
+
+from fastapi.openapi.docs import get_swagger_ui_html
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title="IntilaqAI - Swagger UI",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui.css",
+        init_oauth={},
+        swagger_favicon_url="",
+    ).update({
+        "swaggerOptions": {
+            "persistAuthorization": True,
+            "withCredentials": True
+        }
+    })

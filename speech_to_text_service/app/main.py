@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-@app.post("/transcribe")
+@app.post("/api/transcribe" , tags=["Speech to Text"])
 async def transcribe(request: Request):
     try:
         audio_bytes = await request.body()

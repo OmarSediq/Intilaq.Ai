@@ -14,10 +14,10 @@ def trace_calls(name=None):
         if inspect.iscoroutinefunction(func):
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
-                # توقيت البدء
+
                 start = time.perf_counter()
 
-                # تتبع القيم الممررة
+
                 bound_args = inspect.signature(func).bind(*args, **kwargs)
                 bound_args.apply_defaults()
                 trace_logger.info(f"[TRACE] Calling async {func_name}()")
