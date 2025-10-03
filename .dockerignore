@@ -40,3 +40,31 @@ pip-log.txt
 pip-delete-this-directory.txt
 config.json
 config.yaml
+
+
+
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+
+
+
+# حذف البيئة الافتراضية والمجلدات الثقيلة من سياق البناء
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.so
+.git
+.gitignore
+node_modules
+models/
+whisper_model/
+*.tar.gz
+*.tar.xz
+*.deb
+docker-base-image/site-packages  # لو حطيت مسار نسخ
