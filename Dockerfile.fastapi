@@ -21,22 +21,27 @@ FROM python:3.10-slim
 WORKDIR /app
 ENV PYTHONPATH="/app"
 
-RUN echo 'deb http://ftp.debian.org/debian bookworm contrib' >> /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
+# تحديث المصادر وتثبيت الحزم الأساسية
+RUN apt-get update && apt-get install -y --no-install-recommends \
        wget gcc libpq-dev ffmpeg \
        libcairo2 libpangoft2-1.0-0 libpangocairo-1.0-0 \
-       libgdk-pixbuf2.0-0 libpangoxft-1.0-0 libfontconfig1 \
-       libfreetype6 libjpeg62-turbo libffi-dev shared-mime-info \
+       libgdk-pixbuf-xlib-2.0-0 libpangoxft-1.0-0 libfontconfig1 \
+       libfreetype6 libjpeg62-turbo libpng16-16 libssl3 libstdc++6 \
+       libx11-6 libxcb1 libxext6 libxrender1 zlib1g \
+       libffi-dev shared-mime-info \
        fonts-liberation fontconfig xfonts-utils cabextract \
-       msttcorefonts \
-       wkhtmltopdf && \
-    fc-cache -fv && \
-    rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
+# تثبيت wkhtmltopdf من مستودع packaging الرسمي (نسخة ثابتة وموثوقة)
+RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.bookworm_amd64.deb \
+    && apt install -y ./wkhtmltox_0.12.6-1.bookworm_amd64.deb \
+    && rm ./wkhtmltox_0.12.6-1.bookworm_amd64.deb
+
+# نسخ الحزم من مرحلة builder
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
+# نسخ الكود والمجلدات
 COPY . /app
 COPY ./templates /app/templates
 COPY certs/cert.pem /app/cert.pem
@@ -47,5 +52,4 @@ COPY migrations /app/alembic
 EXPOSE 8000
 EXPOSE 5692
 
-
-CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5692", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000",  "--ssl-keyfile", "/app/certs/key.pem", "--ssl-certfile", "/app/certs/cert.pem"]
+CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5692", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "/app/certs/key.pem", "--ssl-certfile", "/app/certs/cert.pem"]

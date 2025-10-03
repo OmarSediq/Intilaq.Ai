@@ -1,8 +1,14 @@
-# global:
-#   scrape_interval: 15s
+global:
+  scrape_interval: 15s
 
-# scrape_configs:
-#   - job_name: 'fastapi'
-#     metrics_path: /metrics
-#     static_configs:
-#       - targets: ['fastapi-container:8000']
+scrape_configs:
+  - job_name: 'fastapi'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['fastapi-container:8000']
+
+  # Optional: you can also scrape other services (if they expose /metrics)
+  - job_name: 'speech_to_text_service'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['stt-container:5001']

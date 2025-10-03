@@ -2,16 +2,31 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from speech_to_text_service.services.whisper_transcriber import WhisperTranscriber
 from contextlib import asynccontextmanager
+from speech_to_text_service.services.tracing import setup_tracing
+import os
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 transcriber: WhisperTranscriber = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global transcriber
+
+    # --- Tracing setup ---
+    enable_tracing = os.getenv("ENABLE_TRACING", "true").lower() in ("1","true","yes")
+    setup_tracing(service_name=os.getenv("SERVICE_NAME", "whisper-service"), enabled=enable_tracing)
+
+    if enable_tracing:
+        # instrument FastAPI and outgoing HTTP requests (httpx / requests)
+        FastAPIInstrumentor().instrument_app(app)
+        RequestsInstrumentor().instrument()
+
+    # app-specific startup
     transcriber = WhisperTranscriber()
     print("Whisper model loaded and cached once.")
-    yield
 
+    yield
 
 app = FastAPI(lifespan=lifespan)
 

@@ -95,9 +95,7 @@ services:
     networks:
       - my_network
   rq_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.fastapi
+    image: intilaqai-fastapi   # استخدم صورة FastAPI المبنية مسبقًا
     container_name: rq-worker
     depends_on:
       - redis
@@ -109,7 +107,43 @@ services:
     env_file:
       - .env
     command: ["python", "backend/job_worker/worker.py"]
+    # ------------------ Observability services ------------------
+  prometheus:
+      image: prom/prometheus:latest
+      container_name: prometheus-container
+      networks:
+        - my_network
+      volumes:
+        - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+        - prometheus_data:/prometheus
+      ports:
+        - "9090:9090"
+      restart: unless-stopped
 
+  grafana:
+      image: grafana/grafana:latest
+      container_name: grafana-container
+      networks:
+        - my_network
+      environment:
+        - GF_SECURITY_ADMIN_USER=admin
+        - GF_SECURITY_ADMIN_PASSWORD=admin
+      volumes:
+        - grafana_data:/var/lib/grafana
+      ports:
+        - "3000:3000"
+      restart: unless-stopped
+
+  jaeger:
+      image: jaegertracing/all-in-one:1.52
+      container_name: jaeger-container
+      networks:
+        - my_network
+      ports:
+        - "16686:16686"
+        - "4317:4317"
+        - "6831:6831/udp"
+      restart: unless-stopped
 networks:
   my_network:
 
@@ -118,3 +152,5 @@ volumes:
   redis_data:
   postgres_data:
   whisper_model_cache:
+  prometheus_data:
+  grafana_data:

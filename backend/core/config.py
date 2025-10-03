@@ -69,6 +69,13 @@ class Settings(BaseSettings):
     REDIS_2FA_EXPIRE_SECONDS: int = 300
     GENAI_API_KEY: str
     enable_remote_debug: bool = False
+    # mentoring settings
+    enable_tracing: bool = False
+    jaeger_endpoint: str = "http://localhost:4317"
+    service_name: str = "my-service"
+
+
+
     class Config:
         env_file = ".env"
 

@@ -15,11 +15,14 @@ from backend.core.middlewares.performance_logging import PerformanceLoggingMiddl
 from backend.core.providers.infra_providers import connect_to_mongo, close_mongo_connection
 from contextlib import asynccontextmanager
 import sqlalchemy as sa
+import os
 from backend.core.providers.domain_providers.token_provider import get_token_service
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
-
+from backend.core.providers.tracing_provider import setup_tracing
+from backend.core.instrumentation import instrument_app
 from dotenv import load_dotenv
+
 load_dotenv()
 
 async def create_tables():
@@ -37,16 +40,18 @@ async def create_tables():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Tracing setup
+    enable_tracing = os.getenv("ENABLE_TRACING", "true").lower() in ("1", "true", "yes")
+    setup_tracing(service_name="intilaqai-backend", enabled=enable_tracing)
+    instrument_app(app, enabled=enable_tracing)
 
+    # DB + Token setup
     await create_tables()
     await connect_to_mongo()
-
-    token_service = await get_token_service()
-    app.state.token_service = token_service
-
+    app.state.token_service = await get_token_service()
     yield
-
     await close_mongo_connection()
+
 
 app = FastAPI(lifespan=lifespan)
 
