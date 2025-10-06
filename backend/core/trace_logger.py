@@ -1,10 +1,12 @@
+# backend/core/tracing_logger.py
 from opentelemetry import trace
-from opentelemetry.trace import SpanKind
+from opentelemetry.trace import SpanKind, Status, StatusCode
 import functools
 import inspect
 import time
 
-tracer = trace.get_tracer("intilaqai")
+def _get_tracer():
+    return trace.get_tracer("intilaqai")
 
 def trace_calls(name=None):
     def decorator(func):
@@ -13,6 +15,7 @@ def trace_calls(name=None):
         if inspect.iscoroutinefunction(func):
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
+                tracer = _get_tracer()
                 with tracer.start_as_current_span(func_name, kind=SpanKind.INTERNAL) as span:
                     try:
                         start = time.perf_counter()
@@ -24,13 +27,14 @@ def trace_calls(name=None):
                         return result
                     except Exception as e:
                         span.record_exception(e)
-                        span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
+                        span.set_status(Status(StatusCode.ERROR, str(e)))
                         raise
             return async_wrapper
 
         else:
             @functools.wraps(func)
             def sync_wrapper(*args, **kwargs):
+                tracer = _get_tracer()
                 with tracer.start_as_current_span(func_name, kind=SpanKind.INTERNAL) as span:
                     try:
                         start = time.perf_counter()
@@ -42,7 +46,7 @@ def trace_calls(name=None):
                         return result
                     except Exception as e:
                         span.record_exception(e)
-                        span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
+                        span.set_status(Status(StatusCode.ERROR, str(e)))
                         raise
             return sync_wrapper
     return decorator

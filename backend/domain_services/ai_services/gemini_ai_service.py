@@ -11,7 +11,7 @@ import httpx
 class GeminiAIService(TraceableService):
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key)
-        self.model = GenerativeModel(model_name="gemini-1.5-flash")
+        self.model = GenerativeModel(model_name="gemini-2.5-flash")
 
     async def generate_objective(self, job_title: str, years_of_experience: int) -> list:
         system_message = (

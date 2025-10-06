@@ -95,7 +95,7 @@ services:
     networks:
       - my_network
   rq_worker:
-    image: intilaqai-fastapi   # استخدم صورة FastAPI المبنية مسبقًا
+    image: intilaqai-fastapi
     container_name: rq-worker
     depends_on:
       - redis

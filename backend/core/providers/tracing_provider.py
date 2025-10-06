@@ -1,21 +1,35 @@
+# backend/core/providers/tracing_provider.py
+import logging
+from typing import Optional
+
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
-def setup_tracing(service_name: str = "intilaqai-backend"):
+logger = logging.getLogger("intilaqai.tracing")
 
-    resource = Resource.create({"service.name": service_name})
+def setup_tracing(service_name: str = "intilaqai-backend", enabled: bool = True) -> Optional[TracerProvider]:
 
-    provider = TracerProvider(resource=resource)
-    trace.set_tracer_provider(provider)
+    if not enabled:
+        logger.info("Tracing disabled by configuration (enabled=False).")
+        return None
 
-    otlp_exporter = OTLPSpanExporter(
-        endpoint="http://jaeger:4317", insecure=True
-    )
+    try:
+        resource = Resource.create({"service.name": service_name})
+        provider = TracerProvider(resource=resource)
+        trace.set_tracer_provider(provider)
 
-    span_processor = BatchSpanProcessor(otlp_exporter)
-    provider.add_span_processor(span_processor)
+        # OTLP exporter - adjust endpoint / insecure according to your infra
+        otlp_exporter = OTLPSpanExporter(endpoint="http://jaeger:4317", insecure=True)
 
-    return provider
+        span_processor = BatchSpanProcessor(otlp_exporter)
+        provider.add_span_processor(span_processor)
+
+        logger.info("Tracing initialized for service: %s", service_name)
+        return provider
+
+    except Exception as exc:
+        logger.exception("Failed to setup tracing (falling back to no-tracing): %s", exc)
+        return None
