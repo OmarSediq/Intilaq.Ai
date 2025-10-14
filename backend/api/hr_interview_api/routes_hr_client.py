@@ -5,7 +5,7 @@ from backend.core.providers.domain_providers.hr_providers import get_hr_answer_s
 from backend.utils.response_schemas import success_response, error_response
 from fastapi import APIRouter, UploadFile, File, Form, Depends
 from backend.schemas.hr_schemas.hr_client_schema import InterviewLoginRequest , InterviewAnswerRequest
-from backend.core.job_runners.video_jobs import enqueue_process_video_job
+# from backend.core.job_dispatchers.video_jobs import enqueue_process_video_job
 from backend.core.providers.domain_providers.hr_summary_service_provider import (
     get_hr_summary_service,
 )
@@ -72,10 +72,10 @@ async def submit_answer(
 
 
 
-@router.post("/upload" , tags=["HR - Interview"])
-async def upload_video_route(video_id: str):
-    enqueue_process_video_job(video_id)
-    return {"message": "Video processing started in background"}
+# @router.post("/upload" , tags=["HR - Interview"])
+# async def upload_video_route(video_id: str):
+#     enqueue_process_video_job(video_id)
+#     return {"message": "Video processing started in background"}
 
 
 @router.get("/api/hr/interview/{interview_token}/overall-score" , tags=["HR - Interview"])

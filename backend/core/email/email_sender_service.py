@@ -1,8 +1,9 @@
 import smtplib
 from email.mime.text import MIMEText
+from backend.core.base_service import TraceableService
 from backend.core.config import settings
 
-class EmailSenderService:
+class EmailSenderService (TraceableService):
     def send_email(self, to_email: str, subject: str, html_body: str):
         msg = MIMEText(html_body, "html")
         msg["Subject"] = subject

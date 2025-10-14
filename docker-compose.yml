@@ -106,7 +106,7 @@ services:
       - .:/app
     env_file:
       - .env
-    command: ["python", "backend/job_worker/worker.py"]
+    command: ["python", "backend/core/worker_service/rq_worker.py"]
     # ------------------ Observability services ------------------
   prometheus:
       image: prom/prometheus:latest

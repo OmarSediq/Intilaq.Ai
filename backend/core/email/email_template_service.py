@@ -1,6 +1,7 @@
+from backend.core.base_service import TraceableService
 from jinja2 import Environment, FileSystemLoader
 
-class EmailTemplateService:
+class EmailTemplateService (TraceableService):
     def __init__(self, template_dir="/app/templates"):
         self.env = Environment(loader=FileSystemLoader(template_dir))
 

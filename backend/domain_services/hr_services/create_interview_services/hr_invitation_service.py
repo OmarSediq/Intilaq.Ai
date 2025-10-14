@@ -4,13 +4,13 @@ from backend.core.base_service import TraceableService
 from backend.utils.response_schemas import success_response, error_response
 from backend.data_access.mongo.hr.hr_invitation_repository import HRInvitationRepository
 from backend.data_access.postgres.hr.hr_user_repository import HRUserRepository
-from backend.core.job_triggers.email_job_trigger_service import EmailJobTriggerService
+from backend.core.job_dispatchers.email_dispatcher import EmailDispatcherService
 
 class HRInvitationService(TraceableService):
-    def __init__(self, repo: HRInvitationRepository, db: AsyncSession, email_trigger: EmailJobTriggerService):
+    def __init__(self, repo: HRInvitationRepository, db: AsyncSession, email_dispatcher: EmailDispatcherService):
         self.repo = repo
         self.db = db
-        self.email_trigger = email_trigger
+        self.email_dispatcher = email_dispatcher
 
     async def send_invitations(self, interview_token: str, emails: list, email_description: str, interview_link: str):
         doc = await self.repo.get_interview_by_token(interview_token)
@@ -37,12 +37,20 @@ class HRInvitationService(TraceableService):
             "company_field": company_field
         })
 
-        self.email_trigger.trigger_send_invitation_job(
-            emails=emails,
-            job_title=job_title,
-            raw_date=raw_date,
-            interview_link=interview_link,
-            hr_id=hr_id
-        )
+        # جهز payload موحّد ليتوافق مع توقيع EmailDispatcherService.dispatch_send_invitations(payload)
+        payload = {
+            "emails": emails,
+            "job_title": job_title,
+            "raw_date": raw_date,
+            "interview_link": interview_link,
+            "hr_id": hr_id,
+            "email_description": email_description,
+            "company_field": company_field,
+            "created_at": datetime.utcnow().isoformat()
+        }
 
-        return success_response(code=200, data={"message": "Emails queued and metadata updated."})
+        job_id = self.email_dispatcher.dispatch_send_invitations(payload)
+
+        return success_response(code=200, data={
+            "message": "Emails queued and metadata updated."
+        })

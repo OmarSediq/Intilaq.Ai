@@ -1,7 +1,8 @@
+from backend.core.base_service import TraceableService
 from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 
-class InterviewRepository:
+class InterviewRepository (TraceableService):
     def __init__(self, mongo_client: AsyncIOMotorClient):
         self.db = mongo_client["interview_db"]
 

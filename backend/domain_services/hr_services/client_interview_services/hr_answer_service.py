@@ -1,14 +1,17 @@
 from datetime import datetime, timezone , timedelta
 from backend.core.base_service import TraceableService
-from backend.core.job_triggers.text_job_trigger_service import TextJobTriggerService
+from backend.core.job_dispatchers.text_dispatcher import TextDispatcherService
 from backend.data_access.mongo.hr.hr_interview_client_repository import HRAnswerRepository
 from backend.data_access.mongo.hr.hr_interview_repository import HRInterviewRepository
 from backend.data_access.mongo.hr.hr_invitation_repository import HRInvitationRepository
 from backend.data_access.mongo.hr.hr_interview_gridfs_repository import HRGridFSStorageService
 from typing import Optional
 from fastapi import UploadFile
-from backend.core.job_triggers.video_job_trigger_service import VideoJobTriggerService
+from backend.core.job_dispatchers.video_dispatcher import VideoDispatcherService
 from backend.domain_services.video.video_metadata_service import VideoMetadataService
+import uuid
+from backend.data_access.mongo.task.tasks_repository import TasksRepository
+from backend.core.providers.infra_providers import get_mongo_db
 
 
 class HRAnswerService(TraceableService):
@@ -17,15 +20,15 @@ class HRAnswerService(TraceableService):
         answer_repo: HRAnswerRepository,
         invitation_repo: HRInvitationRepository,
         gridfs_storage: HRGridFSStorageService,
-        video_job_trigger: VideoJobTriggerService,
-        text_job_trigger : TextJobTriggerService ,
+        video_job_dispatcher: VideoDispatcherService,
+        text_job_dispatcher : TextDispatcherService ,
         question_repo : HRInterviewRepository
     ):
         self.repo = answer_repo
         self.invitation_repo = invitation_repo
         self.gridfs_storage = gridfs_storage
-        self.video_job_trigger = video_job_trigger
-        self.text_job_trigger = text_job_trigger
+        self.video_job_dispatcher = video_job_dispatcher
+        self.text_job_dispatcher = text_job_dispatcher
         self.question_repo = question_repo
 
     async def create_session(self, interview_token: str, name: str, email: str):
@@ -48,7 +51,7 @@ class HRAnswerService(TraceableService):
             user_email: str,
             file: UploadFile = None,
             text_answer: Optional[str] = None
-    ):
+        ):
 
         session = await self.repo.get_session_by_token_and_email(interview_token, user_email)
         if not session:
@@ -107,19 +110,38 @@ class HRAnswerService(TraceableService):
             "answer_text": text_answer,
         }
 
-
         await self.repo.add_answer_to_user(interview_token, user_email, answer_doc)
 
         if response_type == "video":
-            self.video_job_trigger.trigger_video_processing(str(video_file_id))
+            job_id = uuid.uuid4().hex
+            payload_ref = video_file_id
+            task_doc = {
+                "_id": job_id,
+                "type": "video_processing",
+                "status": "pending",
+                "payload_ref": payload_ref,
+                "attempts": 0,
+                "max_attempts": int(__import__("os").environ.get("TASK_MAX_ATTEMPTS", "5")),
+                "idempotency_key": video_file_id,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+            }
+
+            tasks_repo = TasksRepository(db=get_mongo_db())
+            await tasks_repo.insert_task(task_doc)
+
+            try:
+                await self.video_job_dispatcher.dispatch_video_processing(video_file_id,interview_token,user_email,index)
+
+                await tasks_repo.col.update_one(
+                    {"_id": job_id},
+                    {"$set": {"status": "queued", "queued_at": datetime.utcnow(), "updated_at": datetime.utcnow()}}
+                )
+            except Exception as exc:
+                await tasks_repo.mark_failed(job_id, reason=f"enqueue_failed:{str(exc)}")
+                raise
+
+            return {"job_id": job_id, "answer": await self.repo.get_answer_by_index(interview_token, user_email, index)}
         else:
-            self.text_job_trigger.trigger_text_evaluation(interview_token, user_email, index)
-
-        return await self.repo.get_answer_by_index(interview_token,user_email, index )
-
-    async def get_video_bytes(self, file_id: str) -> bytes:
-        try:
-            return await self.gridfs_storage.get_video_by_file_id(file_id)
-        except Exception as e:
-            raise RuntimeError(f"Error fetching video from storage: {str(e)}")
-
+            await self.text_job_dispatcher.dispatch_text_evaluation(interview_token, user_email, index)
+            return await self.repo.get_answer_by_index(interview_token, user_email, index)

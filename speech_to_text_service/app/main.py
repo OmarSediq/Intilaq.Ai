@@ -6,27 +6,27 @@ from contextlib import asynccontextmanager
 from speech_to_text_service.services.tracing import setup_tracing
 import os
 
-# instrumentation imports (we will call them BEFORE server start)
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
+# # instrumentation imports (we will call them BEFORE server start)
+# from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+# from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
-transcriber: WhisperTranscriber = None
+# transcriber: WhisperTranscriber = None
 
-# --- Read env / decide tracing before creating app ---
-ENABLE_TRACING = os.getenv("ENABLE_TRACING", "true").lower() in ("1", "true", "yes")
-SERVICE_NAME = os.getenv("SERVICE_NAME", "whisper-service")
+# # --- Read env / decide tracing before creating app ---
+# ENABLE_TRACING = os.getenv("ENABLE_TRACING", "true").lower() in ("1", "true", "yes")
+# SERVICE_NAME = os.getenv("SERVICE_NAME", "whisper-service")
 
 # Setup tracing provider (no-op if setup_tracing handles enabled flag)
 # Recommended: make setup_tracing accept enabled kwarg (see example below)
-setup_tracing(service_name=SERVICE_NAME, enabled=ENABLE_TRACING)
+# setup_tracing(service_name=SERVICE_NAME, enabled=ENABLE_TRACING)
 
 # Create app
 app = FastAPI()
 
-# Instrument app BEFORE it starts (so middleware is added during setup, not at runtime)
-if ENABLE_TRACING:
-    FastAPIInstrumentor().instrument_app(app)
-    RequestsInstrumentor().instrument()
+# # Instrument app BEFORE it starts (so middleware is added during setup, not at runtime)
+# if ENABLE_TRACING:
+#     FastAPIInstrumentor().instrument_app(app)
+#     RequestsInstrumentor().instrument()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
