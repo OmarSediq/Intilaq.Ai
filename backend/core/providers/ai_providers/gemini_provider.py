@@ -1,8 +1,9 @@
-from fastapi import Depends
+from dependency_injector.wiring import Provide, inject
+from backend.core.containers.ai_container import AIContainer
 from backend.domain_services.ai_services.gemini_ai_service import GeminiAIService
-from backend.core.config import settings
 
+@inject
 def get_gemini_ai_service(
-    api_key: str = Depends(lambda: settings.GENAI_API_KEY),
+    factory = Provide[AIContainer.gemini_service],
 ) -> GeminiAIService:
-    return GeminiAIService(api_key=api_key)
+    return factory()  

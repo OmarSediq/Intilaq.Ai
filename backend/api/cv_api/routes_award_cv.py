@@ -9,8 +9,8 @@ router = APIRouter()
 @router.post("/api/awards/", tags=["CV - Designer-Assistant"])
 async def create_award(
     request: AwardsRequest,
-    user: dict = Depends(get_current_user),
-    service: CVAwardService = Depends(get_cv_award_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_award_service)
 ):
     return await service.create(user["user_id"], request)
 

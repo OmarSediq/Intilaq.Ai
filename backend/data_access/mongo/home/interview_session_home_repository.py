@@ -1,10 +1,10 @@
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 class InterviewSessionHomeRepository:
-    def __init__(self, mongo_client: AsyncIOMotorClient):
-        self.questions_collection = mongo_client["interview_db"]["questions"]
-        self.answers_collection = mongo_client["interview_db"]["answers"]
-        self.results_collection = mongo_client["interview_db"]["session_results"]
+    def __init__(self, db: AsyncIOMotorDatabase):
+        self.questions_collection = db["questions"]
+        self.answers_collection = db["answers"]
+        self.results_collection = db["session_results"]
 
     async def get_session_meta(self, session_id: int, user_id: int):
         return await self.questions_collection.find_one(

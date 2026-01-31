@@ -9,8 +9,8 @@ router = APIRouter()
 @router.post("/api/projects/", tags=["CV - Designer-Assistant"])
 async def create_project(
     request: ProjectRequest,
-    user: dict = Depends(get_current_user),
-    service: CVProjectService = Depends(get_cv_project_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_project_service)
 ):
     return await service.create(request, user["user_id"])
 
@@ -18,8 +18,8 @@ async def create_project(
 @router.get("/api/projects/generate-description/{project_id}/", tags=["CV - Designer-Assistant"])
 async def generate_project_description(
     project_id: int,
-    user: dict = Depends(get_current_user),
-    service: CVProjectService = Depends(get_cv_project_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_project_service)
 ):
     return await service.generate_description(project_id, user["user_id"])
 
@@ -28,7 +28,7 @@ async def generate_project_description(
 async def save_project_description(
     project_id: int,
     request: ProjectDescriptionSaveRequest,
-    user: dict = Depends(get_current_user),
-    service: CVProjectService = Depends(get_cv_project_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_project_service)
 ):
     return await service.save_description(project_id, request, user["user_id"])

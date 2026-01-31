@@ -1,9 +1,9 @@
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import  AsyncIOMotorDatabase
 from typing import Optional
 
 class HRInvitationRepository:
-    def __init__(self, mongo_client: AsyncIOMotorClient):
-        self.collection = mongo_client["hr_db"]["hr_interviews"]
+    def __init__(self, db: AsyncIOMotorDatabase):
+        self.collection = db["hr_interviews"]
 
     async def get_interview_by_token(self, interview_token: str) -> Optional[dict]:
         return await self.collection.find_one({"interview_token": interview_token})

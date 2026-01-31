@@ -10,7 +10,7 @@ router = APIRouter()
 @router.post("/api/hr/register/", tags=["HR Auth"])
 async def register_hr(
     request: HrSignupRequest,
-    service: HRRegisterService = Depends(get_hr_register_service)
+    service = Depends(get_hr_register_service)
 ):
     return await service.register(request)
 
@@ -18,7 +18,7 @@ async def register_hr(
 @router.post("/api/hr/verify-account/", tags=["HR Auth"])
 async def verify_hr(
     request: HrVerifyRequest,
-    service: HRVerificationService = Depends(get_hr_verification_service)
+    service = Depends(get_hr_verification_service)
 ):
     return await service.verify_code(request.code)
 
@@ -27,7 +27,7 @@ async def verify_hr(
 async def login_hr(
     request: HrLoginRequest,
     response: Response,
-    service: HRAuthService = Depends(get_hr_auth_service)
+    service = Depends(get_hr_auth_service)
 ):
     return await service.login(request, response)
 
@@ -35,6 +35,6 @@ async def login_hr(
 @router.post("/api/hr/resend-verification-code/", tags=["HR Auth"])
 async def resend_code_hr(
     request: HrResendCodeRequest,
-    service: HRVerificationService = Depends(get_hr_verification_service)
+    service = Depends(get_hr_verification_service)
 ):
     return await service.resend_code(request.business_email)

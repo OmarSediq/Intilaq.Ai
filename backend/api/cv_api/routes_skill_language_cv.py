@@ -9,16 +9,16 @@ router = APIRouter()
 @router.post("/api/skills-languages/",tags=["CV - Designer-Assistant"])
 async def create_skills_languages(
     request: SkillsLanguagesRequest,
-    user: dict = Depends(get_current_user),
-    service: CVSkillsService = Depends(get_cv_skills_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_skills_service)
 ):
     return await service.create(request, user["user_id"])
 
 
 @router.get("/api/skills/suggestions/", tags=["CV - Designer-Assistant"])
 async def generate_skills_suggestions(
-    user: dict = Depends(get_current_user),
-    service: CVSkillsService = Depends(get_cv_skills_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_skills_service)
 ):
     return await service.generate_suggestions(user["user_id"])
 
@@ -27,8 +27,8 @@ async def generate_skills_suggestions(
 async def save_skills(
     skills_id: int,
     request: SaveSkillsRequest,
-    user: dict = Depends(get_current_user),
-    service: CVSkillsService = Depends(get_cv_skills_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_skills_service)
 ):
     return await service.save(
         skills_id=skills_id,

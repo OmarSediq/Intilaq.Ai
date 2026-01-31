@@ -1,30 +1,50 @@
-from backend.core.providers.data_access_providers.session_providers.user_repository_provider import get_user_repository
-from backend.core.providers.domain_providers.token_provider import get_token_service
-from backend.data_access.postgres.user_repository import UserRepository
-from backend.domain_services.token_services.token_service import TokenService
+from typing import Callable
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.core.providers.infra_providers import get_db
+from backend.core.dependencies.session.postgres import provide_request_postgres_session
 from backend.domain_services.auth_services.auth_service import AuthService
 from backend.domain_services.auth_services.account_service import AccountService
 from backend.domain_services.auth_services.password_service import PasswordRecoveryService
+from backend.data_access.postgres.user_repository import UserRepository
+from backend.domain_services.token_services.token_service import TokenService
+from backend.domain_services.token_services.refresh_token_service import RefreshTokenService
+from dependency_injector.wiring import inject , Provide
+from backend.core.containers.application_container import ApplicationContainer
 
-# ========== Auth ==========
-def get_auth_service(
-    db: AsyncSession = Depends(get_db),
-    user_repo: UserRepository = Depends(get_user_repository),
-    token_service: TokenService = Depends(get_token_service)
+@inject
+async def get_auth_service(
+    db: AsyncSession = Depends(provide_request_postgres_session),
+    ## Lazy manual construction 
+    user_repo_factory: Callable[[AsyncSession], UserRepository] = Depends(
+    Provide[ApplicationContainer.repos.user_repository_factory.provider]
+
+    ),
+    token_service: TokenService = Depends(
+        Provide[ApplicationContainer.service.token_service]),
+    refresh_token_service : RefreshTokenService = Depends(Provide[ApplicationContainer.service.refresh_token_service])
+    ,
 ) -> AuthService:
-    return AuthService(db, user_repo, token_service)
+    user_repo = user_repo_factory(db)
+    return AuthService(db, user_repo, token_service , refresh_token_service)
 
-def get_account_service(
-    db: AsyncSession = Depends(get_db),
-    user_repo: UserRepository = Depends(get_user_repository)
+
+@inject
+async def get_account_service(
+    db: AsyncSession = Depends(provide_request_postgres_session),
+    user_repo_factory = Depends(
+        Provide[ApplicationContainer.repos.user_repository_factory.provider]
+    ),
 ) -> AccountService:
+    user_repo = user_repo_factory(db)
     return AccountService(db, user_repo)
 
-def get_password_service(
-    db: AsyncSession = Depends(get_db),
-    user_repo: UserRepository = Depends(get_user_repository)
+
+@inject
+async def get_password_service(
+    db: AsyncSession = Depends(provide_request_postgres_session),
+    user_repo_factory = Depends(
+        Provide[ApplicationContainer.repos.user_repository_factory.provider]
+    ),
 ) -> PasswordRecoveryService:
+    user_repo = user_repo_factory(db)
     return PasswordRecoveryService(db, user_repo)

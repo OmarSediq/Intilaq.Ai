@@ -9,8 +9,8 @@ router = APIRouter()
 @router.post("/api/educations/", tags=["CV - Designer-Assistant"])
 async def create_education(
     request: EducationRequest,
-    user: dict = Depends(get_current_user),
-    service: CVEducationService = Depends(get_cv_education_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_education_service)
 ):
     return await service.create(request, int(user["user_id"]))
 

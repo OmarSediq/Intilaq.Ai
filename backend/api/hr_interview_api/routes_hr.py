@@ -22,7 +22,7 @@ router = APIRouter()
 async def create_interview_metadata(
     request: InterviewMetadataRequest,
     user=Depends(get_current_user),
-    service: HRInterviewService = Depends(get_hr_interview_service)
+    service = Depends(get_hr_interview_service)
 ):
     return await service.create_metadata(request, hr_id=user["user_id"])
 
@@ -33,24 +33,24 @@ async def update_interview_question(
     index: int,
     request: HRAddQuestionRequest,
     user=Depends(get_current_user),
-    service: HRInterviewService = Depends(get_hr_interview_service)
+    service = Depends(get_hr_interview_service)
 ):
     return await service.update_question(interview_token, index, request)
 
 
-@router.post("/api/hr/interview/{interview_token}/invitations/send",tags=["HR - Interview"])
-async def send_and_store_invitations(
-    interview_token: str,
-    request: InterviewInvitationRequest,
-    user=Depends(get_current_user),
-    service: HRInvitationService = Depends(get_hr_invitation_service)
-):
-    return await service.send_invitations(
-        interview_token=interview_token,
-        emails=request.emails or [],
-        email_description=request.email_description,
-        interview_link=request.interview_link
-    )
+# @router.post("/api/hr/interview/{interview_token}/invitations/send",tags=["HR - Interview"])
+# async def send_and_store_invitations(
+#     interview_token: str,
+#     request: InterviewInvitationRequest,
+#     user=Depends(get_current_user),
+#     service = Depends(get_hr_invitation_service)
+# ):
+#     return await service.send_invitations(
+#         interview_token=interview_token,
+#         emails=request.emails or [],
+#         email_description=request.email_description,
+#         interview_link=request.interview_link
+#     )
 
 from fastapi import Query
 
@@ -60,7 +60,7 @@ async def stream_video_by_index(
     index: int,
     user_email: str = Query(...),
 
-    evaluation_service: HRInterviewEvaluationService = Depends(get_hr_interview_evaluation_service)
+    evaluation_service = Depends(get_hr_interview_evaluation_service)
 ):
     file_stream, filename = await evaluation_service.get_video_stream_by_index(interview_token, user_email, index)
     if not file_stream:
@@ -81,7 +81,7 @@ async def get_unified_answer_by_index(
     interview_token: str,
     index: int,
     user_email: str = Query(...),
-    service: HRInterviewService = Depends(get_hr_interview_service),
+    service = Depends(get_hr_interview_service),
 
 ):
     return await service.get_unified_answer_by_index(
@@ -95,7 +95,7 @@ async def update_review_status(
     interview_token: str,
     user_email: str =  Query(...),
     status: str =  Query(...),
-    service: HRUserSummaryService = Depends(get_hr_summary_service)
+    service = Depends(get_hr_summary_service)
 ):
     try:
         result = await service.update_review_status(interview_token, user_email, status)
@@ -107,7 +107,7 @@ async def update_review_status(
 @router.get("/api/hr/dashboard" , tags=["HR - Dashboard"])
 async def hr_dashboard(
     current_user = Depends(get_current_user),
-    summary_service: HRUserSummaryService = Depends(get_hr_summary_service)
+    summary_service = Depends(get_hr_summary_service)
 ):
 
     hr_id = current_user["user_id"]
@@ -117,8 +117,8 @@ async def hr_dashboard(
 @router.get("/api/hr/interview/{interview_token}/participants" , tags=["HR - Dashboard"])
 async def get_participants(
     interview_token: str,
-    user: dict = Depends(get_current_user),
-    service: HRUserSummaryService = Depends(get_hr_summary_service)
+    user = Depends(get_current_user),
+    service = Depends(get_hr_summary_service)
 ):
     try:
         hr_id = user["user_id"]
@@ -131,6 +131,6 @@ async def get_participants(
 @router.get("/api/hr/questions/basic/{interview_token}/", tags=["HR - Interview"])
 async def get_all_basic_questions_route(
     interview_token: str,
-    service: HRInterviewService = Depends(get_hr_interview_service)
+    service = Depends(get_hr_interview_service)
 ):
     return await service.get_all_basic_questions(interview_token)

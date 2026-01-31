@@ -1,7 +1,14 @@
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from backend.core.providers.infra_providers import get_db
+from dependency_injector.wiring import Provide , inject 
+from backend.core.containers.repositories_container import RepositoriesContainer
+from backend.core.dependencies.session.postgres import provide_request_postgres_session
 from backend.data_access.postgres.cv.project_repository import ProjectRepository
 
-def get_project_repository(db: AsyncSession = Depends(get_db)) -> ProjectRepository:
-    return ProjectRepository(db)
+# def get_project_repository(db: AsyncSession = Depends(get_db)) -> ProjectRepository:
+#     return ProjectRepository(db)
+@inject
+def get_project_repository (
+    db = Depends(provide_request_postgres_session),
+    factory = Provide[RepositoriesContainer.project_repository_factory]
+)-> ProjectRepository: 
+    return factory(db)

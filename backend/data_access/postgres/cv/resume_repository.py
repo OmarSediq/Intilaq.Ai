@@ -9,71 +9,79 @@ class ResumeRepository:
     async def get_user_by_header_id(self, header_id: int):
         query = text("""
         SELECT 
-        h.user_id AS user_id, 
-        h.full_name AS full_name, h.job_title, h.email, h.phone_number AS phone_number, h.address,
-        h.years_of_experience, h.linkedin_profile, h.github_profile,
-        COALESCE(o.description, '') AS objective, 
+          h.user_id,
+          h.full_name,
+          h.job_title,
+          h.email,
+          h.phone_number,
+          h.address,
+          h.years_of_experience,
+          h.linkedin_profile,
+          h.github_profile,
+          COALESCE(o.description, '') AS objective,
 
+          COALESCE((
+            SELECT json_agg(e ORDER BY e.id)
+            FROM education e
+            WHERE e.header_id = h.id
+          ), '[]') AS education,
 
-        COALESCE(json_agg(DISTINCT e.*) FILTER (WHERE e.id IS NOT NULL), '[]') AS education,
-        COALESCE(json_agg(DISTINCT exp.*) FILTER (WHERE exp.id IS NOT NULL), '[]') AS experience,
-        COALESCE(json_agg(DISTINCT p.*) FILTER (WHERE p.id IS NOT NULL), '[]') AS projects,
-        COALESCE(json_agg(DISTINCT v.*) FILTER (WHERE v.id IS NOT NULL), '[]') AS volunteering_experience,
+          COALESCE((
+            SELECT json_agg(exp ORDER BY exp.id)
+            FROM experience exp
+            WHERE exp.header_id = h.id
+          ), '[]') AS experience,
 
-    COALESCE(json_agg(DISTINCT jsonb_build_object(
-        'skill', s.skills
-    )) FILTER (WHERE s.skills IS NOT NULL AND s.skills <> ''), '[]') AS technical_skills,
+          COALESCE((
+            SELECT json_agg(p ORDER BY p.id)
+            FROM projects p
+            WHERE p.header_id = h.id
+          ), '[]') AS projects,
 
-    COALESCE(json_agg(DISTINCT jsonb_build_object(
-        'language', s.languages,
-        'level', s.level
-    )) FILTER (WHERE s.languages IS NOT NULL AND s.languages <> ''), '[]') AS languages,
+          COALESCE((
+            SELECT json_agg(v ORDER BY v.id)
+            FROM volunteering_experience v
+            WHERE v.header_id = h.id
+          ), '[]') AS volunteering_experience,
 
-        COALESCE(json_agg(DISTINCT jsonb_build_object(
-            'certification_title', c.certification_title, 
-            'link', c.link
-        )) FILTER (WHERE c.id IS NOT NULL), '[]') AS certifications,
+          COALESCE((
+            SELECT json_agg(jsonb_build_object('skill', s.skills)) 
+            FROM skills_languages s
+            WHERE s.header_id = h.id AND s.skills IS NOT NULL AND s.skills <> ''
+          ), '[]') AS technical_skills,
 
-        COALESCE(json_agg(DISTINCT jsonb_build_object(
-            'award', a.award, 
-            'organization', a.organization, 
-            'start_date', a.start_date, 
-            'end_date', a.end_date
-        )) FILTER (WHERE a.id IS NOT NULL), '[]') AS awards
+          COALESCE((
+            SELECT json_agg(jsonb_build_object('language', s.languages, 'level', s.level))
+            FROM skills_languages s
+            WHERE s.header_id = h.id AND s.languages IS NOT NULL AND s.languages <> ''
+          ), '[]') AS languages,
 
-    FROM header h
-    LEFT JOIN objective o ON h.id = o.header_id
-    LEFT JOIN education e ON h.id = e.header_id
-    LEFT JOIN experience exp ON h.id = exp.header_id
-    LEFT JOIN projects p ON h.id = p.header_id
-    LEFT JOIN skills_languages s ON h.id = s.header_id  
-    LEFT JOIN volunteering_experience v ON h.id = v.header_id
-    LEFT JOIN certifications c ON h.id = c.header_id
-    LEFT JOIN awards a ON h.id = a.header_id
-    WHERE h.id = :header_id
-    GROUP BY h.id, o.description;
+          COALESCE((
+            SELECT json_agg(jsonb_build_object('certification_title', c.certification_title, 'link', c.link) ORDER BY c.id)
+            FROM certifications c
+            WHERE c.header_id = h.id
+          ), '[]') AS certifications,
+
+          COALESCE((
+            SELECT json_agg(jsonb_build_object('award', a.award, 'organization', a.organization, 'start_date', a.start_date, 'end_date', a.end_date) ORDER BY a.id)
+            FROM awards a
+            WHERE a.header_id = h.id
+          ), '[]') AS awards
+
+        FROM header h
+        LEFT JOIN objective o ON h.id = o.header_id
+        WHERE h.id = :header_id
+        ;
         """)
 
-
-        print(f"Executing query for header_id: {header_id}")  
-
+        print(f"Executing optimized correlated-subqueries query for header_id: {header_id}")
         result = await self.db.execute(query, {"header_id": header_id})
-        user = result.mappings().first()  
+        user = result.mappings().first()
 
         if not user:
-            print("No user found!")  
-            return None  
+            print("No user found!")
+            return None
 
         user_dict = dict(user)
-
-        for key in ["education", "experience", "projects", "volunteering_experience", "certifications", "awards"]:
-            if isinstance(user_dict.get(key), str):
-                user_dict[key] = json.loads(user_dict[key])
-
-        if isinstance(user_dict.get("technical_skills"), str):
-            user_dict["technical_skills"] = json.loads(user_dict["technical_skills"])
-
-        if isinstance(user_dict.get("languages"), str):
-            user_dict["languages"] = json.loads(user_dict["languages"])
 
         return user_dict

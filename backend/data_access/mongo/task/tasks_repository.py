@@ -1,30 +1,15 @@
 # backend/core/db/tasks_repo.py
-from typing import Optional, Any, Dict, Union
+from typing import Optional, Any, Dict
 from datetime import datetime
 from backend.core.base_service import TraceableService
 from pymongo import ReturnDocument
-from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorClient
-from bson import ObjectId
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from backend.core.providers.infra_providers import get_mongo_client_raw
 
 class TasksRepository(TraceableService):
-    def __init__(self,
-                 db: Optional[Union[AsyncIOMotorDatabase, AsyncIOMotorClient]] = None,
-                 db_name: str = "hr_db"):
-        # choose database explicitly and deterministically
-        if db is None:
-            client = get_mongo_client_raw()
-            # client is expected to be AsyncIOMotorClient singleton
-            self.db: AsyncIOMotorDatabase = client[db_name]
-        else:
-            # caller passed either a client or a database
-            if isinstance(db, AsyncIOMotorClient):
-                self.db = db[db_name]
-            else:
-                # assume AsyncIOMotorDatabase
-                self.db = db
-
+    def __init__(self, db: AsyncIOMotorDatabase):
+       
+        self.db: AsyncIOMotorDatabase = db
         # collection for tasks
         self.col = self.db.get_collection("tasks")
 

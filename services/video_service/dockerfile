@@ -1,0 +1,35 @@
+# ======================== BUILDER STAGE ==========================
+FROM python:3.10-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-linux-amd64-v0.6.1.tar.gz \
+    && tar -xvzf dockerize-linux-amd64-v0.6.1.tar.gz -C /usr/local/bin \
+    && rm dockerize-linux-amd64-v0.6.1.tar.gz
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ======================== FINAL STAGE ==========================
+FROM python:3.10-slim
+
+WORKDIR /app
+ENV PYTHONPATH="/app"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY . /app
+COPY ./templates /app/templates
+
+EXPOSE 8000
+EXPOSE 5692
+
+CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5692", "-m", "uvicorn", "video_service.main:app", "--host", "0.0.0.0", "--port", "8000"]

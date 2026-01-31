@@ -1,10 +1,10 @@
 from backend.core.base_service import TraceableService
 from fastapi import HTTPException
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 class InterviewRepository (TraceableService):
-    def __init__(self, mongo_client: AsyncIOMotorClient):
-        self.db = mongo_client["interview_db"]
+    def __init__(self, db: AsyncIOMotorDatabase):
+        self.db = db
 
     async def insert_question_session(self, session_data: dict):
         return await self.db["questions"].insert_one(session_data)

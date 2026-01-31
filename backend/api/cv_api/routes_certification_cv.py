@@ -10,8 +10,8 @@ router = APIRouter()
 @router.post("/api/certifications/",tags=["CV - Designer-Assistant"])
 async def create_certification(
     request: CertificationRequest,
-    user: dict = Depends(get_current_user),
-    service: CVCertificationService = Depends(get_cv_certification_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_certification_service)
 ):
     return await service.create(request, user["user_id"])
 

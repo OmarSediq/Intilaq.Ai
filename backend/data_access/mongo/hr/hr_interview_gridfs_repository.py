@@ -1,6 +1,4 @@
-# backend/data_access/mongo/hr/hr_interview_gridfs_repository.py
 from motor.motor_asyncio import (
-    AsyncIOMotorDatabase,
     AsyncIOMotorGridFSBucket,
     AsyncIOMotorGridOut,
 )
@@ -13,10 +11,10 @@ from backend.core.base_service import TraceableService
 
 
 class HRGridFSStorageService(TraceableService):
-    def __init__(self, db: AsyncIOMotorDatabase):
+    def __init__(self, bucket: AsyncIOMotorGridFSBucket):
         # don't create bucket here (no running loop guaranteed)
-        self._db = db
-        self._bucket: Optional[AsyncIOMotorGridFSBucket] = None
+       
+        self._bucket: AsyncIOMotorGridFSBucket = bucket
 
     def _check_async_context(self) -> None:
         """

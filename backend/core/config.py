@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     
     # Whisper Microservice
-    whisper_service_url: str
+    WHISPER_SERVICE_URL: str
     whisper_model_path: str = "/whisper_model"
     whisper_model_name: str = "base.en"
 
@@ -74,8 +74,26 @@ class Settings(BaseSettings):
     jaeger_endpoint: str = "http://localhost:4317"
     service_name: str = "my-service"
 
+      # -- REDIS STREAMS (from your .env)
+    redis_stream_video: str = "intilaq:job:video"
+    redis_stream_text: str = "intilaq:job:text"
+    redis_stream_email: str = "intilaq:job:email"
+    redis_stream_docs: str = "intilaq:job:docs"
 
+    # -- CONSUMER GROUP NAMES
+    redis_consumer_group_video: str = "intilaq:cp:video"
+    redis_consumer_group_text: str = "intilaq:cp:text"
+    redis_consumer_group_email: str = "intilaq:cp:email"
+    redis_consumer_group_docs: str = "intilaq:cp:docs"
 
+    # -- IDEMPOTENCY & CLAIMS SETTINGS
+    idempotency_use_redis: bool = True
+    idempotency_claim_ttl_seconds: int = 60
+    job_cache_ttl_seconds: int = 3600
+
+    # -- TASK RETENTION SETTINGS
+    task_max_attempts: int = 5
+    task_retention_days: int = 90
     class Config:
         env_file = ".env"
 

@@ -68,3 +68,5 @@ opentelemetry-semantic-conventions==0.42b0
 opentelemetry-instrumentation-fastapi==0.42b0
 opentelemetry-instrumentation-requests==0.42b0
 opentelemetry-instrumentation-asgi==0.42b0
+dependency-injector==4.48.2
+ulid-py==1.1.0

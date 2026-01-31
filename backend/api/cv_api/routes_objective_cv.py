@@ -11,8 +11,8 @@ router = APIRouter()
 @router.post("/api/objectives/suggestions/",tags=["CV - Designer-Assistant"])
 async def generate_objective_suggestions(
     request: ObjectiveSaveRequest, 
-    user: dict = Depends(get_current_user),
-    service: CVObjectiveService = Depends(get_cv_objective_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_objective_service)
 ):
     return await service.generate_objective_suggestions(request, int(user["user_id"]))
 
@@ -21,7 +21,7 @@ async def generate_objective_suggestions(
 async def save_objective_description(
     objective_id: int,
     request: ObjectiveSaveRequest,
-    user: dict = Depends(get_current_user),
-    service: CVObjectiveService = Depends(get_cv_objective_service)
+    user = Depends(get_current_user),
+    service = Depends(get_cv_objective_service)
 ):
     return await service.save_objective_description(objective_id, request.description, int(user["user_id"]))
