@@ -10,11 +10,11 @@ class ServicesContainer (containers.DeclarativeContainer):
     infra = providers.DependenciesContainer() 
     repos = providers.DependenciesContainer()  
 
-    token_service = providers.Factory(
+    token_service = providers.Singleton(
         TokenService
         
     )
-    refresh_token_service = providers.Factory(
+    refresh_token_service = providers.Singleton(
         RefreshTokenService,
         redis_client=infra.redis_client
     )

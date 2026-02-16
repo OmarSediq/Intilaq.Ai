@@ -1,15 +1,15 @@
 from typing import Optional
 
-from backend.domain_services.hr_services.client_interview_services.hr_answer_service import HRAnswerService
-from backend.core.providers.domain_providers.hr_providers import get_hr_answer_service
+# from backend.domain_services.hr_services.client_interview_services.hr_answer_service import HRAnswerService
+# from backend.core.providers.domain_providers.hr_providers import get_hr_answer_service
 from backend.utils.response_schemas import success_response, error_response
 from fastapi import APIRouter, UploadFile, File, Form, Depends
-from backend.schemas.hr_schemas.hr_client_schema import InterviewLoginRequest , InterviewAnswerRequest
+# from backend.schemas.hr_schemas.hr_client_schema import InterviewLoginRequest , InterviewAnswerRequest
 # from backend.core.job_dispatchers.video_jobs import enqueue_process_video_job
 from backend.core.providers.domain_providers.hr_summary_service_provider import (
     get_hr_summary_service,
 )
-from backend.domain_services.hr_services.hr_summary_service import HRUserSummaryService
+# from backend.domain_services.hr_services.hr_summary_service import HRUserSummaryService
 from fastapi import Query
 
 router = APIRouter()

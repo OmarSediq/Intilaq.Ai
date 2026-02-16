@@ -77,14 +77,15 @@ class Settings(BaseSettings):
       # -- REDIS STREAMS (from your .env)
     redis_stream_video: str = "intilaq:job:video"
     redis_stream_text: str = "intilaq:job:text"
-    redis_stream_email: str = "intilaq:job:email"
+    redis_stream_notification: str = "intilaq:event:notification"
     redis_stream_docs: str = "intilaq:job:docs"
+    REDIS_CONSUMER_GROUP_NOTIFICATION: str
 
-    # -- CONSUMER GROUP NAMES
-    redis_consumer_group_video: str = "intilaq:cp:video"
-    redis_consumer_group_text: str = "intilaq:cp:text"
-    redis_consumer_group_email: str = "intilaq:cp:email"
-    redis_consumer_group_docs: str = "intilaq:cp:docs"
+    # # -- CONSUMER GROUP NAMES
+    # redis_consumer_group_video: str = "intilaq:cp:video"
+    # redis_consumer_group_text: str = "intilaq:cp:text"
+    # # redis_consumer_group_email: str = "intilaq:cp:email"
+    # redis_consumer_group_docs: str = "intilaq:cp:docs"
 
     # -- IDEMPOTENCY & CLAIMS SETTINGS
     idempotency_use_redis: bool = True

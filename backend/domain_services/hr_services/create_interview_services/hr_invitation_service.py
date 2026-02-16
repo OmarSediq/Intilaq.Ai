@@ -1,56 +1,80 @@
-# from sqlalchemy.ext.asyncio import AsyncSession
-# from datetime import datetime
-# from backend.core.base_service import TraceableService
-# from backend.utils.response_schemas import success_response, error_response
-# from backend.data_access.mongo.hr.hr_invitation_repository import HRInvitationRepository
-# from backend.data_access.postgres.hr.hr_user_repository import HRUserRepository
-# from backend.core.job_dispatchers.email_dispatcher import EmailDispatcherService
+from datetime import datetime
+from backend.core.base_service import TraceableService
+from backend.utils.response_schemas import success_response, error_response
+from backend.data_access.mongo.hr.hr_invitation_repository import HRInvitationRepository
+from backend.data_access.postgres.hr.hr_user_repository import HRUserRepository
+from backend.core.contracts.publishers.email_event_publisher import EmailEventPublisher
+from backend.core.contracts.events.event_envelope import EventEnvelope
 
-# class HRInvitationService(TraceableService):
-#     def __init__(self, repo: HRInvitationRepository, db: AsyncSession, email_dispatcher: EmailDispatcherService):
-#         self.repo = repo
-#         self.db = db
-#         self.email_dispatcher = email_dispatcher
+class HRInvitationService(TraceableService):
 
-#     async def send_invitations(self, interview_token: str, emails: list, email_description: str, interview_link: str):
-#         doc = await self.repo.get_interview_by_token(interview_token)
-#         if not doc:
-#             return error_response(code=404, error_message="Interview not found.")
+    def __init__(
+        self,
+        repo: HRInvitationRepository,
+        hr_repo :HRUserRepository,
+        email_event_publisher: EmailEventPublisher
+    ):
+        self.repo = repo
+        self.hr_repo = hr_repo
+        self.email_event_publisher = email_event_publisher
 
-#         job_title = doc.get("job_title", "Unknown")
-#         raw_date = doc.get("specific_date", doc.get("date_range", "Not Set"))
+    async def send_invitations(
+        self,
+        interview_token: str,
+        emails: list,
+        email_description: str,
+        interview_link: str
+    ):
+        doc = await self.repo.get_interview_by_token(interview_token)
+        if not doc:
+            return error_response(code=404, error_message="Interview not found.")
 
-#         try:
-#             parsed_date = datetime.strptime(raw_date, "%Y-%m-%d")
-#         except Exception:
-#             parsed_date = raw_date
+        job_title = doc.get("job_title", "Unknown")
+        raw_date = doc.get("specific_date", doc.get("date_range"))
 
-#         hr_id = doc.get("hr_id")
+        try:
+            parsed_date = datetime.strptime(raw_date, "%Y-%m-%d")
+        except Exception:
+            parsed_date = datetime.utcnow()
 
-#         hr_repo = HRUserRepository(self.db)
-#         company_field = await hr_repo.get_company_field_by_hr_id(hr_id)
+        hr_id = doc.get("hr_id")
 
-#         await self.repo.update_interview_metadata(interview_token, {
-#             "candidate_emails": emails,
-#             "email_description": email_description,
-#             "interview_link": interview_link,
-#             "company_field": company_field
-#         })
+        
+        company_field = await self.hr_repo.get_company_field_by_hr_id(hr_id)
 
-#         # جهز payload موحّد ليتوافق مع توقيع EmailDispatcherService.dispatch_send_invitations(payload)
-#         payload = {
-#             "emails": emails,
-#             "job_title": job_title,
-#             "raw_date": raw_date,
-#             "interview_link": interview_link,
-#             "hr_id": hr_id,
-#             "email_description": email_description,
-#             "company_field": company_field,
-#             "created_at": datetime.utcnow().isoformat()
-#         }
 
-#         job_id = self.email_dispatcher.dispatch_send_invitations(payload)
+        await self.repo.update_interview_metadata(interview_token, {
+            "candidate_emails": emails,
+            "email_description": email_description,
+            "interview_link": interview_link,
+            "company_field": company_field
+        })
 
-#         return success_response(code=200, data={
-#             "message": "Emails queued and metadata updated."
-#         })
+                    # 🔥 EVENT (وليس payload عادي)
+                ### event_name: str
+                # version: int
+                # occurred_at: datetime
+                    # idempotency_key: str
+        # ✅ EVENT ENVELOPE (Producer responsibility)
+        event = EventEnvelope(
+                event_name="notification.email.interview_invitation",
+                version=1,
+                occurred_at=datetime.utcnow(),
+                idempotency_key=f"invitation:{interview_token}",
+                payload={
+                    "emails": emails,
+                    "job_title": job_title,
+                    "interview_date": parsed_date.isoformat(),
+                    "interview_link": interview_link,
+                    "company_field": company_field,
+                    "email_description": email_description,
+                    "created_at": datetime.utcnow().isoformat(),
+                },
+            )
+
+        await self.email_event_publisher.publish(event)
+
+        return success_response(
+                code=200,
+                data={"message": "Invitation emails scheduled."},
+            )

@@ -48,11 +48,11 @@ class RepositoriesContainer (containers.DeclarativeContainer):
     interview_session_home_repository_factory = providers.Factory(InterviewSessionHomeRepository)
     interview_repository_factory = providers.Factory(InterviewRepository)
     hr_interview_client_repository_factory = providers.Factory(HRAnswerRepository)
-    hr_invitation_repository_factory = providers.Factory(HRInvitationRepository)
-    hr_interview_repository_factory = providers.Factory(HRInterviewRepository)
-    hr_interview_evaluation_repository_factory = providers.Factory(HRInterviewEvaluationRepository)
+    hr_invitation_repository_factory = providers.Factory(HRInvitationRepository , db = infra.mongo_hr_db) ## editing 
+    hr_interview_repository_factory = providers.Factory(HRInterviewRepository , db = infra.mongo_hr_db) ## editing 
+    hr_interview_evaluation_repository_factory = providers.Factory(HRInterviewEvaluationRepository , db = infra.hr_video_bucket)
     hr_gridfs_storage_repository_factory = providers.Factory(HRGridFSStorageService)
-    hr_summary_repository_factory = providers.Factory(HRSummaryRepository)
+    hr_summary_repository_factory = providers.Factory(HRSummaryRepository , db=infra.mongo_hr_db)
     tasks_repository_factory = providers.Factory(TasksRepository)
     code_redis_repository_factory = providers.Factory(CodeRedisRepository)
     session_redis_repository_factory = providers.Factory(SessionRedisRepository)

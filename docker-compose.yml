@@ -94,19 +94,21 @@ services:
       - ./certs:/etc/nginx/certs
     networks:
       - my_network
-  rq_worker:
-    image: intilaqai-fastapi
-    container_name: rq-worker
+
+  notification_service:
+    image: intilaqai-notification-service
+    build:
+      context: ./services/notification_service
+      dockerfile: Dockerfile.notification
+    container_name: notification-container
     depends_on:
       - redis
-      - mongodb
     networks:
       - my_network
-    volumes:
-      - .:/app
     env_file:
       - .env
-    command: ["python", "backend/core/worker_service/rq_worker.py"]
+    command: ["python","main.py"]
+
     # ------------------ Observability services ------------------
   prometheus:
       image: prom/prometheus:latest
@@ -144,6 +146,7 @@ services:
         - "4317:4317"
         - "6831:6831/udp"
       restart: unless-stopped
+
 networks:
   my_network:
 

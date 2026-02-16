@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from backend.core.bootstrap.di_setup import make_container
 from backend.core.providers.domain_providers import auth_providers, cv_providers, home_providers, hr_providers, hr_summary_service_provider, interview_providers, refresh_token_provider, token_provider, user_provider
-from backend.core.providers.domain_providers.auth_providers import get_auth_service
 from backend.core.providers.data_access_providers import cv_providers as data_cv_providers, task_providers
 from backend.core.providers.data_access_providers import home_providers as data_home_providers
 from backend.core.providers.data_access_providers import hr_providers as data_hr_providers
@@ -13,7 +12,6 @@ from backend.core.middlewares.db_transaction import DBTransactionMiddleware
 from backend.core.middlewares.auth_logging import AuthenticationMiddleware
 from backend.core.middlewares.performance_logging import PerformanceLoggingMiddleware
 from backend.database.models import cv_models, hr_models  # noqa: F401
-# from backend.core.providers.infra_providers import connect_to_mongo, close_mongo_connection
 from backend.database.models.base import Base
 import sqlalchemy as sa
 
@@ -72,7 +70,7 @@ def create_app() -> FastAPI:
     from backend.api.auth_api.auth_hr import all_routers as hr_auth_routers
     from backend.api.home_api import all_routers as home_routers
     from backend.api.interview_api import all_routers as interview_routers
-    # from backend.api.hr_interview_api import all_routers as hr_routers
+    from backend.api.hr_interview_api import all_routers as hr_routers
 
 
     app.add_middleware(AuthenticationMiddleware)
@@ -85,7 +83,7 @@ def create_app() -> FastAPI:
         home_routers,
         interview_routers,
         hr_auth_routers,
-        # hr_routers,
+        hr_routers,
     ]:
         for router in router_group:
             app.include_router(router)

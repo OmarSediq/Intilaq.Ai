@@ -1,19 +1,16 @@
 from fastapi import Depends
+from backend.core.containers.application_container import ApplicationContainer
 from backend.domain_services.hr_services.hr_summary_service import HRUserSummaryService
-from backend.core.containers.repositories_container import RepositoriesContainer
-from backend.core.dependencies.session.mongo import provide_hr_interview_mongo_db
 from dependency_injector.wiring import inject , Provide 
-from motor.motor_asyncio import AsyncIOMotorDatabase
 
-
+@inject
 def get_hr_summary_service(
-    db :AsyncIOMotorDatabase = Depends(provide_hr_interview_mongo_db),
-    answer_repo_factory = Depends(Provide[RepositoriesContainer.hr_interview_client_repository_factory]),
-    interview_repo_factory = Depends(Provide[RepositoriesContainer.hr_interview_repository_factory]),
-    summary_repo_factory = Depends(Provide[RepositoriesContainer.hr_summary_repository_factory] )
+    answer_repo_factory = Depends(Provide[ApplicationContainer.repos.hr_interview_client_repository_factory.provider]),
+    interview_repo_factory = Depends(Provide[ApplicationContainer.repos.hr_interview_repository_factory.provider]),
+    summary_repo_factory = Depends(Provide[ApplicationContainer.repos.hr_summary_repository_factory.provider] )
 )->HRUserSummaryService:
-    answer_repo = answer_repo_factory(db)
-    interview_repo = interview_repo_factory(db)
-    summary_repo = summary_repo_factory(db)
+    answer_repo = answer_repo_factory()
+    interview_repo = interview_repo_factory()
+    summary_repo = summary_repo_factory()
 
     return HRUserSummaryService(answer_repo=answer_repo , interview_repo=interview_repo , summary_repo=summary_repo)

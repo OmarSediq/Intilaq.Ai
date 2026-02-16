@@ -38,42 +38,42 @@ async def update_interview_question(
     return await service.update_question(interview_token, index, request)
 
 
-# @router.post("/api/hr/interview/{interview_token}/invitations/send",tags=["HR - Interview"])
-# async def send_and_store_invitations(
-#     interview_token: str,
-#     request: InterviewInvitationRequest,
-#     user=Depends(get_current_user),
-#     service = Depends(get_hr_invitation_service)
-# ):
-#     return await service.send_invitations(
-#         interview_token=interview_token,
-#         emails=request.emails or [],
-#         email_description=request.email_description,
-#         interview_link=request.interview_link
-#     )
+@router.post("/api/hr/interview/{interview_token}/invitations/send",tags=["HR - Interview"])
+async def send_and_store_invitations(
+    interview_token: str,
+    request: InterviewInvitationRequest,
+    user=Depends(get_current_user),
+    service = Depends(get_hr_invitation_service)
+):
+    return await service.send_invitations(
+        interview_token=interview_token,
+        emails=request.emails or [],
+        email_description=request.email_description,
+        interview_link=request.interview_link
+    )
 
 from fastapi import Query
 
-@router.get("/api/hr/interview/video-stream/{interview_token}/{index}" ,  tags=["HR - Review"])
-async def stream_video_by_index(
-    interview_token: str,
-    index: int,
-    user_email: str = Query(...),
+# @router.get("/api/hr/interview/video-stream/{interview_token}/{index}" ,  tags=["HR - Review"])
+# async def stream_video_by_index(
+#     interview_token: str,
+#     index: int,
+#     user_email: str = Query(...),
 
-    evaluation_service = Depends(get_hr_interview_evaluation_service)
-):
-    file_stream, filename = await evaluation_service.get_video_stream_by_index(interview_token, user_email, index)
-    if not file_stream:
-        raise HTTPException(status_code=404, detail="Video not found for the given index")
+#     evaluation_service = Depends(get_hr_interview_evaluation_service)
+# ):
+#     file_stream, filename = await evaluation_service.get_video_stream_by_index(interview_token, user_email, index)
+#     if not file_stream:
+#         raise HTTPException(status_code=404, detail="Video not found for the given index")
 
-    return StreamingResponse(
-        file_stream,
-        media_type="video/webm",
-        headers={
-            "Content-Disposition": f'inline; filename="{filename}"',
-            "Accept-Ranges": "bytes"
-        }
-    )
+#     return StreamingResponse(
+#         file_stream,
+#         media_type="video/webm",
+#         headers={
+#             "Content-Disposition": f'inline; filename="{filename}"',
+#             "Accept-Ranges": "bytes"
+#         }
+#     )
 
 
 @router.get("/api/hr/interview/answer/{interview_token}/{index}", tags=["HR - Review"])

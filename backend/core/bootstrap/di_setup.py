@@ -27,7 +27,6 @@ def make_container() -> ApplicationContainer:
     container.ai.wire()
     container.repos.wire()
     container.service.wire()
-    container.dispatcher.wire()
-   
+    container.messaging.wire()
 
     return container

@@ -72,14 +72,3 @@ class AIContainer(containers.DeclarativeContainer):
     # whisper_service_Transcriber = providers.Singleton(WhisperTranscriberService, model_path=config.whisper.model_path)
 
 
-wiring_modules = [
-    "backend.core.providers.domain_providers.auth_providers",
-    "backend.core.providers.domain_providers.cv_providers",
-    "backend.core.providers.domain_providers.home_providers",
-    "backend.core.providers.domain_providers.hr_providers",
-    "backend.core.providers.domain_providers.hr_summary_service_provider",
-    "backend.core.providers.domain_providers.interview_providers",
-    "backend.core.providers.domain_providers.token_provider",
-    "backend.core.providers.domain_providers.user_provider"
-
-]

@@ -6,8 +6,6 @@ from backend.domain_services.auth_services.auth_service import AuthService
 from backend.domain_services.auth_services.account_service import AccountService
 from backend.domain_services.auth_services.password_service import PasswordRecoveryService
 from backend.data_access.postgres.user_repository import UserRepository
-from backend.domain_services.token_services.token_service import TokenService
-from backend.domain_services.token_services.refresh_token_service import RefreshTokenService
 from dependency_injector.wiring import inject , Provide
 from backend.core.containers.application_container import ApplicationContainer
 
@@ -19,9 +17,9 @@ async def get_auth_service(
     Provide[ApplicationContainer.repos.user_repository_factory.provider]
 
     ),
-    token_service: TokenService = Depends(
+    token_service = Depends(
         Provide[ApplicationContainer.service.token_service]),
-    refresh_token_service : RefreshTokenService = Depends(Provide[ApplicationContainer.service.refresh_token_service])
+    refresh_token_service  = Depends(Provide[ApplicationContainer.service.refresh_token_service])
     ,
 ) -> AuthService:
     user_repo = user_repo_factory(db)

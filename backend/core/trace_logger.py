@@ -26,7 +26,6 @@ def trace_calls(name=None):
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
                 start = time.perf_counter()
-                # آمن: استخدم bind_partial واحتواء الاستثناء
                 try:
                     bound = inspect.signature(func).bind_partial(*args, **kwargs)
                     bound.apply_defaults()

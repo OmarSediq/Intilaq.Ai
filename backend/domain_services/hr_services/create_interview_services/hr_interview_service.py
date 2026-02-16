@@ -7,8 +7,8 @@ from backend.data_access.mongo.hr.hr_interview_repository import HRInterviewRepo
 from backend.domain_services.ai_services.gemini_ai_service import  GeminiAIService
 
 class HRInterviewService(TraceableService):
-    def __init__(self, repository: HRInterviewRepository , gemini_service : GeminiAIService):
-        self.repo = repository
+    def __init__(self, hr_repo: HRInterviewRepository , gemini_service : GeminiAIService):
+        self.hr_repo = hr_repo
         self.gemini_service = gemini_service
 
     async def create_metadata(self, request, hr_id: int):
@@ -23,7 +23,7 @@ class HRInterviewService(TraceableService):
             "hr_id": hr_id,
             "created_at": datetime.now(timezone.utc)
         }
-        await self.repo.insert_interview(interview_data)
+        await self.hr_repo.insert_interview(interview_data)
 
         ai_questions_raw = await self.gemini_service.generate_questions_for_hr(
             job_name=request.job_title,
@@ -51,7 +51,7 @@ class HRInterviewService(TraceableService):
             "created_at": datetime.now(timezone.utc)
         }
 
-        await self.repo.insert_questions(question_doc)
+        await self.hr_repo.insert_questions(question_doc)
 
         return success_response(code=201, data={
             "message": "Interview metadata and AI questions created successfully.",
@@ -60,7 +60,7 @@ class HRInterviewService(TraceableService):
         })
 
     async def update_question(self, interview_token: str, index: int, update_data):
-        doc = await self.repo.find_question_doc(interview_token)
+        doc = await self.hr_repo.find_question_doc(interview_token)
         if not doc:
             return error_response(code=404, error_message="Interview not found.")
 
@@ -86,12 +86,12 @@ class HRInterviewService(TraceableService):
             "ideal_answer": new_ideal_answer
         }
 
-        await self.repo.update_question_by_index(interview_token, index, updated_fields)
+        await self.hr_repo.update_question_by_index(interview_token, index, updated_fields)
 
         return success_response(code=200, data={**existing, **updated_fields})
 
     async def get_all_basic_questions(self, interview_token: str):
-        question_map = await self.repo.get_all_basic_questions_by_token(interview_token)
+        question_map = await self.hr_repo.get_all_basic_questions_by_token(interview_token)
         if not question_map:
             return error_response(code=404, error_message="No questions found for this token")
 
@@ -103,7 +103,7 @@ class HRInterviewService(TraceableService):
             user_email: str,
             index: int
     ):
-        result = await self.repo.get_unified_answer_by_index(
+        result = await self.hr_repo.get_unified_answer_by_index(
             interview_token=interview_token,
             user_email=user_email,
             index=index
