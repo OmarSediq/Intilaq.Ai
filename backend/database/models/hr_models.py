@@ -10,8 +10,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class HrUser(Base):
     __tablename__ = 'hr_users'
-    __table_args__ = {'schema': 'hr_section'}
-
+    __table_args__ = {'schema': 'hr'}
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     company_name = Column(String(255), nullable=False)
@@ -29,7 +28,7 @@ class HrUser(Base):
 
 class ResetCode(Base):
     __tablename__ = "hr_reset_codes"
-    __table_args__ = {'schema': 'hr_section'}
+    __table_args__ = {'schema': 'hr'}
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), nullable=False)  

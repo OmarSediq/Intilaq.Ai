@@ -2,7 +2,10 @@
 FROM python:3.10-slim AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg libsndfile1 git libffi-dev && apt-get clean
+    ffmpeg libsndfile1 git libffi-dev \
+    && apt-get clean
+
+RUN python -m pip install --upgrade pip setuptools wheel
 
 WORKDIR /app
 
@@ -12,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install debugpy
 
 RUN python -c "import whisper; whisper.load_model('base.en', download_root='/whisper_model')"
+
 
 # ========== Stage 2: Final Image ==========
 FROM python:3.10-slim

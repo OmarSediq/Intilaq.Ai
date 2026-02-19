@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
     app.state.session_factory = container.infra.async_session_factory()
 
 
-    await create_tables(container)
+    # await create_tables(container)
     
     try:
         yield

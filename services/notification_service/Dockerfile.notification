@@ -5,7 +5,7 @@ WORKDIR /app
 ENV PYTHONPATH=/app
 
 COPY requirements.notification.txt .
-RUN pip install --no-cache-dir -r requirements.notification.txt
+RUN pip install --no-cache-dir --no-build-isolation -r requirements.notification.txt
 
 COPY . .
 COPY ./templates /app/templates
