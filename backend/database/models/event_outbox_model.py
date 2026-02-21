@@ -8,11 +8,15 @@ class OutboxStatus(str):
     PENDING = "PENDING"
     DISPATCHED = "DISPATCHED"
     FAILED = "FAILED"
-
+    
 class EventOutbox(Base):
     __tablename__ = "events_outbox"
-    __table_args__ = {'schema': 'outbox'}
-    
+
+    __table_args__ = (
+        Index("ix_outbox_scheduler", "status", "scheduled_at"),
+        {"schema": "outbox"},
+    )
+
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -32,16 +36,15 @@ class EventOutbox(Base):
             OutboxStatus.DISPATCHED,
             OutboxStatus.FAILED,
             name="outbox_status_enum",
+            schema="outbox",   # ✔️ متوافق الآن
         ),
         nullable=False,
         default=OutboxStatus.PENDING,
     )
 
     scheduled_at = Column(DateTime(timezone=True), nullable=False)
-
     attempt_count = Column(Integer, nullable=False, default=0)
     last_error = Column(Text, nullable=True)
-
     occurred_at = Column(DateTime(timezone=True), nullable=False)
 
     created_at = Column(
@@ -51,8 +54,3 @@ class EventOutbox(Base):
     )
 
     dispatched_at = Column(DateTime(timezone=True), nullable=True)
-
-    __table_args__ = (
-        Index("ix_outbox_scheduler", "status", "scheduled_at"),
-    )
-

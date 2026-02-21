@@ -1,5 +1,3 @@
-# application/use_cases/process_invitation.py
-
 from Domain.entities.send_invitation_event import SendInvitationEvent
 from Domain.contracts.email_sender import EmailSender
 from Domain.policies.retry_policy import RetryPolicy
@@ -40,7 +38,7 @@ class ProcessInvitationUseCase:
             subject = f"Interview Invitation - {event.job_title}"
 
             await self.retry_policy.run(
-                key=f"{event.idempotency_key}:{email}",
+                key=f"{event.idempotency_key}",
                 action=lambda: self.email_sender.send_email(
                     to_email=email,
                     subject=subject,

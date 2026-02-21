@@ -1,9 +1,16 @@
 from sqlalchemy import Column, DateTime, PrimaryKeyConstraint, String, func
 from backend.database.models.base import Base
-
 class ProcessedEvent(Base):
     __tablename__ = "processed_events"
-    __table_args__ = {'schema': 'outbox'}
+
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            "idempotency_key",
+            "consumer_name",
+            name="pk_processed_events",
+        ),
+        {"schema": "outbox"},
+    )
 
     idempotency_key = Column(String, nullable=False)
     consumer_name = Column(String, nullable=False)
@@ -13,13 +20,3 @@ class ProcessedEvent(Base):
         nullable=False,
         server_default=func.now(),
     )
-
-    __table_args__ = (
-        PrimaryKeyConstraint(
-            "idempotency_key",
-            "consumer_name",
-            name="pk_processed_events",
-        ),
-    )
-
-    

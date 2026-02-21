@@ -77,8 +77,8 @@ def get_cv_skills_service(
     gemini_service =Depends (Provide[ApplicationContainer.ai.gemini_service])
 ): 
     header_repo = header_repo_factory(db)
-    skill_repo = skill_repo_factory(db)
-    return CVSkillsService(db=db,header_repo=header_repo,skill_repo=skill_repo,gemini_service=gemini_service)
+    skills_repo = skill_repo_factory(db)
+    return CVSkillsService(db=db,header_repo=header_repo,skills_repo=skills_repo,gemini_service=gemini_service)
 
 
 @inject

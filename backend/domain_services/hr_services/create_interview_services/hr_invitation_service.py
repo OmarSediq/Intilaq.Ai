@@ -5,7 +5,7 @@ from backend.data_access.mongo.hr.hr_invitation_repository import HRInvitationRe
 from backend.data_access.postgres.hr.hr_user_repository import HRUserRepository
 from backend.core.contracts.publishers.email_event_publisher import EmailEventPublisher
 from backend.core.contracts.events.event_envelope import EventEnvelope
-
+from backend.utils.generate_ulid_utils import generate_ulid
 class HRInvitationService(TraceableService):
 
     def __init__(
@@ -50,17 +50,11 @@ class HRInvitationService(TraceableService):
             "company_field": company_field
         })
 
-                    # 🔥 EVENT (وليس payload عادي)
-                ### event_name: str
-                # version: int
-                # occurred_at: datetime
-                    # idempotency_key: str
-        # ✅ EVENT ENVELOPE (Producer responsibility)
         event = EventEnvelope(
                 event_name="notification.email.interview_invitation",
                 version=1,
                 occurred_at=datetime.utcnow(),
-                idempotency_key=f"invitation:{interview_token}",
+                idempotency_key=generate_ulid(),
                 payload={
                     "emails": emails,
                     "job_title": job_title,

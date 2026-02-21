@@ -18,7 +18,7 @@ class UserRepository:
         existing_user = result.scalars().first()
 
         if existing_user:
-            raise HTTPException(status_code=400, detail="Username or email already exists")
+            raise HTTPException(status_code=400, detail="If the account exists, a code was sent")
 
         hashed_password = get_password_hash(password)
         user = User(username=username, email=email, hashed_password=hashed_password, is_verified=0)
@@ -68,14 +68,14 @@ class UserRepository:
                 return user
             except Exception as e:
                 await self.db.rollback()
-                raise HTTPException(status_code=500, detail=f"Failed to update verification status: {str(e)}")
-        raise HTTPException(status_code=404, detail="User not found")
+                raise HTTPException(status_code=500, detail=f"If the account exists, a code was sent {str(e)}")
+        raise HTTPException(status_code=404, detail="If the account exists, a code was sent")
 
     async def update_user_details(self, user_id: int, updated_data: dict):
         result = await self.db.execute(select(User).filter(User.id == user_id))
         user = result.scalars().first()
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail="If the account exists, a code was sent")
 
         for key, value in updated_data.items():
             setattr(user, key, value)
@@ -86,24 +86,24 @@ class UserRepository:
             return user
         except Exception as e:
             await self.db.rollback()
-            raise HTTPException(status_code=500, detail=f"Failed to update user details: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"If the account exists, a code was sent: {str(e)}")
 
     async def delete_user_by_id(self, user_id: int):
         result = await self.db.execute(select(User).filter(User.id == user_id))
         user = result.scalars().first()
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail="If the account exists, a code was sent")
         await self.db.delete(user)
         try:
             await self.db.commit()
         except Exception as e:
             await self.db.rollback()
-            raise HTTPException(status_code=500, detail=f"Failed to delete user: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"If the account exists, a code was sent: {str(e)}")
         return True
 
     async def get_user_by_id(self, user_id: int):
         result = await self.db.execute(select(User).filter(User.id == user_id))
         user = result.scalars().first()
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail="If the account exists, a code was sent")
         return user

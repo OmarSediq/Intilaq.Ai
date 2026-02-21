@@ -1,17 +1,16 @@
-# application/handlers/notification_handler.py
-
-from Application.Mappers.invitation_event_mapper import map_envelope_to_invitation_event
-
 class NotificationHandler:
 
-    def __init__(self, invitation_use_case):
-        self.invitation_use_case = invitation_use_case
+    def __init__(self, routes: dict):
+        self.routes = routes
 
     async def handle(self, envelope):
 
-        if envelope.event_name != "notification.email.interview_invitation":
+        route = self.routes.get(envelope.event_name)
+        if not route:
             return
 
-        domain_event = map_envelope_to_invitation_event(envelope)
+        mapper, use_case = route
 
-        await self.invitation_use_case.execute(domain_event)
+        domain_event = mapper(envelope)
+
+        await use_case.execute(domain_event)

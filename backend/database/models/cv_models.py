@@ -11,7 +11,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Existing User Model
 class User(Base):
     __tablename__ = "users"
-    
+    __table_args__ = {'schema': 'cv_auth'}
+
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)  
     email = Column(String(255), unique=True, index=True, nullable=False)
@@ -40,6 +41,8 @@ class User(Base):
 # Existing ResetCode Model
 class ResetCode(Base):
     __tablename__ = "reset_codes"
+    __table_args__ = {'schema': 'cv_auth'}
+
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), nullable=False)
     code = Column(String(6), nullable=False)
@@ -52,7 +55,8 @@ class ResetCode(Base):
 # Header Table (Main User Table)
 class Header(Base):
     __tablename__ = 'header'
-    
+    __table_args__ = {'schema': 'cv'}
+
     id = Column(Integer, primary_key=True)
     full_name = Column(String(255), nullable=False)
     job_title = Column(String(255))
@@ -62,7 +66,7 @@ class Header(Base):
     years_of_experience = Column(Integer)
     github_profile = Column(String(255))
     linkedin_profile = Column(String(255))
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False) 
+    user_id = Column(Integer, ForeignKey('cv_auth.users.id'), nullable=False) 
 
     # Relationships
     user = relationship("User", back_populates="headers")
@@ -78,9 +82,11 @@ class Header(Base):
 # Education Table (Mandatory)
 class Education(Base):
     __tablename__ = 'education'
+    __table_args__ = {'schema': 'cv'}
+
     
     id = Column(Integer, primary_key=True,autoincrement=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
+    header_id = Column(Integer, ForeignKey('cv.header.id'), nullable=False)
     degree_and_major = Column(String(255), nullable=False)
     school = Column(String(255), nullable=False)
     city = Column(String(100))
@@ -94,9 +100,11 @@ class Education(Base):
 # Skills & Languages Table (Mandatory)
 class SkillsLanguages(Base):
     __tablename__ = 'skills_languages'
+    __table_args__ = {'schema': 'cv'}
+
     
     id = Column(Integer, primary_key=True,autoincrement=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
+    header_id = Column(Integer, ForeignKey('cv.header.id'), nullable=False)
     skills = Column(Text, nullable=True)
     languages = Column(Text, nullable=False)
     level = Column(String(50))
@@ -106,9 +114,11 @@ class SkillsLanguages(Base):
 # Certifications Table (Optional)
 class Certifications(Base):
     __tablename__ = 'certifications'
+    __table_args__ = {'schema': 'cv'}
+
     
     id = Column(Integer, primary_key=True,autoincrement=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
+    header_id = Column(Integer, ForeignKey('cv.header.id'), nullable=False)
     certification_title = Column(String(255))
     upload = Column(Text,nullable=True)
     link = Column(Text, nullable=True)  
@@ -118,9 +128,10 @@ class Certifications(Base):
 # Projects Table (Optional)
 class Projects(Base):
     __tablename__ = 'projects'
+    __table_args__ = {'schema': 'cv'}
     
     id = Column(Integer, primary_key=True,autoincrement=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
+    header_id = Column(Integer, ForeignKey('cv.header.id'), nullable=False)
     project_name = Column(String(255))
     description = Column(Text,nullable=True)
     link = Column(Text,nullable=True)
@@ -130,9 +141,10 @@ class Projects(Base):
 # Experience Table (Optional)
 class Experience(Base):
     __tablename__ = 'experience'
+    __table_args__ = {'schema': 'cv'}
     
     id = Column(Integer, primary_key=True, autoincrement=True)  
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)  
+    header_id = Column(Integer, ForeignKey('cv.header.id'), nullable=False)  
     role = Column(String(255))
     company_name = Column(String(255))
     start_date = Column(Date, nullable=True)
@@ -145,9 +157,10 @@ class Experience(Base):
 # Volunteering Experience Table (Optional)
 class VolunteeringExperience(Base):
     __tablename__ = 'volunteering_experience'
+    __table_args__ = {'schema': 'cv'}
     
     id = Column(Integer, primary_key=True,autoincrement=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
+    header_id = Column(Integer, ForeignKey('cv.header.id'), nullable=False)
     organization = Column(String(255))
     role = Column(String(255))
     start_date = Column(Date)
@@ -159,9 +172,10 @@ class VolunteeringExperience(Base):
 # Awards Table (Optional)
 class Awards(Base):
     __tablename__ = 'awards'
+    __table_args__ = {'schema': 'cv'}
     
     id = Column(Integer, primary_key=True,autoincrement=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
+    header_id = Column(Integer, ForeignKey('cv.header.id'), nullable=False)
     award = Column(String(255))
     organization = Column(String(255))
     start_date = Column(Date)
@@ -172,9 +186,10 @@ class Awards(Base):
 # Objective Table (Optional)
 class Objective(Base):
     __tablename__ = 'objective'
+    __table_args__ = {'schema': 'cv'}
     
     id = Column(Integer, primary_key=True,autoincrement=True)
-    header_id = Column(Integer, ForeignKey('header.id'), nullable=False)
+    header_id = Column(Integer, ForeignKey('cv.header.id'), nullable=False)
     description = Column(Text, nullable=True)   
 
     header = relationship("Header", back_populates="objective")

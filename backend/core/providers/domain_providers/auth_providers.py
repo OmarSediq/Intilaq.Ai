@@ -32,9 +32,10 @@ async def get_account_service(
     user_repo_factory = Depends(
         Provide[ApplicationContainer.repos.user_repository_factory.provider]
     ),
+    email_event_publisher = Depends(Provide[ApplicationContainer.messaging.email_event_publisher])
 ) -> AccountService:
     user_repo = user_repo_factory(db)
-    return AccountService(db, user_repo)
+    return AccountService(db, user_repo , email_event_publisher)
 
 
 @inject
@@ -43,6 +44,7 @@ async def get_password_service(
     user_repo_factory = Depends(
         Provide[ApplicationContainer.repos.user_repository_factory.provider]
     ),
+    email_event_publisher = Depends(Provide[ApplicationContainer.messaging.email_event_publisher])
 ) -> PasswordRecoveryService:
     user_repo = user_repo_factory(db)
-    return PasswordRecoveryService(db, user_repo)
+    return PasswordRecoveryService(db, user_repo , email_event_publisher)

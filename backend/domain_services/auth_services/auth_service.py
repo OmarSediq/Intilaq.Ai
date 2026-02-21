@@ -1,7 +1,6 @@
 from backend.data_access.postgres.user_repository import UserRepository
 from backend.domain_services.token_services.token_service import TokenService
 from backend.domain_services.token_services.refresh_token_service import RefreshTokenService
-
 from fastapi import Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.response_schemas import success_response, error_response
@@ -18,10 +17,10 @@ class AuthService(TraceableService):
     async def login(self, request, response: Response):
         user = await self.user_repo.get_user_by_email(request.email)
         if not user or not verify_password(request.password, user.hashed_password):
-            return error_response(code=401, error_message="Invalid credentials")
+            return error_response(code=401, error_message="Invalid email or password")
 
         if not user.is_verified:
-            return error_response(code=403, error_message="Account not verified")
+            return error_response(code=403, error_message="Invalid email or password")
 
         access_token = self.token_service.create_access_token(str(user.id), role="regular_user")
         refresh_token = self.token_service.create_refresh_token(str(user.id))

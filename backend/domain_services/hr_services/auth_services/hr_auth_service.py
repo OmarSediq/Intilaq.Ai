@@ -16,10 +16,10 @@ class HRAuthService:
     async def login(self, request, response: Response):
         hr_user = await self.hr_repo.get_by_email(request.business_email)
         if not hr_user or not verify_password(request.password, hr_user.hashed_password):
-            return error_response(code=401, error_message="Invalid credentials")
+            return error_response(code=401, error_message="Invalid email or password")
 
         if not hr_user.is_verified:
-            return error_response(code=403, error_message="Account not verified")
+            return error_response(code=403, error_message="Invalid email or password")
 
         access_token = self.token_service.create_access_token(user_id=str(hr_user.id), role="hr")
         refresh_token = self.token_service.create_refresh_token(user_id=str(hr_user.id))

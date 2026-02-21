@@ -10,10 +10,6 @@ def build_invitation_context(
     interview_link: str,
     company_field: Optional[str],
 ) -> Dict[str, str]:
-    """
-    Builds the exact context required by interview_invitation.html
-    No extra fields. No missing fields.
-    """
 
     return {
         "candidate_name": candidate_name,

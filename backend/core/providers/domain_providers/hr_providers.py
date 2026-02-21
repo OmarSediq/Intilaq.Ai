@@ -8,7 +8,6 @@ from backend.domain_services.hr_services.auth_services.hr_verification_service i
 from backend.domain_services.hr_services.create_interview_services.hr_interview_service import HRInterviewService
 from backend.domain_services.hr_services.create_interview_services.hr_invitation_service import HRInvitationService
 from backend.domain_services.hr_services.home.hr_interview_evaluation_service import HRInterviewEvaluationService
-# from backend.core.containers.dispatchers_container import DispatchersContainer
 from backend.core.dependencies.session.postgres import provide_request_postgres_session
 # from backend.core.providers.queue_provider import  get_text_job_dispatcher_service , get_video_job_dispatcher_service
 from dependency_injector.wiring import inject , Provide
@@ -30,19 +29,21 @@ async def get_hr_auth_service(
 @inject
 def get_hr_register_service(
     db : AsyncSession = Depends(provide_request_postgres_session),
-    hr_repo_factory = Depends(Provide[ApplicationContainer.repos.hr_auth_repository_factory.provider])
+    hr_repo_factory = Depends(Provide[ApplicationContainer.repos.hr_auth_repository_factory.provider]),
+    email_event_publisher = Depends(Provide[ApplicationContainer.messaging.email_event_publisher])
 )-> HRRegisterService:
     hr_repo = hr_repo_factory(db)
-    return HRRegisterService(db=db , hr_repo=hr_repo)
+    return HRRegisterService(db=db , hr_repo=hr_repo , email_event_publisher=email_event_publisher)
 
 
 @inject
 def get_hr_verification_service(
     db: AsyncSession= Depends(provide_request_postgres_session),
-    hr_repo_factory = Depends(Provide[ApplicationContainer.repos.hr_auth_repository_factory.provider])
+    hr_repo_factory = Depends(Provide[ApplicationContainer.repos.hr_auth_repository_factory.provider]),
+    email_event_publisher = Depends(Provide[ApplicationContainer.messaging.email_event_publisher])
 )-> HRVerificationService:
     hr_repo = hr_repo_factory(db)
-    return HRVerificationService(db = db , hr_repo = hr_repo)
+    return HRVerificationService(db = db , hr_repo = hr_repo , email_event_publisher=email_event_publisher)
 
 @inject 
 def get_hr_interview_service(
@@ -50,7 +51,6 @@ def get_hr_interview_service(
     gemini_service=Depends(Provide[ApplicationContainer.ai.gemini_service])
 )-> HRInterviewService:
     hr_repo = hr_repo_factory()  
-
     return HRInterviewService(hr_repo=hr_repo , gemini_service=gemini_service)
 
 
