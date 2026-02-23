@@ -13,7 +13,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     ai = providers.Container(AIContainer , config=config)
     service = providers.Container(ServicesContainer , infra = infra)
     messaging = providers.Container(MessagingContainer,infra=infra)
-
+    
  
 
     # # ========= Re-export Infra =========

@@ -1,4 +1,5 @@
 from dependency_injector import containers  , providers
+from backend.domain_services.cv_services.cv_snapshot_builder_service import CVSnapshotBuilder
 from backend.domain_services.interview_services.validator_service import InterviewValidatorService
 from backend.domain_services.token_services.token_service import TokenService
 from backend.domain_services.token_services.refresh_token_service import RefreshTokenService
@@ -30,7 +31,9 @@ class ServicesContainer (containers.DeclarativeContainer):
         env=env
     )
 
-    
+    cv_snapshot_builder_service = providers.Factory(
+        CVSnapshotBuilder
+    )
 
 
 

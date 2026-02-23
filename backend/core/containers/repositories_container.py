@@ -10,6 +10,7 @@ from backend.data_access.postgres.cv.skill_language_repository import SkillsLang
 from backend.data_access.postgres.cv.volunteering_repository import VolunteeringRepository
 from backend.data_access.postgres.hr.hr_auth_repository import HRRepository
 from backend.data_access.postgres.hr.hr_user_repository import HRUserRepository
+from backend.data_access.postgres.cv.resume_repository import ResumeRepository
 from backend.data_access.postgres.user_repository import UserRepository
 from backend.data_access.mongo.home.home_stats_repository import HomeStatsRepository
 from backend.data_access.mongo.home.interview_session_home_repository import InterviewSessionHomeRepository
@@ -23,9 +24,8 @@ from backend.data_access.redis.code_redis_repository import CodeRedisRepository
 from backend.data_access.redis.session_redis_repository import SessionRedisRepository
 from backend.data_access.mongo.home.resume_gridfs_repository import ResumeGridFSRepository
 from backend.data_access.mongo.home.gridfs_storage_repository import GridFSStorageService
-from backend.data_access.mongo.task.tasks_repository import TasksRepository
 from backend.data_access.mongo.hr.hr_summary_repository import HRSummaryRepository
-from backend.data_access.postgres.cv.resume_repository import ResumeRepository
+from backend.data_access.mongo.home.cv_snapshot_repository import CVSnapshotRepository
 
 
 class RepositoriesContainer (containers.DeclarativeContainer):
@@ -53,8 +53,8 @@ class RepositoriesContainer (containers.DeclarativeContainer):
     hr_interview_evaluation_repository_factory = providers.Factory(HRInterviewEvaluationRepository , db = infra.hr_video_bucket)
     hr_gridfs_storage_repository_factory = providers.Factory(HRGridFSStorageService)
     hr_summary_repository_factory = providers.Factory(HRSummaryRepository , db=infra.mongo_hr_db)
-    tasks_repository_factory = providers.Factory(TasksRepository)
-    code_redis_repository_factory = providers.Factory(CodeRedisRepository)
+    snapshot_repository_factory = providers.Factory(CVSnapshotRepository , db = infra.mongo_snapshot_db)
+    code_redis_repository_factory = providers.Factory(CodeRedisRepository) 
     session_redis_repository_factory = providers.Factory(SessionRedisRepository)
     resume_gridfs_repository_factory = providers.Factory(ResumeGridFSRepository)
     gridfs_storage_repository_factory = providers.Factory(GridFSStorageService)

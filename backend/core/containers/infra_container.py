@@ -73,7 +73,10 @@ class InfraContainer(containers.DeclarativeContainer):
         lambda client: client["interview_db"],
         client=mongo_client,
     )
-
+    mongo_snapshot_db = providers.Singleton(
+        lambda client : client["cv_snapshots"] ,
+        client = mongo_client
+    )
     mongo_resumes_db = providers.Singleton(
         lambda client: client["resumes_db"],
         client=mongo_client,

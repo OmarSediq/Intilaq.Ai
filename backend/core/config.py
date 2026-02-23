@@ -78,8 +78,10 @@ class Settings(BaseSettings):
     redis_stream_video: str = "intilaq:job:video"
     redis_stream_text: str = "intilaq:job:text"
     redis_stream_notification: str = "intilaq:event:notification"
-    redis_stream_docs: str = "intilaq:job:docs"
+    redis_stream_document: str = "intilaq:event:document"
     REDIS_CONSUMER_GROUP_NOTIFICATION: str
+
+    REDIS_CONSUMER_GROUP_DOCUMENT:str
 
     # # -- CONSUMER GROUP NAMES
     # redis_consumer_group_video: str = "intilaq:cp:video"

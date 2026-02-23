@@ -14,8 +14,8 @@ from backend.core.middlewares.performance_logging import PerformanceLoggingMiddl
 from backend.database.models import cv_models, hr_models  # noqa: F401
 from backend.database.models.base import Base
 import sqlalchemy as sa
-
-
+from backend.core.providers.data_access_providers.doc_providers import snapshot_repository_provider
+from backend.core.providers.domain_providers import snapshot_builder_provider
 async def create_tables(container):
     engine = container.infra.sqlalchemy_engine()
     async with engine.begin() as conn:
@@ -29,7 +29,6 @@ async def lifespan(app: FastAPI):
     container = app.state.container
     await container.init_resources()
     app.state.session_factory = container.infra.async_session_factory()
-
 
     # await create_tables(container)
     
@@ -56,7 +55,11 @@ def create_app() -> FastAPI:
                                   data_interview_providers ,
                                 session_providers,
                                 task_providers,
-                                refresh_token_provider
+                                refresh_token_provider ,
+                                snapshot_repository_provider,
+                                snapshot_builder_provider,
+                                
+
 
                                   
                                     ])

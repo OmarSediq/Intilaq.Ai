@@ -1,14 +1,20 @@
-# from fastapi import APIRouter, Depends
-# from fastapi.responses import HTMLResponse
-# from backend.core.providers.domain_providers.user_provider import get_current_user
-# from backend.domain_services.cv_services.cv_resume_export_service import CVResumeExportService
-# from backend.core.providers.domain_providers.cv_providers import get_resume_export_service
+from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse
+from backend.core.providers.domain_providers.user_provider import get_current_user
+from backend.domain_services.cv_services.cv_resume_export_service import CVResumeExportService
+from backend.core.providers.domain_providers.cv_providers import get_resume_export_service
 
-# router = APIRouter()
+router = APIRouter()
 
-# @router.get("/api/generate-cv/", response_class=HTMLResponse, tags=["CV - Designer-Assistant"])
-# async def generate_cv(user=Depends(get_current_user), service: CVResumeExportService = Depends(get_resume_export_service)):
-#     return await service.generate_html_image(user["user_id"])
+@router.post(
+    "/api/cv/generate",
+    tags=["CV - Designer-Assistant"],
+)
+async def generate_cv(
+    user=Depends(get_current_user),
+    service: CVResumeExportService = Depends(get_resume_export_service),
+):
+    return await service.execute(user["user_id"])
 
 # @router.get("/api/download-cv/pdf/", tags=["CV - Designer-Assistant"])
 # async def download_and_store_cv_pdf(user=Depends(get_current_user), service: CVResumeExportService = Depends(get_resume_export_service)):

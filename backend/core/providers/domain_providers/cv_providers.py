@@ -14,7 +14,7 @@ from backend.domain_services.cv_services.cv_skill_language_service import CVSkil
 from backend.domain_services.cv_services.cv_certification_service import CVCertificationService 
 from backend.domain_services.cv_services.cv_volunteering_service import CVVolunteeringService 
 from backend.domain_services.cv_services.cv_award_service import CVAwardService 
-# from backend.domain_services.cv_services.cv_resume_export_service import CVResumeExportService , ResumeRepository , ResumeHTMLRenderer , PDFGeneratorService , DocxGenerator , GridFSStorageService
+from backend.domain_services.cv_services.cv_resume_export_service import CVResumeExportService
 from backend.core.containers.application_container import ApplicationContainer
 from dependency_injector.wiring import inject , Provide
 
@@ -115,6 +115,24 @@ def get_cv_award_service(
     award_repo = award_repo_factory(db)
     return CVAwardService(db=db , header_repo=header_repo , award_repo=award_repo)
 
+     
+   
+@inject 
+def get_resume_export_service(
+    db : AsyncSession = Depends(provide_request_postgres_session),
+    header_repo_factory = Provide[ApplicationContainer.repos.header_repository_factory.provider],
+    resume_repo_factory = Provide[ApplicationContainer.repos.resume_repository_factory.provider],
+    snapshot_repo_factory = Provide[ApplicationContainer.repos.snapshot_repository_factory.provider],
+    snapshot_builder = Provide[ApplicationContainer.service.cv_snapshot_builder_service],
+    document_event_publisher = Provide[ApplicationContainer.messaging.document_event_publisher]
+):
+     header_repo = header_repo_factory(db)
+     resume_repo = resume_repo_factory(db)
+     snapshot_repo = snapshot_repo_factory()
+     return CVResumeExportService (db =db ,header_repo=header_repo , resume_repo=resume_repo , snapshot_builder=snapshot_builder , snapshot_repo=snapshot_repo , document_event_publisher=document_event_publisher)
+
+
+
 
 # archive this next time (because i need to add all of generate (PDF,DOCS,HTML) to microservice)
 # def get_resume_export_service(
@@ -127,12 +145,10 @@ def get_cv_award_service(
 #     return CVResumeExportService( db_sql=db, header_repo=header_repo , resume_repo= resume_repo , html_renderer=html_renderer ,gridfs_storage=gridfs_storage)
 
 
-# @inject 
-# def get_resume_export_service(
-#     db : AsyncSession = Depends(provide_request_postgres_session),
-#     header_repo_factory = Provide[RepositoriesContainer.header_repository_factory],
-#     resume_repo_factory = Provide[RepositoriesContainer.resume_repository_factory],
-#     html_renderer_factory = Provide[ServicesContainer.resume_html_renderer],
-#     gridfs_storage = Provide[RepositoriesContainer.gridfs_storage_repository_factory]
-# )-> CVResumeExportService:
-     
+
+
+
+
+
+
+
