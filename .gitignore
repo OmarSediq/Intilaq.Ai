@@ -30,4 +30,3 @@ __pycache__/
 !app/api/auth_api/auth/__init__.py
 !app/api/auth_api/auth_hr/__init__.py
 logs/*.log
-docs

@@ -1,0 +1,85 @@
+{{ full_name }} | {{ job_title }}
+
+(+{{ phone_number }}) | {{ email }} | {{ address }}
+{{ linkedin_profile }}
+{{ github_profile }} (Portfolio)
+
+
+{% if objective %}
+Career Objective
+{{ objective }}
+{% endif %}
+
+
+{% if education %}
+Education
+{% for edu in education %}
+{{ edu.degree_and_major }} – {{ edu.school }}, {{ edu.city }}, {{ edu.country }}    {{ edu.start_date }} – {{ edu.end_date or "Present" }}
+{{ edu.description }}
+{% endfor %}
+{% endif %}
+
+
+{% if experience %}
+Experience & Internships
+{% for exp in experience %}
+{{ exp.role }} at {{ exp.company_name }}    {{ exp.start_date }} – {{ exp.end_date or "Present" }}
+{{ exp.description }}
+{% endfor %}
+{% endif %}
+
+
+{% if certifications %}
+Certifications
+{% for cert in certifications %}
+{{ cert.certification_title }}
+{% if cert.link %}Link: {{ cert.link }}{% endif %}
+{% if cert.upload %}File: {{ cert.upload }}{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{% if projects %}
+Projects
+{% for project in projects %}
+{{ project.project_name }}
+{{ project.description }}
+{% if project.link %}Link: {{ project.link }}{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{% if technical_skills or languages %}
+Skills
+
+{% if technical_skills %}
+Technical Skills:
+{% for skill in technical_skills %}
+- {{ skill.skill }}
+{% endfor %}
+{% endif %}
+
+{% if languages %}
+Languages:
+{% for lang in languages %}
+{{ lang.language }} ({{ lang.level or "N/A" }})
+{% endfor %}
+{% endif %}
+{% endif %}
+
+
+{% if volunteering_experience %}
+Volunteer Activities
+{% for vol in volunteering_experience %}
+{{ vol.role }} at {{ vol.organization }}    {{ vol.start_date }} – {{ vol.end_date or "Present" }}
+{{ vol.description }}
+{% endfor %}
+{% endif %}
+
+
+{% if awards %}
+Awards
+{% for award in awards %}
+{{ award.award }} – {{ award.organization }}    {{ award.start_date }} – {{ award.end_date or "Present" }}
+{% endfor %}
+{% endif %}

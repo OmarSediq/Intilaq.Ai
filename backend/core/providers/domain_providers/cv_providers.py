@@ -129,7 +129,7 @@ def get_resume_export_service(
      header_repo = header_repo_factory(db)
      resume_repo = resume_repo_factory(db)
      snapshot_repo = snapshot_repo_factory()
-     return CVResumeExportService (db =db ,header_repo=header_repo , resume_repo=resume_repo , snapshot_builder=snapshot_builder , snapshot_repo=snapshot_repo , document_event_publisher=document_event_publisher)
+     return CVResumeExportService (header_repo=header_repo , resume_repo=resume_repo , snapshot_builder=snapshot_builder , snapshot_repo=snapshot_repo , document_event_publisher=document_event_publisher)
 
 
 

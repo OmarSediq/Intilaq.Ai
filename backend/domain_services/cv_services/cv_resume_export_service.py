@@ -1,9 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException
 from backend.utils.response_schemas import error_response , success_response
 from backend.data_access.postgres.cv.resume_repository import ResumeRepository
 from backend.data_access.postgres.cv.header_repository import CVHeaderRepository
-# from backend.domain_services.doc_services.resume_html_renderer import ResumeHTMLRenderer
 from backend.core.contracts.publishers.document_event_publisher import DocumentEventPublisher
 from backend.core.contracts.events.event_envelope import EventEnvelope
 from backend.data_access.mongo.home.cv_snapshot_repository import CVSnapshotRepository
@@ -38,7 +37,7 @@ class CVResumeExportService:
             if not user_data or int (user_data["user_id"]!= int(user_id)):
                 return error_response(code=403 , error_message="You do not have permission")
           
-            snapshot_data = self.snapshot_builder(user_data)
+            snapshot_data = self.snapshot_builder.build(user_data)
 
             snapshot_id = generate_ulid()
             await self.snapshot_repo.create_snapshot(
@@ -56,7 +55,7 @@ class CVResumeExportService:
             event = EventEnvelope(
                 event_name="document.cv_generation.requested",
                 version=1,
-                occurred_at=datetime.utcnow(),
+                occurred_at=datetime.now(timezone.utc),
                 idempotency_key=generate_ulid(),
                 payload={
                     "snapshot_id": snapshot_id,
