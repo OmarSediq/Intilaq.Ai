@@ -1,4 +1,4 @@
-from Domain.contracts.snapshot_repository import CvSnapshotRepository
+from Domain.contracts.mongo.snapshot_contract import CvSnapshotRepository
 
 
 class MongoCvSnapshotRepository(CvSnapshotRepository):

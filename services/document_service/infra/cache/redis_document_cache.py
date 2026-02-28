@@ -1,7 +1,7 @@
-from Domain.contracts.document_cache import DocumentCache
+from Domain.contracts.cache.document_cache_contract import DocumentCacheContract
 
 
-class RedisDocumentCache(DocumentCache):
+class RedisDocumentCache(DocumentCacheContract):
     def __init__(self , redis ):
         self.redis = redis 
 

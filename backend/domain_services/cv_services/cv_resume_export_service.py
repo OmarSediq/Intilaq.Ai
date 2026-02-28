@@ -63,6 +63,7 @@ class CVResumeExportService:
                     "formats": ["html", "pdf", "docx"],
                 },
             )
+            
             await self.document_event_publisher.publish(event)
             return success_response(
                 code=200,

@@ -1,0 +1,12 @@
+[project]
+name = "document_service"
+version = "0.1.0"
+description = "Document microservice"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["document_service*"]

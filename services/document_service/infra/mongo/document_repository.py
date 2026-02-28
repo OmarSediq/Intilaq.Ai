@@ -1,16 +1,15 @@
 from io import BytesIO
-from Domain.contracts.document_repository import DocumentRepository
+from Domain.contracts.mongo.document_contract import DocumentContract
 
 
-class MongoDocumentRepository(DocumentRepository):
+class MongoDocumentRepository(DocumentContract):
     def __init__ (self ,gridfs_bucket):
         self.bucket = gridfs_bucket
-
-        async def save (
+    async def save (
                 self , 
-                snapshot_id : str ,
+                snapshot_id: str ,
                 document_type: str ,
-                content : bytes
+                content: bytes
         )-> None:
             
             filename = f"{snapshot_id}.{document_type}"
@@ -22,3 +21,5 @@ class MongoDocumentRepository(DocumentRepository):
                 "type": document_type,
             },
         )
+            
+

@@ -1,12 +1,12 @@
 from abc import ABC , abstractmethod
 
 
-class DocumentRepository(ABC):
+class DocumentContract(ABC):
     @abstractmethod
     async def save (
         self , 
-        snapshot_id:str ,
-        document_type:str ,
+        snapshot_id: str ,
+        document_type: str ,
         content: bytes 
     )-> None : 
         pass 

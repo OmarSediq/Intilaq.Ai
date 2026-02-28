@@ -1,16 +1,15 @@
 from docxtpl import DocxTemplate
 from io import BytesIO
-from Domain.contracts.docx_renderer import DocxRenderer
+from Domain.contracts.rendering.docx_contract import DocxContract
 
-class DocxRenderer(DocxRenderer):
+class DocxRenderer(DocxContract):
     def __init__(self, template_path: str):
         self.template_path = template_path
 
-    async def generate(self, snapshot: dict) -> bytes:
+    async def render(self, snapshot: dict) -> bytes:
 
         doc = DocxTemplate(self.template_path)
 
-        # render = snapshot مباشرة
         doc.render(snapshot)
 
         buffer = BytesIO()

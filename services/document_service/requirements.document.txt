@@ -5,3 +5,4 @@ redis==5.2.1
 pydantic==2.10.4
 pydantic-settings==2.0.3
 docxtpl
+motor==3.6.0

@@ -1,6 +1,6 @@
 from abc import ABC , abstractmethod
 
-class DocumentCache(ABC):
+class DocumentCacheContract(ABC):
     @abstractmethod
     async def store_html (self , snapshot_id : str  , html : str )-> None:
         pass 

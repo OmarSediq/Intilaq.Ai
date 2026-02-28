@@ -4,7 +4,7 @@ import time
 import logging
 import pprint
 
-trace_logger = logging.getLogger("notification_service.trace")
+trace_logger = logging.getLogger("document_service.trace")
 
 def _safe_repr(obj, max_len=1000):
     try:

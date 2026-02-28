@@ -27,7 +27,6 @@ from backend.data_access.mongo.home.gridfs_storage_repository import GridFSStora
 from backend.data_access.mongo.hr.hr_summary_repository import HRSummaryRepository
 from backend.data_access.mongo.home.cv_snapshot_repository import CVSnapshotRepository
 
-
 class RepositoriesContainer (containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
 
@@ -54,6 +53,7 @@ class RepositoriesContainer (containers.DeclarativeContainer):
     hr_gridfs_storage_repository_factory = providers.Factory(HRGridFSStorageService)
     hr_summary_repository_factory = providers.Factory(HRSummaryRepository , db=infra.mongo_hr_db)
     snapshot_repository_factory = providers.Factory(CVSnapshotRepository , db = infra.mongo_snapshot_db)
+  
     code_redis_repository_factory = providers.Factory(CodeRedisRepository) 
     session_redis_repository_factory = providers.Factory(SessionRedisRepository)
     resume_gridfs_repository_factory = providers.Factory(ResumeGridFSRepository)
