@@ -1,30 +1,31 @@
 from Application.use_cases.generate_document import GenerateDocumentUseCase
 from Application.handlers.document_handler import DocumentHandler
-
 from infra.cache.redis_document_cache import RedisDocumentCache
 from infra.rendering.jinja_html_renderer import JinjaHtmlRenderer
 from infra.rendering.docx_renderer import DocxRenderer
 from infra.stream_client import RedisStreamClient
 from infra.rendering.pdf_generator import PdfGenerator
-from infra.mongodb import get_snapshot_repo, get_document_repo
+from infra.mongodb import get_mongo_client, get_snapshot_repo, get_document_repo
 from redis.asyncio import Redis
-
-from Core.config import settings
+from Core.config import settings , TEMPLATES_DIR
 from Core.logging_config import configure_logging
 from infra.redis_client import get_redis
 from Application.mappers.event_mapper import EventMapper
+from Domain.policies.retry_policy import RetryPolicy
 
 async def bootstrap():
     configure_logging("document_service")
 
     # ---- Infra ----
+
     snapshot_repo = await get_snapshot_repo()
     document_repo = await get_document_repo()
 
-    html_renderer = JinjaHtmlRenderer(template_dir="templates")
+    html_renderer = JinjaHtmlRenderer(template_dir=str(TEMPLATES_DIR))
     pdf_renderer = PdfGenerator()
+
     docx_renderer = DocxRenderer(
-    template_path="templates/resume_template.docx"
+    template_path=str(TEMPLATES_DIR/"resume_template.docx")
 )
 
     # redis_client = Redis.from_url(settings.REDIS_URL)
@@ -34,6 +35,11 @@ async def bootstrap():
     redis = await get_redis()
     stream = RedisStreamClient(redis)
     await stream.ensure_group()
+    
+    retry_policy = RetryPolicy(
+        max_attempts=1,
+        dlq=None,
+    )
 
     # ---- Use Case ----
     use_case = GenerateDocumentUseCase(
@@ -46,7 +52,7 @@ async def bootstrap():
     # ---- Routes ----
 
     routes = {
-            "document.generation.requested": (
+            "document.cv_generation.requested": (
                 EventMapper.to_document_request,
                 use_case
             )
@@ -54,7 +60,7 @@ async def bootstrap():
 
         # ---- Handler ----
 
-    handler = DocumentHandler(routes=routes)
+    handler = DocumentHandler(routes=routes , retry_policy=retry_policy)
 
     return {
         "document_handler": handler,

@@ -42,6 +42,7 @@ class CVResumeExportService:
             snapshot_id = generate_ulid()
             await self.snapshot_repo.create_snapshot(
                 snapshot_id=snapshot_id,
+                user_id=user_id,
                 data=snapshot_data,
                 version=1
 

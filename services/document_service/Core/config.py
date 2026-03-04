@@ -1,5 +1,8 @@
 from pydantic_settings import BaseSettings
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+TEMPLATES_DIR = BASE_DIR / "templates"
 class Settings(BaseSettings):
     # ---- Redis ----
     REDIS_URL: str

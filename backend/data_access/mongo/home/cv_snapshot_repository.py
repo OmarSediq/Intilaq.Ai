@@ -9,12 +9,14 @@ class CVSnapshotRepository :
     async def create_snapshot (
             self,
             snapshot_id:str,
+            user_id: int,
             data:Dict[str , Any],
             version: int=1,
     )-> str:
         doc={
             "_id":snapshot_id,
             "type":"cv",
+            "user_id": user_id,
             "version":version,
             "data":data,
             "created_at":datetime.utcnow()
@@ -22,5 +24,11 @@ class CVSnapshotRepository :
         await self.collection.insert_one(doc)
         return snapshot_id
     
+
+    
     async def get_snapshot( self , snapshot_id: str)-> Optional[Dict[str, Any]]:
         return await self.collection.find_one({"_id" :snapshot_id})
+    
+
+
+    

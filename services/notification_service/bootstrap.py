@@ -20,7 +20,6 @@ async def bootstrap():
     redis = await get_redis()
     stream = RedisStreamClient(redis)
 
-    # ✅ create consumer group هنا
     await stream.ensure_group()
 
     # 3️⃣ business wiring

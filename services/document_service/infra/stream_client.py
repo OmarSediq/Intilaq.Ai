@@ -48,6 +48,9 @@ class RedisStreamClient:
                 raw_payload = payload["payload"]
                 if isinstance(raw_payload, str):
                     raw_payload = json.loads(raw_payload)
+                if isinstance(raw_payload, bytes):
+                     raw_payload = raw_payload.decode()
+
 
                 yield EventEnvelope(
                     event_name=payload["event_name"],
@@ -73,6 +76,8 @@ class RedisStreamClient:
                     raw_payload = payload["payload"]
                     if isinstance(raw_payload, str):
                         raw_payload = json.loads(raw_payload)
+                    if isinstance(raw_payload, bytes):
+                        raw_payload = raw_payload.decode()
 
                     yield EventEnvelope(
                         event_name=payload["event_name"],

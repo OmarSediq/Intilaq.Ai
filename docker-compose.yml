@@ -120,7 +120,7 @@ services:
     networks:
       - my_network
     env_file:
-      - .env
+      - ./services/document_service/.env
     command: ["python","main.py"]
   #   # ------------------ Observability services ------------------
   # prometheus:

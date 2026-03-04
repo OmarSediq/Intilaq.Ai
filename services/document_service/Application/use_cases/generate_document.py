@@ -2,11 +2,10 @@ from Domain.contracts.mongo.snapshot_contract import CvSnapshotRepository
 from Domain.contracts.rendering.html_contract import HtmlContract
 from Domain.contracts.mongo.document_contract import DocumentContract
 from Domain.contracts.cache.document_cache_contract import DocumentCacheContract
-
 from Domain.contracts.rendering.pdf_contract import PdfContract
 from Domain.contracts.rendering.docx_contract import DocxContract
-
-
+from Domain.contracts.events.document_events import DocumentGenerationRequested
+from Application.mappers.snapshot_to_template_mapper import SnapshotToTemplateMapper
 class GenerateDocumentUseCase:
 
     def __init__(
@@ -23,34 +22,32 @@ class GenerateDocumentUseCase:
         self._docx_contract = docx_contract
         self._document_repo = document_repo
      
-
-    async def execute(self, event):
+    async def execute(self, event : DocumentGenerationRequested)-> None:
+        
 
         snapshot = await self._snapshot_repo.get_by_id(event.snapshot_id)
+        context = SnapshotToTemplateMapper.map(snapshot["data"])
 
-        html = self._html_contract.render(snapshot)
-
-        # 1️⃣ save html
+        html = self._html_contract.render(context)
         await self._document_repo.save(
             snapshot_id=event.snapshot_id,
             document_type="html",
             content=html.encode("utf-8"),
         )
-
-        # 2️⃣ generate pdf
         pdf_bytes = await self._pdf_contract.render(html)
-
         await self._document_repo.save(
             snapshot_id=event.snapshot_id,
             document_type="pdf",
             content=pdf_bytes,
         )
+        
+        # docx_bytes = await self._docx_contract.render(snapshot)
 
-        # 3️⃣ generate docx
-        docx_bytes = await self._docx_contract.render(snapshot)
+        # await self._document_repo.save(
+        #     snapshot_id=event.snapshot_id,
+        #     document_type="docx",
+        #     content=docx_bytes,
+        # )
 
-        await self._document_repo.save(
-            snapshot_id=event.snapshot_id,
-            document_type="docx",
-            content=docx_bytes,
-        )
+
+
