@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # from backend.core.providers.data_access_providers.doc_providers.doc_providers import get_resume_html_renderer 
 # from backend.core.providers.data_access_providers.doc_providers.gridfs_repository_provider import get_gridfs_storage
 from backend.core.dependencies.session.postgres import provide_request_postgres_session
+from backend.domain_services.cv_services.cv_download_service import CVDownloadService
 from backend.domain_services.cv_services.cv_objective_service import CVObjectiveService
 from backend.domain_services.cv_services.cv_experience_service import CVExperienceService 
 from backend.domain_services.cv_services.cv_header_service import CVHeaderService
@@ -123,13 +124,33 @@ def get_resume_export_service(
     header_repo_factory = Provide[ApplicationContainer.repos.header_repository_factory.provider],
     resume_repo_factory = Provide[ApplicationContainer.repos.resume_repository_factory.provider],
     snapshot_repo_factory = Provide[ApplicationContainer.repos.snapshot_repository_factory.provider],
+    cv_state_repo_factory = Provide[ApplicationContainer.repos.user_cv_state_repository_factory.provider],
     snapshot_builder = Provide[ApplicationContainer.service.cv_snapshot_builder_service],
     document_event_publisher = Provide[ApplicationContainer.messaging.document_event_publisher]
+
+    
 ):
+     user_cv_state_repo= cv_state_repo_factory()
      header_repo = header_repo_factory(db)
      resume_repo = resume_repo_factory(db)
      snapshot_repo = snapshot_repo_factory()
-     return CVResumeExportService (header_repo=header_repo , resume_repo=resume_repo , snapshot_builder=snapshot_builder , snapshot_repo=snapshot_repo , document_event_publisher=document_event_publisher)
+     return CVResumeExportService (header_repo=header_repo , resume_repo=resume_repo , snapshot_builder=snapshot_builder , snapshot_repo=snapshot_repo , document_event_publisher=document_event_publisher ,user_cv_state_repo = user_cv_state_repo)
+#     gridfs_storage : GridFSStorageService = Depends(get_gridfs_storage)
+
+@inject 
+async def get_cv_download_service(
+    snapshot_repo_factory = Provide[ApplicationContainer.repos.snapshot_repository_factory.provider],
+    cv_state_repo_factory = Provide[ApplicationContainer.repos.user_cv_state_repository_factory.provider],
+    storage_repo_factory = Provide[ApplicationContainer.repos.gridfs_storage_repository_factory.provider]
+
+): 
+    snapshot_repo = snapshot_repo_factory()
+    user_cv_state_repo = cv_state_repo_factory()
+    storage_repo =await storage_repo_factory()
+
+    return CVDownloadService (snapshot_repo=snapshot_repo , user_cv_state_repo=user_cv_state_repo , storage_repo=storage_repo)
+
+    
 
 
 

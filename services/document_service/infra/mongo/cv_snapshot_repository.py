@@ -26,6 +26,22 @@ class MongoCvSnapshotRepository(CvSnapshotRepository):
             )
 
         return snapshot
+    
+    async def attach_documents(
+    self,
+    snapshot_id: str,
+     documents: dict,
+    ):
+        update_fields = {
+            f"documents.{k}": v for k, v in documents.items()
+        }
+
+        await self.collection.update_one(
+            {"_id": snapshot_id},
+            {"$set": update_fields}
+        )
+
+            
 
 
     

@@ -22,11 +22,11 @@ from backend.data_access.mongo.hr.hr_interview_evaluation_repository import HRIn
 from backend.data_access.mongo.hr.hr_interview_gridfs_repository import HRGridFSStorageService
 from backend.data_access.redis.code_redis_repository import CodeRedisRepository
 from backend.data_access.redis.session_redis_repository import SessionRedisRepository
-from backend.data_access.mongo.home.resume_gridfs_repository import ResumeGridFSRepository
-from backend.data_access.mongo.home.gridfs_storage_repository import GridFSStorageService
+# from backend.data_access.mongo.home.resume_gridfs_repository import ResumeGridFSRepository
+from backend.data_access.mongo.home.gridfs_storage_repository import GridFSStorageRepository
 from backend.data_access.mongo.hr.hr_summary_repository import HRSummaryRepository
 from backend.data_access.mongo.home.cv_snapshot_repository import CVSnapshotRepository
-
+from backend.data_access.mongo.home.user_cv_state_repository import UserCVStateRepository
 class RepositoriesContainer (containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
 
@@ -53,11 +53,11 @@ class RepositoriesContainer (containers.DeclarativeContainer):
     hr_gridfs_storage_repository_factory = providers.Factory(HRGridFSStorageService)
     hr_summary_repository_factory = providers.Factory(HRSummaryRepository , db=infra.mongo_hr_db)
     snapshot_repository_factory = providers.Factory(CVSnapshotRepository , db = infra.mongo_snapshot_db)
-  
+    user_cv_state_repository_factory = providers.Factory(UserCVStateRepository , db = infra.mongo_user_cv_state_db)
     code_redis_repository_factory = providers.Factory(CodeRedisRepository) 
     session_redis_repository_factory = providers.Factory(SessionRedisRepository)
-    resume_gridfs_repository_factory = providers.Factory(ResumeGridFSRepository)
-    gridfs_storage_repository_factory = providers.Factory(GridFSStorageService)
+    # resume_gridfs_repository_factory = providers.Factory(ResumeGridFSRepository)
+    gridfs_storage_repository_factory = providers.Factory(GridFSStorageRepository ,bucket=infra.cv_bucket,db=infra.mongo_snapshot_db )
     resume_repository_factory = providers.Factory(ResumeRepository)
 
    

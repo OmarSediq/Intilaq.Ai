@@ -8,6 +8,7 @@ from backend.core.contracts.events.event_envelope import EventEnvelope
 from backend.data_access.mongo.home.cv_snapshot_repository import CVSnapshotRepository
 from backend.utils.generate_ulid_utils import generate_ulid
 from backend.domain_services.cv_services.cv_snapshot_builder_service import CVSnapshotBuilder
+from backend.data_access.mongo.home.user_cv_state_repository import UserCVStateRepository
 class CVResumeExportService:
     def __init__(
         self,
@@ -16,6 +17,7 @@ class CVResumeExportService:
         snapshot_builder: CVSnapshotBuilder,
         document_event_publisher: DocumentEventPublisher,
         header_repo: CVHeaderRepository,
+        user_cv_state_repo: UserCVStateRepository
 
     ):
         
@@ -24,6 +26,7 @@ class CVResumeExportService:
         self.snapshot_builder = snapshot_builder
         self.document_event_publisher = document_event_publisher
         self.header_repo = header_repo
+        self.user_cv_state_repo = user_cv_state_repo
 
 
     async def execute(self, user_id:int ):
@@ -47,6 +50,7 @@ class CVResumeExportService:
                 version=1
 
             )
+            await self.user_cv_state_repo.set_current_snapshot(user_id=user_id,snapshot_id=snapshot_id)
 
                     # REDIS_STREAM_DOCUMENT=intilaq:event:document 
                     # REDIS_STREAM_NOTIFICATION =intilaq:event:notification
@@ -73,10 +77,43 @@ class CVResumeExportService:
                     "snapshot_id": snapshot_id,
                 },
             )
-
+    
             
 
+      
+# async def generate_pdf_and_store(self, user_id: int):
+#         try:
+#             header_id = await self.header_repo.get_header_id_by_user_id(user_id)
+#             if not header_id:
+#                 raise HTTPException(status_code=404, detail="No header associated with this user")
 
+#             user_data = await self.resume_repo.get_user_by_header_id(header_id)
+#             html_content = self.html_renderer.render(user_data)
+#             pdf_bytes = self.pdf_generator.generate(html_content)
+
+#             metadata = {
+#                 "user_id": user_id,
+#                 "resume_name": user_data.get("full_name", "Generated_CV"),
+#                 "uploaded_at": datetime.utcnow()
+#             }
+
+#             file_id = await self.storage.upload_pdf(
+#                 f"{metadata['resume_name']}.pdf",
+#                 pdf_bytes,
+#                 metadata
+#             )
+
+#             return StreamingResponse(
+#                 io.BytesIO(pdf_bytes),
+#                 media_type="application/pdf",
+#                 headers={
+#                     "Content-Disposition": f"attachment; filename={metadata['resume_name']}.pdf",
+#                     "X-File-ID": str(file_id)
+#                 }
+#             )
+
+#         except Exception as e:
+#             return error_response(code=500, error_message=f"PDF generation error: {str(e)}")
 # async def generate_html_image(self, user_id: int):
 #         try:
 #             # 1) Validation & fetch user data
@@ -159,40 +196,7 @@ class CVResumeExportService:
 #         except Exception as e:
 #             # generic error
 #             return error_response(code=500, error_message=f"Image rendering queue error: {str(e)}")
-        
-# async def generate_pdf_and_store(self, user_id: int):
-#         try:
-#             header_id = await self.header_repo.get_header_id_by_user_id(user_id)
-#             if not header_id:
-#                 raise HTTPException(status_code=404, detail="No header associated with this user")
-
-#             user_data = await self.resume_repo.get_user_by_header_id(header_id)
-#             html_content = self.html_renderer.render(user_data)
-#             pdf_bytes = self.pdf_generator.generate(html_content)
-
-#             metadata = {
-#                 "user_id": user_id,
-#                 "resume_name": user_data.get("full_name", "Generated_CV"),
-#                 "uploaded_at": datetime.utcnow()
-#             }
-
-#             file_id = await self.storage.upload_pdf(
-#                 f"{metadata['resume_name']}.pdf",
-#                 pdf_bytes,
-#                 metadata
-#             )
-
-#             return StreamingResponse(
-#                 io.BytesIO(pdf_bytes),
-#                 media_type="application/pdf",
-#                 headers={
-#                     "Content-Disposition": f"attachment; filename={metadata['resume_name']}.pdf",
-#                     "X-File-ID": str(file_id)
-#                 }
-#             )
-
-#         except Exception as e:
-#             return error_response(code=500, error_message=f"PDF generation error: {str(e)}")
+  
 
 # async def generate_docx(self, user_id: int):
 #         try:

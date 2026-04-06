@@ -81,6 +81,10 @@ class InfraContainer(containers.DeclarativeContainer):
         lambda client: client["resumes_db"],
         client=mongo_client,
     )
+    mongo_user_cv_state_db = providers.Singleton(
+        lambda client: client["user_cv_state"],
+        client=mongo_client,
+    )
     hr_video_bucket = providers.Singleton(
         AsyncIOMotorGridFSBucket,
         db=mongo_hr_db,
@@ -90,7 +94,22 @@ class InfraContainer(containers.DeclarativeContainer):
         AsyncIOMotorGridFSBucket,
         db=mongo_resumes_db,
     )
-    # Mongo
+
+    async def init_gridfs(database):
+        return AsyncIOMotorGridFSBucket(database)
+
+    cv_bucket = providers.Resource(
+        init_gridfs,
+        database=mongo_snapshot_db,
+    )
+
+
+#     cv_bucket = providers.Singleton(
+#     AsyncIOMotorGridFSBucket,
+#     mongo_snapshot_db
+# )
+    
+        # Mongo
     # mongo_db_factory = providers.Factory(
     #     lambda client, name: client[name],
     #     client=mongo_client,

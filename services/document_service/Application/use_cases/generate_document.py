@@ -1,7 +1,6 @@
 from Domain.contracts.mongo.snapshot_contract import CvSnapshotRepository
 from Domain.contracts.rendering.html_contract import HtmlContract
 from Domain.contracts.mongo.document_contract import DocumentContract
-from Domain.contracts.cache.document_cache_contract import DocumentCacheContract
 from Domain.contracts.rendering.pdf_contract import PdfContract
 from Domain.contracts.rendering.docx_contract import DocxContract
 from Domain.contracts.events.document_events import DocumentGenerationRequested
@@ -29,20 +28,30 @@ class GenerateDocumentUseCase:
         context = SnapshotToTemplateMapper.map(snapshot["data"])
 
         html = self._html_contract.render(context)
-        await self._document_repo.save(
+        html_id=await self._document_repo.save(
             snapshot_id=event.snapshot_id,
             document_type="html",
             content=html.encode("utf-8"),
         )
+
         pdf_bytes = await self._pdf_contract.render(html)
-        await self._document_repo.save(
+        pdf_id = await self._document_repo.save(
             snapshot_id=event.snapshot_id,
             document_type="pdf",
             content=pdf_bytes,
         )
-        
-        # docx_bytes = await self._docx_contract.render(snapshot)
 
+        await self._snapshot_repo.attach_documents(
+            event.snapshot_id,
+            {
+                "pdf": pdf_id,
+                "html": html_id,
+                # "docx": docx_id,
+            },
+        )
+
+
+        # docx_bytes = await self._docx_contract.render(snapshot)
         # await self._document_repo.save(
         #     snapshot_id=event.snapshot_id,
         #     document_type="docx",

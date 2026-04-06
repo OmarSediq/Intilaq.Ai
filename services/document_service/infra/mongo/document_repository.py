@@ -13,13 +13,14 @@ class MongoDocumentRepository(DocumentContract):
         )-> None:
             
             filename = f"{snapshot_id}.{document_type}"
-            await self.bucket.upload_from_stream(
+            file_id = await self.bucket.upload_from_stream(
             filename,
             BytesIO(content),
             metadata={
                 "snapshot_id": snapshot_id,
                 "type": document_type,
             },
+        
         )
-            
+            return file_id
 
