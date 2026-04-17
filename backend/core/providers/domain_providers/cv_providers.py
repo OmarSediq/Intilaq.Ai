@@ -155,17 +155,6 @@ async def get_cv_download_service(
 
 
 
-# archive this next time (because i need to add all of generate (PDF,DOCS,HTML) to microservice)
-# def get_resume_export_service(
-#     db: AsyncSession = Depends(get_db),
-#     header_repo : CVHeaderRepository = Depends (get_header_repository),
-#     resume_repo : ResumeRepository = Depends(get_resume_repository),
-#     html_renderer : ResumeHTMLRenderer = Depends(get_resume_html_renderer),
-#     gridfs_storage : GridFSStorageService = Depends(get_gridfs_storage)
-# )-> CVResumeExportService:
-#     return CVResumeExportService( db_sql=db, header_repo=header_repo , resume_repo= resume_repo , html_renderer=html_renderer ,gridfs_storage=gridfs_storage)
-
-
 
 
 

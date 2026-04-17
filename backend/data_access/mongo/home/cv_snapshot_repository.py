@@ -32,11 +32,3 @@ class CVSnapshotRepository :
 
    
     
-
-
-    #   async def get_latest_by_user(self, user_id: int):
-    #     return await self.collection.find_one(
-    #         {"user_id": user_id},
-    #         sort=[("created_at", -1)]
-    #     )
-    

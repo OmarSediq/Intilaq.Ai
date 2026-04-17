@@ -10,50 +10,61 @@ from dependency_injector.wiring import inject , Provide
 
 @inject
 def get_validator_service(
-    repo_interview = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider]),
-    repo_session = Depends(Provide[ApplicationContainer.repos.session_redis_repository_factory.provider])
+    repo_interview_factory = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider]),
+    repo_session_factory = Depends(Provide[ApplicationContainer.repos.session_redis_repository_factory.provider])
 )-> InterviewValidatorService: 
-    return InterviewValidatorService(repo_interview , repo_session)
+    repo_interview = repo_interview_factory()
+    repo_session = repo_session_factory()
+    return InterviewValidatorService(repo_interview=repo_interview , repo_session =repo_session)
 
 
 @inject
 def get_interview_session_service(
     validator = Depends(Provide[ApplicationContainer.service.validator_service]),
     gemini_service = Depends(Provide[ApplicationContainer.ai.gemini_service]),
-    repo_interview = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider]),
-    repo_session = Depends(Provide[ApplicationContainer.repos.session_redis_repository_factory.provider])
+    repo_interview_factory  = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider]),
+    repo_session_factory  = Depends(Provide[ApplicationContainer.repos.session_redis_repository_factory.provider])
 )-> InterviewSessionService:
-    return InterviewSessionService(validator , gemini_service , repo_interview , repo_session)
+    repo_interview = repo_interview_factory()
+    repo_session = repo_session_factory()
+    return InterviewSessionService(validator=validator , gemini_service =gemini_service, repo_interview =repo_interview , repo_session=repo_session)
 
 @inject
 def get_interview_question_service(
     validator = Depends(Provide[ApplicationContainer.service.validator_service]),
-    repo_interview = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider]),
-    repo_session = Depends(Provide[ApplicationContainer.repos.session_redis_repository_factory.provider])
+    repo_interview_factory  = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider]),
+    repo_session_factory = Depends(Provide[ApplicationContainer.repos.session_redis_repository_factory.provider])
 )-> InterviewQuestionService:
-    return InterviewQuestionService(validator, repo_interview , repo_session)
+    repo_interview = repo_interview_factory()
+    repo_session = repo_session_factory()
+    return InterviewQuestionService(validator=validator, repo_interview =repo_interview, repo_session=repo_session)
 
 
 @inject
 def get_interview_answer_service(
     validator =Depends( Provide[ApplicationContainer.service.validator_service]),
     whisper_service = Depends(Provide[ApplicationContainer.ai.whisper_transcriber]),
-    repo_interview = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider]),
-    repo_session = Depends(Provide[ApplicationContainer.repos.session_redis_repository_factory.provider])
+    repo_interview_factory = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider]),
+    repo_session_factory = Depends(Provide[ApplicationContainer.repos.session_redis_repository_factory.provider])
 )-> InterviewAnswerService:
-    return InterviewAnswerService(validator , repo_interview , repo_session , whisper_service)
+    repo_interview = repo_interview_factory()
+    repo_session = repo_session_factory()
+
+    return InterviewAnswerService(validator =validator, repo_interview= repo_interview , repo_session=repo_session , whisper_service = whisper_service)
 
 @inject
 def get_interview_feedback_service(
     validator = Depends(Provide[ApplicationContainer.service.validator_service]),
     gemini_service = Depends(Provide[ApplicationContainer.ai.gemini_service]),
-    repo_interview = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider])
+    repo_interview_factory  = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider])
 )-> InterviewFeedbackService:
-    return InterviewFeedbackService(validator , gemini_service , repo_interview)
+    repo_interview = repo_interview_factory()
+    return InterviewFeedbackService(validator =validator, gemini_service =gemini_service, repo_interview =repo_interview)
 
 @inject
 def get_interview_score_service(
     validator = Depends(Provide[ApplicationContainer.service.validator_service]),
-    repo_interview = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider])
+    repo_interview_factory  = Depends(Provide[ApplicationContainer.repos.interview_repository_factory.provider])
 )-> InterviewScoreService:
-    return InterviewScoreService(validator , repo_interview)
+    repo_interview = repo_interview_factory()
+    return InterviewScoreService(validator=validator , repo_interview=repo_interview)

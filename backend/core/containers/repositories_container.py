@@ -29,7 +29,6 @@ from backend.data_access.mongo.home.cv_snapshot_repository import CVSnapshotRepo
 from backend.data_access.mongo.home.user_cv_state_repository import UserCVStateRepository
 class RepositoriesContainer (containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
-
     header_repository_factory = providers.Factory(CVHeaderRepository)
     award_repository_factory = providers.Factory(AwardRepository)
     certification_repository_factory = providers.Factory(CertificationRepository)

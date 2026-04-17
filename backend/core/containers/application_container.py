@@ -9,9 +9,9 @@ from .repositories_container import RepositoriesContainer
 class ApplicationContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     infra = providers.Container(InfraContainer , config=config)
-    repos = providers.Container(RepositoriesContainer  ,  infra=infra)
+    repos = providers.Container(RepositoriesContainer  ,  infra=infra )
     ai = providers.Container(AIContainer , config=config)
-    service = providers.Container(ServicesContainer , infra = infra)
+    service = providers.Container(ServicesContainer , infra = infra , repos = repos )
     messaging = providers.Container(MessagingContainer,infra=infra)
     
  
