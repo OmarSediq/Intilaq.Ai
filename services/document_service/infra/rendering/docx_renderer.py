@@ -1,26 +1,28 @@
-from docxtpl import DocxTemplate
-from io import BytesIO
 from Domain.contracts.rendering.docx_contract import DocxContract
 import os
+import asyncio
+
+
 class DocxRenderer(DocxContract):
-    def __init__(self, template_path: str):
-        self.template_path = template_path
+    async def render(self, html: str) -> bytes:
 
-    async def render(self, snapshot: dict) -> bytes:
-          
-        print("DOCX TEMPLATE PATH:", self.template_path)
-        print("FILE EXISTS:", os.path.exists(self.template_path))
+        process = await asyncio.create_subprocess_exec(
+            "pandoc",
+            "-f", "html",
+            "-t", "docx",
+            stdout=asyncio.subprocess.PIPE,
+            stdin=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
 
-        doc = DocxTemplate(self.template_path)
+        stdout, stderr = await process.communicate(
+            input=html.encode("utf-8")
+        )
 
-        doc.render(snapshot)
+        if process.returncode != 0:
+            raise RuntimeError(f"Pandoc failed: {stderr.decode()}")
 
-        buffer = BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-                            
-        buffer.seel(0)
-        return buffer.read()
+        return stdout
     
 
     

@@ -41,22 +41,23 @@ class GenerateDocumentUseCase:
             content=pdf_bytes,
         )
 
+
+        docx_bytes = await self._docx_contract.render(html)
+        docx_id = await self._document_repo.save(
+            snapshot_id=event.snapshot_id,
+            document_type="docx",
+            content=docx_bytes,
+        )
+
         await self._snapshot_repo.attach_documents(
             event.snapshot_id,
             {
                 "pdf": pdf_id,
                 "html": html_id,
-                # "docx": docx_id,
+                "docx": docx_id,
             },
         )
 
-
-        # docx_bytes = await self._docx_contract.render(snapshot)
-        # await self._document_repo.save(
-        #     snapshot_id=event.snapshot_id,
-        #     document_type="docx",
-        #     content=docx_bytes,
-        # )
 
 
 

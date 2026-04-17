@@ -24,9 +24,8 @@ async def bootstrap():
     html_renderer = JinjaHtmlRenderer(template_dir=str(TEMPLATES_DIR))
     pdf_renderer = PdfGenerator()
 
-    docx_renderer = DocxRenderer(
-    template_path=str(TEMPLATES_DIR/"resume_template.docx")
-)
+    docx_renderer = DocxRenderer()
+
 
     # redis_client = Redis.from_url(settings.REDIS_URL)
 

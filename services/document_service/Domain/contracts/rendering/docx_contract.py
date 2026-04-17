@@ -4,6 +4,6 @@ from typing import Dict, Any
 
 class DocxContract(ABC):
     @abstractmethod
-    async def render(self, snapshot: Dict[str, Any]) -> bytes:
+    async def render(self, html: str) -> bytes:
 
          pass
