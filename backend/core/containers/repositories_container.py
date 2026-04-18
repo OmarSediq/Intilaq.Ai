@@ -15,6 +15,9 @@ from backend.data_access.postgres.user_repository import UserRepository
 from backend.data_access.mongo.home.home_stats_repository import HomeStatsRepository
 from backend.data_access.mongo.home.interview_session_home_repository import InterviewSessionHomeRepository
 from backend.data_access.mongo.interview.interview_repository import InterviewRepository
+from backend.data_access.mongo.interview.interview_answer_repository import InterviewAnswerRepository
+from backend.data_access.mongo.interview.interview_home_summary_repository import InterviewHomeSummaryRepository
+from backend.data_access.mongo.interview.interview_session_result_repository import InterviewSessionResultRepository
 from backend.data_access.mongo.hr.hr_interview_client_repository import HRAnswerRepository
 from backend.data_access.mongo.hr.hr_invitation_repository import HRInvitationRepository
 from backend.data_access.mongo.hr.hr_interview_repository import HRInterviewRepository
@@ -44,7 +47,10 @@ class RepositoriesContainer (containers.DeclarativeContainer):
     user_repository_factory = providers.Factory(UserRepository)
     home_stats_repository_factory = providers.Factory(HomeStatsRepository)
     interview_session_home_repository_factory = providers.Factory(InterviewSessionHomeRepository)
-    interview_repository_factory = providers.Factory(InterviewRepository)
+    interview_repository_factory = providers.Factory(InterviewRepository , db = infra.mongo_interview_questions_db)
+    interview_answer_repository_factory = providers.Factory(InterviewAnswerRepository , db = infra.mongo_interview_answers_db)
+    interview_home_summary_repository_factory = providers.Factory(InterviewHomeSummaryRepository , db  = infra.mongo_interview_user_home_summary_db)
+    interview_session_result_repository_factory = providers.Factory(InterviewSessionResultRepository , db = infra.mongo_interview_session_results_db)
     hr_interview_client_repository_factory = providers.Factory(HRAnswerRepository)
     hr_invitation_repository_factory = providers.Factory(HRInvitationRepository , db = infra.mongo_hr_db) ## editing 
     hr_interview_repository_factory = providers.Factory(HRInterviewRepository , db = infra.mongo_hr_db) ## editing 
@@ -54,12 +60,12 @@ class RepositoriesContainer (containers.DeclarativeContainer):
     snapshot_repository_factory = providers.Factory(CVSnapshotRepository , db = infra.mongo_snapshot_db)
     user_cv_state_repository_factory = providers.Factory(UserCVStateRepository , db = infra.mongo_user_cv_state_db)
     code_redis_repository_factory = providers.Factory(CodeRedisRepository) 
-    session_redis_repository_factory = providers.Factory(SessionRedisRepository)
+    session_redis_repository_factory = providers.Factory(SessionRedisRepository, redis_client = infra.redis_client)
     # resume_gridfs_repository_factory = providers.Factory(ResumeGridFSRepository)
     gridfs_storage_repository_factory = providers.Factory(GridFSStorageRepository ,bucket=infra.cv_bucket,db=infra.mongo_snapshot_db )
     resume_repository_factory = providers.Factory(ResumeRepository)
 
-   
+#    session_redis_repository_factory
 
 
 

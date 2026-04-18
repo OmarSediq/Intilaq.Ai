@@ -4,18 +4,24 @@ from backend.core.base_service import TraceableService
 from backend.utils.response_schemas import success_response, error_response
 from backend.domain_services.interview_services.validator_service import InterviewValidatorService
 from backend.data_access.mongo.interview.interview_repository import InterviewRepository
+from backend.data_access.mongo.interview.interview_answer_repository import InterviewAnswerRepository
+from backend.data_access.mongo.interview.interview_session_result_repository import InterviewSessionResultRepository
+from backend.data_access.mongo.interview.interview_home_summary_repository import InterviewHomeSummaryRepository
 
 class InterviewScoreService(TraceableService):
-    def __init__(self, validator: InterviewValidatorService, repo_interview: InterviewRepository):
+    def __init__(self, validator: InterviewValidatorService, repo_interview: InterviewRepository , repo_answer : InterviewAnswerRepository , repo_session_result : InterviewSessionResultRepository , repo_user_home_summary: InterviewHomeSummaryRepository):
         self.validator = validator
         self.repo_interview = repo_interview
+        self.repo_answer = repo_answer
+        self.repo_session_result = repo_session_result
+        self.repo_user_home_summary = repo_user_home_summary
 
     async def calculate_score(self, session_id: int, user_id: str):
         is_valid = await self.validator.validate_and_sync_session(session_id, user_id)
         if not is_valid:
             return error_response(code=404, error_message="Session not found or unauthorized")
 
-        answers = await self.repo_interview.get_all_answers_with_scores(session_id, user_id)
+        answers = await self.repo_answer.get_all_answers_with_scores(session_id, user_id)
         if not answers:
             return error_response(code=404, error_message="No answers with scores found for this session")
 
@@ -47,7 +53,7 @@ class InterviewScoreService(TraceableService):
         if not is_valid:
             return error_response(code=404, error_message="Session not found or unauthorized")
 
-        answers = await self.repo_interview.get_all_answers_with_scores(session_id, user_id)
+        answers = await self.repo_answer.get_all_answers_with_scores(session_id, user_id)
         if not answers:
             return error_response(code=404, error_message="No answers with scores found for this session")
 
@@ -60,7 +66,7 @@ class InterviewScoreService(TraceableService):
         final_score = (total_score / max_score) * 100
         answered_questions = len(scores)
 
-        await self.repo_interview.save_session_result({
+        await self.repo_session_result.save_session_result({
             "session_id": session_id,
             "user_id": user_id,
             "final_score": round(final_score, 2),
@@ -75,7 +81,7 @@ class InterviewScoreService(TraceableService):
         if not session:
             return error_response(code=404, error_message="Session data not found")
 
-        existing_summary = await self.repo_interview.find_user_summary(user_id)
+        existing_summary = await self.repo_user_home_summary.find_user_summary(user_id)
 
         if existing_summary:
             new_total_interviews = existing_summary["total_interviews"] + 1
@@ -87,7 +93,7 @@ class InterviewScoreService(TraceableService):
                 (existing_summary["accuracy"] * existing_summary["total_answers"]) + sum(scores)
             ) / new_total_answers
 
-            await self.repo_interview.update_user_summary(
+            await self.repo_user_home_summary.update_user_summary(
                 user_id=user_id,
                 update_data={
                     "avg_score": round(new_avg_score, 2),
@@ -106,7 +112,7 @@ class InterviewScoreService(TraceableService):
                 }
             )
         else:
-            await self.repo_interview.insert_user_summary({
+            await self.repo_user_home_summary.insert_user_summary({
                 "user_id": user_id,
                 "total_interviews": 1,
                 "total_answers": len(scores),

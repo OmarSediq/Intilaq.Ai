@@ -23,7 +23,7 @@ class ServicesContainer (containers.DeclarativeContainer):
     validator_service = providers.Factory(
         InterviewValidatorService,
         repo_interview=repos.interview_repository_factory,
-        repo_session=repos.session_redis_repository
+        repo_session=repos.session_redis_repository_factory
     )
 
 

@@ -8,31 +8,6 @@ from backend.core.config import Settings
 
 settings = Settings()
 
-# class MongoResource(resources.AsyncResource):
-#     async def init(self):
-#         client = AsyncIOMotorClient(settings.MONGO_URI)
-#         await client.admin.command("ping")
-#         print("[INFRA] Mongo connected.")
-#         return client
-
-#     async def shutdown(self, client):
-#         client.close()
-#         print("[INFRA] Mongo disconnected.")
-
-# class RedisResource(resources.AsyncResource):
-#     async def init(self):
-#         client = redis.from_url(settings.REDIS_URL, decode_responses=True)
-#         await client.ping()
-#         print("[INFRA] Redis connected.")
-#         return client
-
-#     async def shutdown(self, client):
-#         try:
-#             await client.close()
-#         except Exception:
-#             pass
-#         print("[INFRA] Redis disconnected.")
-
 
 class InfraContainer(containers.DeclarativeContainer):
     
@@ -66,6 +41,26 @@ class InfraContainer(containers.DeclarativeContainer):
 
     mongo_hr_db = providers.Singleton(
         lambda client: client["hr_db"],
+        client=mongo_client,
+    )
+
+    mongo_interview_questions_db = providers.Singleton(
+        lambda client: client["questions"],
+        client=mongo_client,
+    )
+
+
+    mongo_interview_answers_db = providers.Singleton(
+        lambda client: client["answers"],
+        client=mongo_client,
+    )
+    mongo_interview_user_home_summary_db = providers.Singleton(
+        lambda client: client["user_home_summary"],
+        client=mongo_client,
+    )
+    
+    mongo_interview_session_results_db = providers.Singleton(
+        lambda client: client["session_results"],
         client=mongo_client,
     )
 
@@ -103,22 +98,6 @@ class InfraContainer(containers.DeclarativeContainer):
         database=mongo_snapshot_db,
     )
 
-
-#     cv_bucket = providers.Singleton(
-#     AsyncIOMotorGridFSBucket,
-#     mongo_snapshot_db
-# )
-    
-        # Mongo
-    # mongo_db_factory = providers.Factory(
-    #     lambda client, name: client[name],
-    #     client=mongo_client,
-    #     name=config.mongo.db_name
-    # )
-    # gridfs_bucket = providers.Factory(lambda db: AsyncIOMotorGridFSBucket(db), db=mongo_db_factory)
-
-    # Redis
-    # redis_client = providers.Resource(RedisResource)
     redis_client = providers.Singleton(
         redis.from_url,
         settings.REDIS_URL,

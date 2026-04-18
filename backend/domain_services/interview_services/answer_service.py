@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from fastapi import UploadFile
 from backend.utils.response_schemas import success_response, error_response
 from backend.domain_services.interview_services.validator_service import InterviewValidatorService
-from backend.data_access.mongo.interview.interview_repository import InterviewRepository
+from backend.data_access.mongo.interview.interview_answer_repository import InterviewAnswerRepository
 from backend.data_access.redis.session_redis_repository import SessionRedisRepository
 from backend.domain_services.ai_services.whisper_transcriber_service import WhisperTranscriberService
 from backend.core.base_service import TraceableService
@@ -11,12 +11,12 @@ class InterviewAnswerService(TraceableService):
     def __init__(
         self,
         validator: InterviewValidatorService,
-        repo_interview: InterviewRepository,
+        repo_answer: InterviewAnswerRepository,
         repo_session: SessionRedisRepository,
         whisper_service: WhisperTranscriberService
     ):
         self.validator = validator
-        self.repo_interview = repo_interview
+        self.repo_answer = repo_answer
         self.repo_session = repo_session
         self.whisper_service = whisper_service
 
@@ -25,7 +25,7 @@ class InterviewAnswerService(TraceableService):
         if not is_valid:
             return error_response(code=404, error_message="Session not found or unauthorized")
 
-        session = await self.repo_interview.find_session_by_session_id(session_id, user_id)
+        session = await self.repo_answer.find_session_by_session_id(session_id, user_id)
         current_index = await self.repo_session.get_current_question_index(session_id)
 
         if current_index >= len(session["questions"]):
@@ -48,7 +48,7 @@ class InterviewAnswerService(TraceableService):
                     error_message=f"Whisper error: {error_msg}"
                 )
 
-            await self.repo_interview.insert_user_answer({
+            await self.repo_answer.insert_user_answer({
                 "session_id": session_id,
                 "user_id": user_id,
                 "question_index": current_index,
